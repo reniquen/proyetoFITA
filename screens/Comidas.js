@@ -14,7 +14,7 @@ export default function Comidas() {
             { nombre: "Cena", comida: "Ensalada de pollo con palta, nueces y almendras", calorias: 450 },
         ],
         miércoles: [
-            { nombre: "Desayuno", comida: "Batido de proteína con avena y plátano", calorias: 400 },
+            { nombre: "Desayunos", comida: "Batido de proteína con avena y plátano", calorias: 400 },
             { nombre: "Almuerzo", comida: "Pechuga de pollo con arroz integral y verduras salteadas", calorias: 500 },
             { nombre: "Cena", comida: "Filete de res con espinaca y quinoa", calorias: 600 },
         ],
