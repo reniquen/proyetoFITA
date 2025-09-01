@@ -2,6 +2,8 @@ Descripcion
 Fita es un proyecto en una aplicacion movil enfocado a brindar herramientas basicas para mantener una vida y dieta saludable. su desarrollo esta 
 creado en React native con lenguaje JavasCript y una base de datos en la nube usando firebase 
 
+hola hola 
+
 
 requisitos 
 Android studio o Expo go en el movil.  
