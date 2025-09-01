@@ -2,12 +2,21 @@ Descripcion
 Fita es un proyecto en una aplicacion movil enfocado a brindar herramientas basicas para mantener una vida y dieta saludable. su desarrollo esta 
 creado en React native con lenguaje JavasCript y una base de datos en la nube usando firebase 
 
-hola hola 
 
 
 requisitos 
 Android studio o Expo go en el movil.  
 Dependencias necesarias: 
+
+npm install -g expo-cli
+npx create-expo-app fita
+npx expo start
+npm install firebase
+npm install react-native-screens react-native-safe-area-context react-native-gesture-handler react-native-reanimated react-native-get-random-values
+npm install @react-navigation/native
+npm install react-native-screens react-native-safe-area-context
+npm install @react-navigation/native-stack
+
 
 
 como usar
