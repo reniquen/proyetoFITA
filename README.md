@@ -1,5 +1,5 @@
 # Fita
-
+12331
 Fita es una aplicación móvil enfocada en brindar herramientas básicas para mantener una **vida y dieta saludable**.  
 El proyecto está desarrollado en **React Native** con **JavaScript** y utiliza **Firebase** como base de datos en la nube.
 
@@ -22,4 +22,3 @@ npm install @react-navigation/native
 npm install react-native-screens react-native-safe-area-context
 npm install @react-navigation/native-stack
 
-123
