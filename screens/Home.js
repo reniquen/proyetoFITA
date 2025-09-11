@@ -3,6 +3,8 @@ import React from 'react';
 import { Linking } from 'react-native';
 import { auth } from './firebaseConfig';
 import { signOut } from 'firebase/auth';
+import AvatarCoach from './AvatarCoach';
+
 
 export default function Home({ navigation }) {
   const rutinas = {
@@ -99,7 +101,7 @@ export default function Home({ navigation }) {
           repeticiones: "1 serie de 15 minutos",
           imagen: require('../assets/saltocuerda.png'),
           video: "https://www.youtube.com/watch?v=rpS3MQgxdA0&ab_channel=Adri%C3%A1nFit",
-        },    
+        },
       ],
     },
     plan2: {
@@ -195,7 +197,7 @@ export default function Home({ navigation }) {
           repeticiones: "1 serie de 15 minutos",
           imagen: require('../assets/saltocuerda.png'),
           video: "https://www.youtube.com/watch?v=rpS3MQgxdA0&ab_channel=Adri%C3%A1nFit",
-        },  
+        },
       ],
     },
     plan3: {
@@ -324,8 +326,15 @@ export default function Home({ navigation }) {
   };
 
   return (
+
     <ScrollView style={styles.contenedorScroll} contentContainerStyle={styles.scrollContent}>
       <View style={styles.padre}>
+       <View style={styles.avatarContainer}>
+              <AvatarCoach />
+              <Text style={styles.avatarTexto}>¡Hola! Hoy te motivaré en tu rutina 💪</Text>
+            </View>
+
+
         <Text style={styles.titulo}>Hoy {diaActual} te toca la siguiente rutina, ¡CON TODO!:</Text>
         {rutinaHoy.length > 0 ? (
           rutinaHoy.map((ejercicio, index) => (
@@ -349,11 +358,23 @@ export default function Home({ navigation }) {
           <Text style={styles.botonTexto}>Ver dieta de hoy</Text>
         </TouchableOpacity>
 
+         <TouchableOpacity
+                style={styles.boton}
+                onPress={() => navigation.navigate('Avatar')}
+              >
+                <Text style={styles.botonTexto}>Ver Avatar</Text>
+              </TouchableOpacity>
+
         {/* Botón para cerrar sesión */}
         <TouchableOpacity style={[styles.boton, { backgroundColor: '#f27474', marginTop: 15 }]} onPress={cerrarSesion}>
           <Text style={[styles.botonTexto, { color: 'white' }]}>Cerrar Sesión</Text>
         </TouchableOpacity>
       </View>
+
+
+
+
+
     </ScrollView>
   );
 }
@@ -429,5 +450,25 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: 'Black',
     fontWeight: 'bold',
+  },
+
+  avatarContainer: {
+    backgroundColor: '#fff3e0',
+    padding: 20,
+    borderRadius: 20,
+    alignItems: 'center',
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 8,
+  },
+  avatarTexto: {
+    marginTop: 10,
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    color: '#34495e',
   },
 });
