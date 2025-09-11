@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Text, StyleSheet, View, Image, TextInput, TouchableOpacity, Alert } from 'react-native';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
 import { auth } from './firebaseConfig';
 
 export default function Login({ navigation }) {
@@ -20,6 +20,20 @@ export default function Login({ navigation }) {
     } catch (error) {
       console.error('Error al iniciar sesión:', error);
       Alert.alert('Error', 'No se pudo iniciar sesión. Verifique sus credenciales.');
+    }
+  };
+
+  const recuperarContrasena = async () => {
+    if (!correo) {
+      Alert.alert('Error', 'Ingrese su correo para recuperar la contraseña.');
+      return;
+    }
+    try {
+      await sendPasswordResetEmail(auth, correo);
+      Alert.alert('Éxito', 'Se ha enviado un correo para restablecer su contraseña.');
+    } catch (error) {
+      console.error('Error al enviar correo de recuperación:', error);
+      Alert.alert('Error', 'No se pudo enviar el correo de recuperación.');
     }
   };
 
@@ -56,6 +70,11 @@ export default function Login({ navigation }) {
         <View style={styles.PadreBoton}>
           <TouchableOpacity style={styles.cajaBoton} onPress={() => navigation.navigate('Registro')}>
             <Text style={styles.TextoBoton}>Registrarse</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.PadreBoton}>
+          <TouchableOpacity style={styles.cajaBoton} onPress={recuperarContrasena}>
+            <Text style={styles.TextoBoton}>Recuperar Contraseña</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -99,7 +118,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#82e0aa',
     borderRadius: 50,
     paddingVertical: 20,
-    width: 120,
+    width: 180, // aumenté un poco para el texto largo
     marginTop: 20,
     shadowOpacity: 1,
     shadowRadius: 5,
