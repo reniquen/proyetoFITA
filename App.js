@@ -8,6 +8,7 @@ import Datos from './screens/Datos';
 import Planes from './screens/Planes';
 import Home from './screens/Home';
 import Comidas from './screens/Comidas';
+import AdminPanel from './screens//AdminPanel.js';
 
 const Stack = createNativeStackNavigator();
 
@@ -21,6 +22,8 @@ export default function App() {
         <Stack.Screen name="Planes" component={Planes} options={{ title: 'Planes' }} />
         <Stack.Screen name="Home" component={Home} options={{ title: 'Home' }} />
         <Stack.Screen name="Comidas" component={Comidas} options={{ title: 'Comidas' }} />
+        <Stack.Screen name="AdminPanel" component={AdminPanel} />
+
       </Stack.Navigator>
     </NavigationContainer>
   );

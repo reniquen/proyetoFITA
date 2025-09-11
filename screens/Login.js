@@ -7,20 +7,30 @@ export default function Login({ navigation }) {
   const [correo, setCorreo] = useState('');
   const [contrasena, setContrasena] = useState('');
 
-  const iniciarSesion = async () => {
-    if (!correo || !contrasena) {
-      Alert.alert('Error', 'Por favor ingrese su correo y contraseña.');
-      return;
-    }
-    try {
-      await signInWithEmailAndPassword(auth, correo, contrasena);
-      Alert.alert('Éxito', 'Inicio de sesión exitoso.', [
-        { text: 'OK', onPress: () => navigation.navigate('Home') },
-      ]);
-    } catch (error) {
-      console.error('Error al iniciar sesión:', error);
-      Alert.alert('Error', 'No se pudo iniciar sesión. Verifique sus credenciales.');
-    }
+ const iniciarSesion = async () => {
+   if (!correo || !contrasena) {
+     Alert.alert('Error', 'Por favor ingrese su correo y contraseña.');
+     return;
+   }
+   try {
+     await signInWithEmailAndPassword(auth, correo, contrasena);
+
+     // Si es el administrador, redirigir a AdminPanel
+      const correosAdmin = ["reniquen@hotmail.com", "jno@gmail.com", "root@fita.com"];
+
+         if (correosAdmin.includes(correo)) {
+           Alert.alert('Bienvenido Administrador', 'Accediendo al panel de administración.', [
+             { text: 'OK', onPress: () => navigation.navigate('AdminPanel') },
+           ]);
+         } else {
+           Alert.alert('Éxito', 'Inicio de sesión exitoso.', [
+             { text: 'OK', onPress: () => navigation.navigate('Home') },
+           ]);
+         }
+       } catch (error) {
+         console.error('Error al iniciar sesión:', error);
+         Alert.alert('Error', 'No se pudo iniciar sesión. Verifique sus credenciales.');
+       }
   };
 
   const recuperarContrasena = async () => {
