@@ -4,6 +4,8 @@ Fita essss una aplicación móvil enfocada en brindar herramientas básicas para
 El proyecto está desarrollado en **React Native** con **JavaScript** y utiliza **Firebase** como base de datos en la nube.
 
 ---
+probando los cambios en para git y mi buen amigo JOSE
+
 
 ## Requisitos
 
