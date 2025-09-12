@@ -13,7 +13,7 @@ probando los cambios en para git y mi buen amigo JOSE
 - **Node.js** y **npm** instalados en tu sistema.  
 :v
 ### Dependencias necesarias
-
+juju
 ```bash
 npm install -g expo-cli
 npx create-expo-app fita
