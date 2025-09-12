@@ -1,20 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { Text, StyleSheet, View, TouchableOpacity, Alert } from 'react-native';
+import { Text, StyleSheet, View, TouchableOpacity, Alert, FlatList } from 'react-native';
 import { signOut } from 'firebase/auth';
 import { auth, db } from './firebaseConfig';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 
 export default function AdminPanel({ navigation }) {
-  const [usuariosCount, setUsuariosCount] = useState(0);
+  const [usuarios, setUsuarios] = useState([]);
 
   useEffect(() => {
     const obtenerUsuarios = async () => {
       try {
         const querySnapshot = await getDocs(collection(db, 'usuarios'));
-        setUsuariosCount(querySnapshot.size);
+        const listaUsuarios = querySnapshot.docs.map(docu => ({
+          id: docu.id,
+          ...docu.data(),
+        }));
+        setUsuarios(listaUsuarios);
       } catch (error) {
         console.error('Error al obtener usuarios:', error);
-        Alert.alert('Error', 'No se pudo obtener la cantidad de usuarios.');
+        Alert.alert('Error', 'No se pudo obtener la lista de usuarios.');
       }
     };
 
@@ -27,16 +31,63 @@ export default function AdminPanel({ navigation }) {
       .catch(() => Alert.alert('Error', 'No se pudo cerrar sesión.'));
   };
 
+  const eliminarUsuario = async (id) => {
+    try {
+      await deleteDoc(doc(db, 'usuarios', id));
+      setUsuarios(usuarios.filter(user => user.id !== id));
+      Alert.alert('Éxito', 'Usuario eliminado correctamente.');
+    } catch (error) {
+      console.error('Error eliminando usuario:', error);
+      Alert.alert('Error', 'No se pudo eliminar el usuario.');
+    }
+  };
+
+  const editarUsuario = async (id) => {
+    try {
+      // Aquí puedes cambiar el campo que quieras actualizar. Ejemplo: nombre
+      const nuevoNombre = "Usuario Editado"; // <-- lo ideal es mostrar un formulario o Alert.prompt
+      await updateDoc(doc(db, 'usuarios', id), { nombre: nuevoNombre });
+
+      setUsuarios(usuarios.map(user =>
+        user.id === id ? { ...user, nombre: nuevoNombre } : user
+      ));
+
+      Alert.alert('Éxito', 'Usuario actualizado correctamente.');
+    } catch (error) {
+      console.error('Error editando usuario:', error);
+      Alert.alert('Error', 'No se pudo actualizar la información.');
+    }
+  };
+
   return (
     <View style={styles.padre}>
       <Text style={styles.titulo}>Panel de Administración</Text>
       <Text style={styles.subtitulo}>Bienvenido, administrador</Text>
 
-      <View style={styles.card}>
-        <Text style={styles.texto}>Usuarios registrados: {usuariosCount}</Text>
-      </View>
+      <Text style={styles.texto}>Usuarios registrados: {usuarios.length}</Text>
 
-      <TouchableOpacity style={[styles.boton, { backgroundColor: '#f27474' }]} onPress={cerrarSesion}>
+      {/* Lista de usuarios */}
+      <FlatList
+        data={usuarios}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <View style={styles.card}>
+            <Text style={styles.texto}>{item.nombre} {item.apellido}</Text>
+            <Text style={styles.textoSecundario}>📧 {item.correo}</Text>
+
+            <View style={styles.acciones}>
+              <TouchableOpacity style={[styles.botonAccion, { backgroundColor: '#f39c12' }]} onPress={() => editarUsuario(item.id)}>
+                <Text style={styles.botonTexto}>Editar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.botonAccion, { backgroundColor: '#e74c3c' }]} onPress={() => eliminarUsuario(item.id)}>
+                <Text style={styles.botonTexto}>Eliminar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+      />
+
+      <TouchableOpacity style={[styles.boton, { backgroundColor: '#2ecc71' }]} onPress={cerrarSesion}>
         <Text style={[styles.botonTexto, { color: 'white' }]}>Cerrar Sesión</Text>
       </TouchableOpacity>
     </View>
@@ -46,45 +97,58 @@ export default function AdminPanel({ navigation }) {
 const styles = StyleSheet.create({
   padre: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
     backgroundColor: '#58d68d',
     padding: 20,
   },
   titulo: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 10,
+    marginBottom: 5,
+    textAlign: 'center',
   },
   subtitulo: {
     fontSize: 18,
-    marginBottom: 30,
+    marginBottom: 20,
+    textAlign: 'center',
   },
   card: {
     backgroundColor: '#fad7a0',
     borderRadius: 15,
-    padding: 20,
-    marginBottom: 30,
-    alignItems: 'center',
+    padding: 15,
+    marginBottom: 15,
+    elevation: 3,
   },
   texto: {
-    fontSize: 18,
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  textoSecundario: {
+    fontSize: 14,
+    color: '#555',
     marginBottom: 10,
   },
+  acciones: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  botonAccion: {
+    borderRadius: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+  },
   boton: {
-    backgroundColor: '#82e0aa',
+    marginTop: 20,
     borderRadius: 50,
     paddingVertical: 15,
     paddingHorizontal: 30,
-    shadowOpacity: 1,
-    shadowRadius: 5,
-    elevation: 5,
+    alignSelf: 'center',
   },
   botonTexto: {
     textAlign: 'center',
-    fontSize: 16,
-    color: 'black',
+    fontSize: 14,
+    color: 'white',
     fontWeight: 'bold',
   },
 });
+
 
