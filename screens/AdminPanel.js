@@ -9,9 +9,9 @@ import {
   TextInput,
   Modal,
   KeyboardAvoidingView,
-  Platform,
-  ScrollView
+  Platform
 } from 'react-native';
+import { Picker } from '@react-native-picker/picker'; // Importación corregida
 import { signOut } from 'firebase/auth';
 import { auth, db } from './firebaseConfig';
 import { collection, getDocs, deleteDoc, doc, updateDoc } from 'firebase/firestore';
@@ -20,7 +20,8 @@ export default function AdminPanel({ navigation }) {
   const [usuarios, setUsuarios] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [usuarioEditando, setUsuarioEditando] = useState(null);
-  const [nuevoEmail, setNuevoEmail] = useState(''); // Cambiado de nuevoCorreo a nuevoEmail
+  const [campoEditando, setCampoEditando] = useState('email');
+  const [nuevoValor, setNuevoValor] = useState('');
 
   useEffect(() => {
     const obtenerUsuarios = async () => {
@@ -59,31 +60,37 @@ export default function AdminPanel({ navigation }) {
 
   const abrirModalEdicion = (usuario) => {
     setUsuarioEditando(usuario);
-    setNuevoEmail(usuario.email); // Cambiado de correo a email
+    setCampoEditando('email');
+    setNuevoValor(usuario.email);
     setModalVisible(true);
   };
 
   const guardarCambios = async () => {
-    if (!nuevoEmail.trim()) { // Cambiado de nuevoCorreo a nuevoEmail
-      Alert.alert('Error', 'El email no puede estar vacío.'); // Cambiado de correo a email
+    if (!nuevoValor.trim()) {
+      Alert.alert('Error', 'El valor no puede estar vacío.');
       return;
     }
 
     try {
       await updateDoc(doc(db, 'usuarios', usuarioEditando.id), {
-        email: nuevoEmail // Cambiado de correo a email
+        [campoEditando]: nuevoValor
       });
 
       setUsuarios(usuarios.map(user =>
-        user.id === usuarioEditando.id ? { ...user, email: nuevoEmail } : user // Cambiado de correo a email
+        user.id === usuarioEditando.id ? { ...user, [campoEditando]: nuevoValor } : user
       ));
 
       setModalVisible(false);
-      Alert.alert('Éxito', 'Email actualizado correctamente.'); // Cambiado de correo a email
+      Alert.alert('Éxito', 'Campo actualizado correctamente.');
     } catch (error) {
       console.error('Error editando usuario:', error);
       Alert.alert('Error', 'No se pudo actualizar la información.');
     }
+  };
+
+  const cambiarCampoEditando = (campo) => {
+    setCampoEditando(campo);
+    setNuevoValor(usuarioEditando[campo] || '');
   };
 
   return (
@@ -101,7 +108,11 @@ export default function AdminPanel({ navigation }) {
         renderItem={({ item }) => (
           <View style={styles.card}>
             <Text style={styles.texto}>{item.nombre} {item.apellido}</Text>
-            <Text style={styles.textoSecundario}>📧 {item.email}</Text> {/* Cambiado de correo a email */}
+            <Text style={styles.textoSecundario}>📧 {item.email}</Text>
+            <Text style={styles.textoSecundario}>Altura: {item.altura || 'N/A'}</Text>
+            <Text style={styles.textoSecundario}>Peso: {item.peso || 'N/A'}</Text>
+            <Text style={styles.textoSecundario}>IMC: {item.imc || 'N/A'}</Text>
+            <Text style={styles.textoSecundario}>Plan: {item.plan || 'N/A'}</Text>
 
             <View style={styles.acciones}>
               <TouchableOpacity
@@ -121,7 +132,7 @@ export default function AdminPanel({ navigation }) {
         )}
       />
 
-      {/* Modal para editar email */}
+      {/* Modal para editar campos */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -133,19 +144,36 @@ export default function AdminPanel({ navigation }) {
           style={styles.modalContainer}
         >
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitulo}>Editar Email</Text> {/* Cambiado de Correo Electrónico a Email */}
+            <Text style={styles.modalTitulo}>Editar Campo</Text>
 
             <Text style={styles.modalSubtitulo}>
               Editando: {usuarioEditando?.nombre} {usuarioEditando?.apellido}
             </Text>
 
+            <Text style={styles.label}>Selecciona el campo a editar:</Text>
+            <View style={styles.pickerContainer}>
+              <Picker
+                selectedValue={campoEditando}
+                style={styles.picker}
+                onValueChange={cambiarCampoEditando}
+              >
+                <Picker.Item label="Email" value="email" />
+                <Picker.Item label="Nombre" value="nombre" />
+                <Picker.Item label="Altura" value="altura" />
+                <Picker.Item label="Peso" value="peso" />
+                <Picker.Item label="IMC" value="imc" />
+                <Picker.Item label="Plan" value="plan" />
+              </Picker>
+            </View>
+
+            <Text style={styles.label}>Nuevo valor:</Text>
             <TextInput
               style={styles.input}
-              value={nuevoEmail} // Cambiado de nuevoCorreo a nuevoEmail
-              onChangeText={setNuevoEmail} // Cambiado de setNuevoCorreo a setNuevoEmail
-              placeholder="Ingrese el nuevo email" // Cambiado de correo a email
-              keyboardType="email-address"
-              autoCapitalize="none"
+              value={nuevoValor}
+              onChangeText={setNuevoValor}
+              placeholder={`Ingrese el nuevo ${campoEditando}`}
+              keyboardType={campoEditando === 'email' ? 'email-address' : 'default'}
+              autoCapitalize={campoEditando === 'nombre' ? 'words' : 'none'}
             />
 
             <View style={styles.modalBotones}>
@@ -200,7 +228,7 @@ const styles = StyleSheet.create({
   },
   textoSecundario: {
     fontSize: 14,
-    marginBottom: 10,
+    marginBottom: 5,
     color: '#7f8c8d',
   },
   lista: {
@@ -268,6 +296,22 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: 'center',
     color: '#7f8c8d',
+  },
+  label: {
+    fontSize: 16,
+    marginBottom: 5,
+    color: '#34495e',
+  },
+  pickerContainer: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 5,
+    marginBottom: 15,
+    overflow: 'hidden',
+  },
+  picker: {
+    height: 50,
+    width: '100%',
   },
   input: {
     borderWidth: 1,
