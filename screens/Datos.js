@@ -4,8 +4,6 @@ import { doc, updateDoc } from 'firebase/firestore';
 import { db } from './firebaseConfig';
 import AvatarCoach from './AvatarCoach';
 
-// ✅ Agrega tu API KEY aquí (solo para pruebas, no recomendado en producción)
-const OPENAI_API_KEY = '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';
 
 export default function Datos({ navigation, route }) {
   const [nombre, setNombre] = useState('');
