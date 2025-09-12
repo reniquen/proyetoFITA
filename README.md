@@ -11,7 +11,7 @@ probando los cambios en para git y mi buen amigo JOSE
 
 - **Android Studio** (para emular en PC) o **Expo Go** (en el dispositivo móvil).  
 - **Node.js** y **npm** instalados en tu sistema.  
-
+nigg
 ### Dependencias necesarias
 
 ```bash
