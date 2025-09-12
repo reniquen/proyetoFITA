@@ -1,10 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Text, StyleSheet, View, TouchableOpacity, Alert } from 'react-native';
 import { signOut } from 'firebase/auth';
-import { auth } from './firebaseConfig';
+import { auth, db } from './firebaseConfig';
+import { collection, getDocs } from 'firebase/firestore';
 
 export default function AdminPanel({ navigation }) {
-  const [contador, setContador] = useState(0);
+  const [usuariosCount, setUsuariosCount] = useState(0);
+
+  useEffect(() => {
+    const obtenerUsuarios = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, 'usuarios'));
+        setUsuariosCount(querySnapshot.size);
+      } catch (error) {
+        console.error('Error al obtener usuarios:', error);
+        Alert.alert('Error', 'No se pudo obtener la cantidad de usuarios.');
+      }
+    };
+
+    obtenerUsuarios();
+  }, []);
 
   const cerrarSesion = () => {
     signOut(auth)
@@ -18,10 +33,7 @@ export default function AdminPanel({ navigation }) {
       <Text style={styles.subtitulo}>Bienvenido, administrador</Text>
 
       <View style={styles.card}>
-        <Text style={styles.texto}>Contador de pruebas: {contador}</Text>
-        <TouchableOpacity style={styles.boton} onPress={() => setContador(contador + 1)}>
-          <Text style={styles.botonTexto}>Incrementar</Text>
-        </TouchableOpacity>
+        <Text style={styles.texto}>Usuarios registrados: {usuariosCount}</Text>
       </View>
 
       <TouchableOpacity style={[styles.boton, { backgroundColor: '#f27474' }]} onPress={cerrarSesion}>
@@ -75,3 +87,4 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 });
+
