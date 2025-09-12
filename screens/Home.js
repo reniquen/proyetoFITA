@@ -12,7 +12,7 @@ export default function Home({ navigation }) {
       lunes: [
         {
           nombre: "Burpees",
-          repeticiones: "3 series de 10 repeticiones",
+          repeticiones: "4 series de 10 repeticiones",
           imagen: require('../assets/burpees.png'),
           video: "https://www.youtube.com/watch?v=IYusabTdFEo&ab_channel=VideoBodytech",
         },
