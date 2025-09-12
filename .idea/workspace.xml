@@ -5,8 +5,52 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c49cd71e-9891-47e7-8537-e4ee43deafde" name="Changes" comment="avatar agregado">
-      <change afterPath="$PROJECT_DIR$/screens/functions/index .js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/deviceManager.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_12_09_2025_01_00_a__m___Changes_.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_12_09_2025_01_00_a_ m__[Changes]/shelved.patch" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/fita/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/fita/.vscode/extensions.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/fita/.vscode/settings.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/fita/README.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/fita/app.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/fita/app/(tabs)/_layout.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/fita/app/(tabs)/explore.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/fita/app/(tabs)/index.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/fita/app/_layout.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/fita/app/modal.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/fita/assets/images/android-icon-background.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/fita/assets/images/android-icon-foreground.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/fita/assets/images/android-icon-monochrome.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/fita/assets/images/favicon.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/fita/assets/images/icon.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/fita/assets/images/partial-react-logo.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/fita/assets/images/react-logo.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/fita/assets/images/react-logo@2x.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/fita/assets/images/react-logo@3x.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/fita/assets/images/splash-icon.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/fita/components/external-link.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/fita/components/haptic-tab.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/fita/components/hello-wave.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/fita/components/parallax-scroll-view.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/fita/components/themed-text.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/fita/components/themed-view.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/fita/components/ui/collapsible.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/fita/components/ui/icon-symbol.ios.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/fita/components/ui/icon-symbol.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/fita/constants/theme.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/fita/eslint.config.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/fita/hooks/use-color-scheme.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/fita/hooks/use-color-scheme.web.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/fita/hooks/use-theme-color.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/fita/package-lock.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/fita/package.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/fita/scripts/reset-project.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/fita/tsconfig.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tsconfig.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/screens/AdminPanel.js" beforeDir="false" afterPath="$PROJECT_DIR$/screens/AdminPanel.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -42,7 +86,6 @@
   &quot;associatedIndex&quot;: 7
 }</component>
   <component name="ProjectId" id="324yynNd7A3VrIunz5RmSB6ypEm" />
-  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
