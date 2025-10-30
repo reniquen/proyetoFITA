@@ -6,6 +6,22 @@ El proyecto está desarrollado en **React Native** con **JavaScript** y utiliza 
 ---1
 probando los cambios en para git y mi buen amigo JOSE
 
+## Requisitos
+
+- **Android Studio** (para emular en PC) o **Expo Go** (en el dispositivo móvil).  
+- **Node.js** y **npm** instalados en tu sistema.  
+
+### Dependencias necesarias
+
+```bash
+npm install -g expo-cli
+npx create-expo-app fita
+npx expo start
+npm install firebase
+npm install react-native-screens react-native-safe-area-context react-native-gesture-handler react-native-reanimated react-native-get-random-values
+npm install @react-navigation/native
+npm install react-native-screens react-native-safe-area-context
+npm install @react-navigation/native-stack
 
 ## Requisitos
 
