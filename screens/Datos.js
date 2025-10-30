@@ -2,6 +2,7 @@ import { Text, StyleSheet, View, TextInput, TouchableOpacity, Alert } from 'reac
 import React, { useState } from 'react';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from './firebaseConfig';
+import AvatarCoach from './AvatarCoach';
 
 export default function Datos({ navigation, route }) {
   const [nombre, setNombre] = useState('');
@@ -93,7 +94,12 @@ export default function Datos({ navigation, route }) {
           </TouchableOpacity>
         </View>
       </View>
+      <View>
+        <AvatarCoach />
+      </View>
     </View>
+
+
   );
 }
 
@@ -151,4 +157,3 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 });
-

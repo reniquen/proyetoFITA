@@ -1,25 +1,49 @@
 import React, { useState } from 'react';
 import { Text, StyleSheet, View, Image, TextInput, TouchableOpacity, Alert } from 'react-native';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
 import { auth } from './firebaseConfig';
 
 export default function Login({ navigation }) {
   const [correo, setCorreo] = useState('');
   const [contrasena, setContrasena] = useState('');
 
-  const iniciarSesion = async () => {
-    if (!correo || !contrasena) {
-      Alert.alert('Error', 'Por favor ingrese su correo y contraseña.');
+ const iniciarSesion = async () => {
+   if (!correo || !contrasena) {
+     Alert.alert('Error', 'Por favor ingrese su correo y contraseña.');
+     return;
+   }
+   try {
+     await signInWithEmailAndPassword(auth, correo, contrasena);
+
+     // Si es el administrador, redirigir a AdminPanel
+      const correosAdmin = ["reniquen@hotmail.com", "jno@gmail.com", "root@fita.com"];
+
+         if (correosAdmin.includes(correo)) {
+           Alert.alert('Bienvenido Administrador', 'Accediendo al panel de administración.', [
+             { text: 'OK', onPress: () => navigation.navigate('AdminPanel') },
+           ]);
+         } else {
+           Alert.alert('Éxito', 'Inicio de sesión exitoso.', [
+             { text: 'OK', onPress: () => navigation.navigate('Home') },
+           ]);
+         }
+       } catch (error) {
+         console.error('Error al iniciar sesión:', error);
+         Alert.alert('Error', 'No se pudo iniciar sesión. Verifique sus credenciales.');
+       }
+  };
+
+  const recuperarContrasena = async () => {
+    if (!correo) {
+      Alert.alert('Error', 'Ingrese su correo para recuperar la contraseña.');
       return;
     }
     try {
-      await signInWithEmailAndPassword(auth, correo, contrasena);
-      Alert.alert('Éxito', 'Inicio de sesión exitoso.', [
-        { text: 'OK', onPress: () => navigation.navigate('Home') },
-      ]);
+      await sendPasswordResetEmail(auth, correo);
+      Alert.alert('Éxito', 'Se ha enviado un correo para restablecer su contraseña.');
     } catch (error) {
-      console.error('Error al iniciar sesión:', error);
-      Alert.alert('Error', 'No se pudo iniciar sesión. Verifique sus credenciales.');
+      console.error('Error al enviar correo de recuperación:', error);
+      Alert.alert('Error', 'No se pudo enviar el correo de recuperación.');
     }
   };
 
@@ -56,6 +80,11 @@ export default function Login({ navigation }) {
         <View style={styles.PadreBoton}>
           <TouchableOpacity style={styles.cajaBoton} onPress={() => navigation.navigate('Registro')}>
             <Text style={styles.TextoBoton}>Registrarse</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.PadreBoton}>
+          <TouchableOpacity style={styles.cajaBoton} onPress={recuperarContrasena}>
+            <Text style={styles.TextoBoton}>Recuperar Contraseña</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -99,7 +128,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#82e0aa',
     borderRadius: 50,
     paddingVertical: 20,
-    width: 120,
+    width: 180, // aumenté un poco para el texto largo
     marginTop: 20,
     shadowOpacity: 1,
     shadowRadius: 5,

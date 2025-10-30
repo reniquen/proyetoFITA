@@ -2,6 +2,7 @@ import { Text, StyleSheet, View, Image, TouchableOpacity, ScrollView, Alert } fr
 import React from 'react';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from './firebaseConfig';
+import AvatarCoach from './AvatarCoach';
 
 export default function Planes({ navigation, route }) {
   const userId = route.params?.userId;
@@ -76,6 +77,10 @@ export default function Planes({ navigation, route }) {
           >
             <Text style={styles.botonTexto}>Escoger</Text>
           </TouchableOpacity>
+        </View>
+
+        <View>
+          <AvatarCoach />
         </View>
       </View>
     </ScrollView>

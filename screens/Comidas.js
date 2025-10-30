@@ -1,5 +1,7 @@
 import React from 'react';
 import { Text, StyleSheet, View, ScrollView } from 'react-native';
+import AvatarCoach from './AvatarCoach';
+
 
 export default function Comidas() {
     const dietas = {
@@ -64,6 +66,11 @@ export default function Comidas() {
                 )}
                 <Text style={styles.totalCalorias}>Calorías totales del día: {totalCalorias} kcal</Text>
             </View>
+
+
+        <View>
+        <AvatarCoach />
+       </View>
         </ScrollView>
     );
 }
