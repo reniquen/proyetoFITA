@@ -1,67 +1,60 @@
+// screens/Avatar.js
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, Text, TouchableOpacity, FlatList, Alert } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-// import AvatarCoach from './AvatarCoach'; // Asegúrate de que este componente exista si lo usas en otro lugar
+import { useAvatar } from '../contexts/AvatarContext'; // 1. Importar el Hook
 
 export default function Avatar() {
-  const AVATAR_KEY = 'avatar';
-  const opciones = ['🤖', '🧑‍🏫', '🦾', '🐼', '🔥', '💪', '👑', '🧙']; // Más avatares para elegir
-
-  // 1. Estado para el avatar guardado (el que se usa en la app)
-  const [avatarActual, setAvatarActual] = useState('🤖'); 
-  // 2. Estado para el avatar que el usuario está previsualizando/seleccionando
-  const [avatarSeleccionado, setAvatarSeleccionado] = useState('🤖'); 
+  // 2. Usar el contexto
+  const { avatar: avatarActual, guardarAvatar, isLoading } = useAvatar(); 
+  
+  const [avatarSeleccionado, setAvatarSeleccionado] = useState(avatarActual);
   const [guardado, setGuardado] = useState(false);
 
-  // Cargar avatar guardado al iniciar
-  useEffect(() => {
-    const cargarAvatar = async () => {
-      try {
-        const value = await AsyncStorage.getItem(AVATAR_KEY);
-        if (value) {
-          setAvatarActual(value);
-          setAvatarSeleccionado(value); // El seleccionado es el actual al inicio
-        }
-      } catch (e) {
-        console.error('Error cargando avatar:', e);
-        Alert.alert('Error', 'No se pudo cargar tu avatar. Usando el predeterminado.');
-      }
-    };
-    cargarAvatar();
-  }, []);
+  const opciones = ['🤖', '🧑‍🏫', '🦾', '🐼', '🔥', '💪', '👑', '🧙'];
 
-  // Función para guardar *explícitamente* el avatar seleccionado
-  const guardarAvatar = async () => {
-    if (avatarSeleccionado === avatarActual) {
-      setGuardado(true);
-      setTimeout(() => setGuardado(false), 2000); // Muestra el mensaje "ya está guardado"
-      return;
+  // Sincronizar el seleccionado cuando el actual cambie (al cargar)
+  useEffect(() => {
+    if (!isLoading) {
+      setAvatarSeleccionado(avatarActual);
     }
-    
+  }, [avatarActual, isLoading]);
+
+  const handleGuardar = async () => {
+    if (avatarSeleccionado === avatarActual) {
+        setGuardado(true);
+        setTimeout(() => setGuardado(false), 1500);
+        return;
+    }
     try {
-      await AsyncStorage.setItem(AVATAR_KEY, avatarSeleccionado);
-      setAvatarActual(avatarSeleccionado); // Actualiza el avatar actual
+      // 3. Llamar a la función del contexto para guardar
+      await guardarAvatar(avatarSeleccionado); 
       setGuardado(true);
-      setTimeout(() => setGuardado(false), 2000); // mensaje temporal
+      setTimeout(() => setGuardado(false), 1500);
     } catch (e) {
       console.error('Error guardando avatar:', e);
-      Alert.alert('Error', 'No se pudo guardar el avatar. Inténtalo de nuevo.');
+      Alert.alert('Error', 'No se pudo guardar el avatar.');
     }
   };
+
+  if (isLoading) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.titulo}>Cargando...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
       <Text style={styles.titulo}>Elige tu Entrenador 🏆</Text>
 
-      {/* Vista previa (separada de las opciones) */}
       <View style={styles.previewCard}>
         <Text style={styles.avatar}>{avatarSeleccionado}</Text>
-        <Text style={styles.texto}>Este será tu compañero de entrenamiento.</Text>
+        <Text style={styles.texto}>Este será tu compañero.</Text>
       </View>
 
-      <Text style={styles.subtitulo}>Opciones disponibles</Text>
+      <Text style={styles.subtitulo}>Opciones</Text>
       
-      {/* Opciones de avatar */}
       <FlatList
         data={opciones}
         horizontal
@@ -70,10 +63,12 @@ export default function Avatar() {
           <TouchableOpacity
             style={[
               styles.opcion,
-              item === avatarSeleccionado ? styles.seleccionado : null, // Marca el temporalmente seleccionado
-              item === avatarActual ? styles.actual : null, // Marca el ya guardado (con un estilo diferente)
+              // Estilo para el que estás seleccionando
+              item === avatarSeleccionado ? styles.seleccionado : null,
+              // Estilo para el que ya está guardado
+              item === avatarActual ? styles.actual : null, 
             ]}
-            onPress={() => setAvatarSeleccionado(item)} // Solo cambia el estado temporal
+            onPress={() => setAvatarSeleccionado(item)}
           >
             <Text style={styles.opcionTexto}>{item}</Text>
           </TouchableOpacity>
@@ -82,21 +77,20 @@ export default function Avatar() {
         showsHorizontalScrollIndicator={false}
       />
       
-      {/* Botón de Guardar y Mensaje */}
       <View style={styles.footer}>
         <TouchableOpacity 
           style={styles.botonGuardar}
-          onPress={guardarAvatar}
+          onPress={handleGuardar}
         >
-          <Text style={styles.botonTexto}>Guardar Avatar: {avatarSeleccionado}</Text>
+          <Text style={styles.botonTexto}>Guardar: {avatarSeleccionado}</Text>
         </TouchableOpacity>
-
         {guardado && <Text style={styles.guardado}>✅ ¡Guardado!</Text>}
       </View>
     </View>
   );
 }
 
+// Estilos mejorados
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -117,7 +111,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
     marginBottom: 10,
   },
-  previewCard: { // Nueva tarjeta para la vista previa
+  previewCard: { // Tarjeta para la vista previa
     backgroundColor: '#fff', 
     padding: 30,
     borderRadius: 15,
@@ -131,7 +125,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   avatar: {
-    fontSize: 80, // Avatar más grande
+    fontSize: 80,
     marginBottom: 10,
   },
   texto: {
@@ -141,7 +135,7 @@ const styles = StyleSheet.create({
   lista: {
     paddingVertical: 10,
     alignItems: 'center',
-    gap: 15, // Usamos gap para separar las opciones
+    gap: 15, // 'gap' es más moderno que marginHorizontal
   },
   opcion: {
     backgroundColor: '#fff',
@@ -149,7 +143,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 2,
     borderColor: 'transparent',
-    // marginHorizontal: 5, // Reemplazado por gap en lista
   },
   opcionTexto: {
     fontSize: 35,
@@ -158,7 +151,7 @@ const styles = StyleSheet.create({
     borderColor: '#3498db',
     backgroundColor: '#eaf4fd',
   },
-  actual: { // Indicador para el avatar ya guardado
+  actual: { // Indicador para el avatar ya guardado (verde)
     borderWidth: 4,
     borderColor: '#2ecc71', 
   },

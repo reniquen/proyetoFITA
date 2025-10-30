@@ -1,9 +1,10 @@
+// screens/AvatarCoach.js
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useAvatar } from '../contexts/AvatarContext'; // 1. Importar el Hook
 
 export default function AvatarCoach() {
-  const [avatar, setAvatar] = useState('🤖');
+  const { avatar, isLoading } = useAvatar(); // 2. Usar el contexto
   const [consejo, setConsejo] = useState('');
 
   const consejos = [
@@ -14,18 +15,20 @@ export default function AvatarCoach() {
   ];
 
   useEffect(() => {
-    // cargar avatar guardado
-    AsyncStorage.getItem('avatar').then((value) => {
-      if (value) setAvatar(value);
-    });
-
-    // consejo aleatorio
+    // Consejo aleatorio al montar
     const randomConsejo = consejos[Math.floor(Math.random() * consejos.length)];
     setConsejo(randomConsejo);
   }, []);
 
+  // 3. Ya NO necesitamos AsyncStorage.getItem aquí. El contexto lo maneja.
+
+  if (isLoading) {
+    return null; // No mostrar nada mientras carga
+  }
+
   return (
     <View style={styles.container}>
+      {/* 4. El avatar viene del contexto y siempre estará actualizado */}
       <Text style={styles.avatar}>{avatar}</Text>
       <Text style={styles.consejo}>{consejo}</Text>
     </View>
@@ -51,5 +54,3 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
-
-
