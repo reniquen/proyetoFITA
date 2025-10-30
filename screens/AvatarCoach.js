@@ -1,7 +1,7 @@
 // screens/AvatarCoach.js
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { useAvatar } from '../contexts/AvatarContext'; // 1. Importar el Hook
+import { useAvatar } from './AvatarContext'; // 1. Importar el Hook
 
 export default function AvatarCoach() {
   const { avatar, isLoading } = useAvatar(); // 2. Usar el contexto

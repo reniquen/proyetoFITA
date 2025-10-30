@@ -1,12 +1,70 @@
-import { Text, StyleSheet, View, Image, TouchableOpacity, ScrollView } from 'react-native';
-import React from 'react';
-import { Linking } from 'react-native';
+// screens/Home.js
+import {
+  Text,
+  StyleSheet,
+  View,
+  Image,
+  TouchableOpacity,
+  ScrollView,
+  Modal,
+  SafeAreaView,
+  Alert,
+  Dimensions,
+} from 'react-native';
+import React, { useState, useCallback } from 'react';
+// NUEVO: Importar el reproductor de YouTube
+import YoutubePlayer from 'react-native-youtube-iframe';
 import { auth } from './firebaseConfig';
 import { signOut } from 'firebase/auth';
 import AvatarCoach from './AvatarCoach';
 
+// NUEVO: Función para extraer el ID del video de cualquier URL de YouTube
+function getYouTubeId(url) {
+  if (!url) return null;
+  // Expresión regular para encontrar el ID en varios formatos de URL
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const match = url.match(regExp);
+
+  if (match && match[2].length === 11) {
+    return match[2];
+  } else {
+    console.error("No se pudo extraer el ID de la URL:", url);
+    return null;
+  }
+}
 
 export default function Home({ navigation }) {
+  // --- Estados para el Modal y el Video ---
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedVideoId, setSelectedVideoId] = useState(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  // --- Funciones del Modal ---
+  const openVideo = (videoUrl) => {
+    const videoId = getYouTubeId(videoUrl);
+    if (videoId) {
+      setSelectedVideoId(videoId);
+      setIsPlaying(true); // Iniciar reproducción
+      setModalVisible(true);
+    } else {
+      Alert.alert("Video no válido", "No se pudo encontrar el ID del video de YouTube.");
+    }
+  };
+
+  const closeVideo = () => {
+    setIsPlaying(false); // Detener reproducción
+    setModalVisible(false);
+    setSelectedVideoId(null);
+  };
+
+  // NUEVO: Callback para el reproductor
+  const onStateChange = useCallback((state) => {
+    if (state === "ended") {
+      closeVideo();
+    }
+  }, []);
+
+  // --- Datos de Rutinas (sin cambios) ---
   const rutinas = {
     plan1: {
       lunes: [
@@ -316,69 +374,106 @@ export default function Home({ navigation }) {
     "sábado",
   ];
   const diaActual = diasSemana[new Date().getDay()];
-
   const rutinaHoy = planActual[diaActual] || [];
 
   const cerrarSesion = () => {
     signOut(auth)
       .then(() => navigation.replace('Login'))
-      .catch(() => alert('No se pudo cerrar sesión.'));
+      .catch(() => Alert.alert('Error', 'No se pudo cerrar sesión.'));
   };
 
   return (
+    <SafeAreaView style={styles.contenedorScroll}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <View style={styles.padre}>
+          <View style={styles.avatarContainer}>
+            <AvatarCoach />
+            <Text style={styles.avatarTexto}>¡Hola! Hoy te motivaré en tu rutina 💪</Text>
+          </View>
 
-    <ScrollView style={styles.contenedorScroll} contentContainerStyle={styles.scrollContent}>
-      <View style={styles.padre}>
-       <View style={styles.avatarContainer}>
-              <AvatarCoach />
-              <Text style={styles.avatarTexto}>¡Hola! Hoy te motivaré en tu rutina 💪</Text>
-            </View>
-
-
-        <Text style={styles.titulo}>Hoy {diaActual} te toca la siguiente rutina, ¡CON TODO!:</Text>
-        {rutinaHoy.length > 0 ? (
-          rutinaHoy.map((ejercicio, index) => (
-            <View key={index} style={styles.tarjeta}>
-              <TouchableOpacity onPress={() => Linking.openURL(ejercicio.video)}>
-                <Image source={ejercicio.imagen} style={styles.imagen} />
-              </TouchableOpacity>
-              <View style={styles.textoContainer}>
-                <Text style={styles.nombre}>{ejercicio.nombre}</Text>
-                <Text style={styles.repeticiones}>{ejercicio.repeticiones}</Text>
+          <Text style={styles.titulo}>Hoy {diaActual} te toca la siguiente rutina, ¡CON TODO!:</Text>
+          {rutinaHoy.length > 0 ? (
+            rutinaHoy.map((ejercicio, index) => (
+              <View key={index} style={styles.tarjeta}>
+                <TouchableOpacity onPress={() => openVideo(ejercicio.video)}>
+                  <Image source={ejercicio.imagen} style={styles.imagen} />
+                </TouchableOpacity>
+                <View style={styles.textoContainer}>
+                  <Text style={styles.nombre}>{ejercicio.nombre}</Text>
+                  <Text style={styles.repeticiones}>{ejercicio.repeticiones}</Text>
+                </View>
               </View>
-            </View>
-          ))
-        ) : (
-          <Text style={styles.noRutina}>Hoy te toca descanso.</Text>
-        )}
-        <TouchableOpacity
-          style={styles.boton}
-          onPress={() => navigation.navigate('Comidas')}
+            ))
+          ) : (
+            <Text style={styles.noRutina}>Hoy te toca descanso.</Text>
+          )}
+          <TouchableOpacity
+            style={styles.boton}
+            onPress={() => navigation.navigate('Comidas')}
+          >
+            <Text style={styles.botonTexto}>Ver dieta de hoy</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.boton}
+            onPress={() => navigation.navigate('Avatar')}
+          >
+            <Text style={styles.botonTexto}>Ver Avatar</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={[styles.boton, { backgroundColor: '#f27474', marginTop: 15 }]} onPress={cerrarSesion}>
+            <Text style={[styles.botonTexto, { color: 'white' }]}>Cerrar Sesión</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+
+      {/* --- NUEVO MODAL MEJORADO --- */}
+      <Modal
+        animationType="fade" // 'fade' es más sutil
+        transparent={true}    // Fondo transparente
+        visible={modalVisible}
+        onRequestClose={closeVideo}
+      >
+        {/* Capa de fondo oscura y clickeable para cerrar */}
+        <TouchableOpacity 
+          style={styles.modalBackdrop} 
+          activeOpacity={1} 
+          onPress={closeVideo} // Cierra al tocar el fondo
         >
-          <Text style={styles.botonTexto}>Ver dieta de hoy</Text>
+          <View style={styles.modalContent}>
+            {/* Contenedor del video (para evitar que se cierre al tocarlo) */}
+            <TouchableOpacity activeOpacity={1}>
+              {selectedVideoId && (
+                <YoutubePlayer
+                  height={(Dimensions.get('window').width * 0.9) * (9 / 16)} // Calcula la altura 16:9
+                  width={Dimensions.get('window').width * 0.9} // 90% del ancho
+                  play={isPlaying}
+                  videoId={selectedVideoId}
+                  onChangeState={onStateChange}
+                  // onError para capturar errores (como el 153)
+                  onError={e => {
+                    console.error("Error del reproductor de YouTube:", e);
+                    Alert.alert(
+                      "Error al reproducir", 
+                      "El propietario de este video ha restringido su reproducción."
+                    );
+                    closeVideo();
+                  }}
+                />
+              )}
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={styles.closeButton} onPress={closeVideo}>
+              <Text style={styles.closeButtonText}>Cerrar</Text>
+            </TouchableOpacity>
+          </View>
         </TouchableOpacity>
-
-         <TouchableOpacity
-                style={styles.boton}
-                onPress={() => navigation.navigate('Avatar')}
-              >
-                <Text style={styles.botonTexto}>Ver Avatar</Text>
-              </TouchableOpacity>
-
-        {/* Botón para cerrar sesión */}
-        <TouchableOpacity style={[styles.boton, { backgroundColor: '#f27474', marginTop: 15 }]} onPress={cerrarSesion}>
-          <Text style={[styles.botonTexto, { color: 'white' }]}>Cerrar Sesión</Text>
-        </TouchableOpacity>
-      </View>
-
-
-
-
-
-    </ScrollView>
+      </Modal>
+    </SafeAreaView>
   );
 }
 
+// --- ESTILOS ACTUALIZADOS ---
 const styles = StyleSheet.create({
   contenedorScroll: {
     flex: 1,
@@ -389,6 +484,7 @@ const styles = StyleSheet.create({
   },
   padre: {
     alignItems: 'center',
+    paddingBottom: 20, // Espacio extra al final
   },
   titulo: {
     fontSize: 20,
@@ -451,7 +547,6 @@ const styles = StyleSheet.create({
     color: 'Black',
     fontWeight: 'bold',
   },
-
   avatarContainer: {
     backgroundColor: '#fff3e0',
     padding: 20,
@@ -470,5 +565,33 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     color: '#34495e',
+  },
+  
+  // --- NUEVOS ESTILOS DE MODAL ---
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)', // Fondo oscuro semitransparente
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    width: '90%',
+    backgroundColor: 'white', // Contenedor blanco para el video y botón
+    borderRadius: 10,
+    padding: 10,
+    alignItems: 'center',
+  },
+  // 'webView' ya no se usa, el estilo del player se da en el componente
+  closeButton: {
+    backgroundColor: '#82e0aa', // Un color más amigable
+    paddingVertical: 10,
+    paddingHorizontal: 30,
+    borderRadius: 20,
+    marginTop: 15,
+  },
+  closeButtonText: {
+    color: 'black',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });

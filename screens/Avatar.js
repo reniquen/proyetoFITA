@@ -1,7 +1,7 @@
 // screens/Avatar.js
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, Text, TouchableOpacity, FlatList, Alert } from 'react-native';
-import { useAvatar } from '../contexts/AvatarContext'; // 1. Importar el Hook
+import { useAvatar } from './AvatarContext'; // 1. Importar el Hook
 
 export default function Avatar() {
   // 2. Usar el contexto

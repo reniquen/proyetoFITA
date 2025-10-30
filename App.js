@@ -4,7 +4,7 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { AvatarProvider } from './contexts/AvatarContext'; // 1. Importar
+import { AvatarProvider } from './screens/AvatarContext.js'; // 1. Importar
 
 import Login from './screens/Login';
 import Registro from './screens/Registro';
