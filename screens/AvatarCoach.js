@@ -1,10 +1,11 @@
 // screens/AvatarCoach.js
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { useAvatar } from './AvatarContext'; // 1. Importar el Hook
+import { View, Text, StyleSheet, Image } from 'react-native';
+import { useAvatar } from './AvatarContext';
+import { AVATAR_ASSETS } from './AvatarAssets'; // Importamos las imágenes
 
 export default function AvatarCoach() {
-  const { avatar, isLoading } = useAvatar(); // 2. Usar el contexto
+  const { avatar, isLoading } = useAvatar(); // 'avatar' ahora es un objeto
   const [consejo, setConsejo] = useState('');
 
   const consejos = [
@@ -15,21 +16,34 @@ export default function AvatarCoach() {
   ];
 
   useEffect(() => {
-    // Consejo aleatorio al montar
     const randomConsejo = consejos[Math.floor(Math.random() * consejos.length)];
     setConsejo(randomConsejo);
   }, []);
 
-  // 3. Ya NO necesitamos AsyncStorage.getItem aquí. El contexto lo maneja.
-
-  if (isLoading) {
+  if (isLoading || !avatar) {
     return null; // No mostrar nada mientras carga
   }
 
   return (
     <View style={styles.container}>
-      {/* 4. El avatar viene del contexto y siempre estará actualizado */}
-      <Text style={styles.avatar}>{avatar}</Text>
+      {/* Vista previa pequeña del avatar compuesto */}
+      <View style={styles.avatarPreview}>
+        <Image
+          source={AVATAR_ASSETS.piernas[avatar.piernas]}
+          style={[styles.avatarPart, styles.piernas]}
+          resizeMode="contain"
+        />
+        <Image
+          source={AVATAR_ASSETS.torso[avatar.torso]}
+          style={[styles.avatarPart, styles.torso]}
+          resizeMode="contain"
+        />
+        <Image
+          source={AVATAR_ASSETS.cabeza[avatar.cabeza]}
+          style={[styles.avatarPart, styles.cabeza]}
+          resizeMode="contain"
+        />
+      </View>
       <Text style={styles.consejo}>{consejo}</Text>
     </View>
   );
@@ -45,9 +59,25 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
   },
-  avatar: {
-    fontSize: 50,
+  // --- Estilos para la vista previa pequeña ---
+  avatarPreview: {
+    width: 80, // Tamaño más pequeño
+    height: 140, // Ajusta esta altura
+    position: 'relative',
+    marginBottom: 10,
   },
+  avatarPart: {
+    width: '100%',
+    height: '100%',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+  },
+  // Ajusta estos para la versión pequeña
+  cabeza: { zIndex: 3, height: '30%' },
+  torso: { zIndex: 2, height: '60%', top: '25%' },
+  piernas: { zIndex: 1, height: '50%', top: '50%' },
+
   consejo: {
     marginTop: 10,
     fontSize: 16,

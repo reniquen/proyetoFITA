@@ -1,38 +1,97 @@
 // screens/Avatar.js
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Text, TouchableOpacity, FlatList, Alert } from 'react-native';
-import { useAvatar } from './AvatarContext'; // 1. Importar el Hook
+import {
+  View,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  FlatList,
+  Alert,
+  Image,
+  ScrollView,
+} from 'react-native';
+import { useAvatar } from './AvatarContext';
+import { AVATAR_ASSETS, cabezaOpciones, torsoOpciones, piernasOpciones } from './AvatarAssets'; // Importamos las imágenes
 
+// Componente para la Vista Previa del Avatar
+const AvatarPreview = ({ parts, style }) => {
+  return (
+    <View style={[styles.previewContainer, style]}>
+      {/* Las imágenes se apilan usando 'position: absolute' */}
+      <Image
+        source={AVATAR_ASSETS.piernas[parts.piernas]}
+        style={[styles.avatarPart, styles.piernas]}
+        resizeMode="contain"
+      />
+      <Image
+        source={AVATAR_ASSETS.torso[parts.torso]}
+        style={[styles.avatarPart, styles.torso]}
+        resizeMode="contain"
+      />
+      <Image
+        source={AVATAR_ASSETS.cabeza[parts.cabeza]}
+        style={[styles.avatarPart, styles.cabeza]}
+        resizeMode="contain"
+      />
+    </View>
+  );
+};
+
+// Componente para un selector de partes (Cabeza, Torso, Piernas)
+const PartSelector = ({ title, partKey, options, selectedValue, onSelect }) => {
+  return (
+    <View style={styles.selectorSection}>
+      <Text style={styles.subtitulo}>{title}</Text>
+      <FlatList
+        data={options}
+        horizontal
+        keyExtractor={(item) => item}
+        showsHorizontalScrollIndicator={false}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            style={[
+              styles.opcion,
+              item === selectedValue ? styles.seleccionado : null,
+            ]}
+            onPress={() => onSelect(partKey, item)}
+          >
+            {/* Opcional: podrías mostrar una mini-imagen de la parte aquí */}
+            <Text style={styles.opcionTexto}>{item}</Text>
+          </TouchableOpacity>
+        )}
+        contentContainerStyle={styles.lista}
+      />
+    </View>
+  );
+};
+
+// Componente principal de Avatar
 export default function Avatar() {
-  // 2. Usar el contexto
-  const { avatar: avatarActual, guardarAvatar, isLoading } = useAvatar(); 
+  const { avatar: avatarActual, guardarAvatar, isLoading } = useAvatar();
   
-  const [avatarSeleccionado, setAvatarSeleccionado] = useState(avatarActual);
+  // Estado temporal para la vista previa de los cambios
+  const [selection, setSelection] = useState(avatarActual);
   const [guardado, setGuardado] = useState(false);
 
-  const opciones = ['🤖', '🧑‍🏫', '🦾', '🐼', '🔥', '💪', '👑', '🧙'];
-
-  // Sincronizar el seleccionado cuando el actual cambie (al cargar)
   useEffect(() => {
     if (!isLoading) {
-      setAvatarSeleccionado(avatarActual);
+      setSelection(avatarActual);
     }
   }, [avatarActual, isLoading]);
 
+  // Handler para actualizar la selección temporal
+  const handleSelectPart = (partKey, value) => {
+    setSelection(prev => ({ ...prev, [partKey]: value }));
+  };
+
+  // Handler para guardar en el Context y AsyncStorage
   const handleGuardar = async () => {
-    if (avatarSeleccionado === avatarActual) {
-        setGuardado(true);
-        setTimeout(() => setGuardado(false), 1500);
-        return;
-    }
     try {
-      // 3. Llamar a la función del contexto para guardar
-      await guardarAvatar(avatarSeleccionado); 
+      await guardarAvatar(selection);
       setGuardado(true);
-      setTimeout(() => setGuardado(false), 1500);
+      setTimeout(() => setGuardado(false), 2000);
     } catch (e) {
-      console.error('Error guardando avatar:', e);
-      Alert.alert('Error', 'No se pudo guardar el avatar.');
+      Alert.alert('Error', 'No se pudo guardar tu avatar.');
     }
   };
 
@@ -45,128 +104,131 @@ export default function Avatar() {
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.titulo}>Elige tu Entrenador 🏆</Text>
+    <ScrollView style={styles.container}>
+      <Text style={styles.titulo}>Personaliza tu Avatar</Text>
 
-      <View style={styles.previewCard}>
-        <Text style={styles.avatar}>{avatarSeleccionado}</Text>
-        <Text style={styles.texto}>Este será tu compañero.</Text>
-      </View>
+      {/* Vista previa */}
+      <AvatarPreview parts={selection} />
 
-      <Text style={styles.subtitulo}>Opciones</Text>
-      
-      <FlatList
-        data={opciones}
-        horizontal
-        keyExtractor={(item) => item}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={[
-              styles.opcion,
-              // Estilo para el que estás seleccionando
-              item === avatarSeleccionado ? styles.seleccionado : null,
-              // Estilo para el que ya está guardado
-              item === avatarActual ? styles.actual : null, 
-            ]}
-            onPress={() => setAvatarSeleccionado(item)}
-          >
-            <Text style={styles.opcionTexto}>{item}</Text>
-          </TouchableOpacity>
-        )}
-        contentContainerStyle={styles.lista}
-        showsHorizontalScrollIndicator={false}
+      {/* Selectores */}
+      <PartSelector
+        title="Cabeza"
+        partKey="cabeza"
+        options={cabezaOpciones}
+        selectedValue={selection.cabeza}
+        onSelect={handleSelectPart}
       />
-      
+
+      <PartSelector
+        title="Torso y Brazos"
+        partKey="torso"
+        options={torsoOpciones}
+        selectedValue={selection.torso}
+        onSelect={handleSelectPart}
+      />
+
+      <PartSelector
+        title="Piernas"
+        partKey="piernas"
+        options={piernasOpciones}
+        selectedValue={selection.piernas}
+        onSelect={handleSelectPart}
+      />
+
+      {/* Botón de Guardar */}
       <View style={styles.footer}>
-        <TouchableOpacity 
-          style={styles.botonGuardar}
-          onPress={handleGuardar}
-        >
-          <Text style={styles.botonTexto}>Guardar: {avatarSeleccionado}</Text>
+        <TouchableOpacity style={styles.botonGuardar} onPress={handleGuardar}>
+          <Text style={styles.botonTexto}>Guardar Cambios</Text>
         </TouchableOpacity>
         {guardado && <Text style={styles.guardado}>✅ ¡Guardado!</Text>}
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
-// Estilos mejorados
+// --- Nuevos Estilos para el Personalizador ---
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 25,
-    backgroundColor: '#ecf0f1', // Fondo más neutro
+    backgroundColor: '#ecf0f1',
+    padding: 20,
   },
   titulo: {
     fontSize: 26,
     fontWeight: '900',
     color: '#2c3e50',
-    marginBottom: 15,
     textAlign: 'center',
+    marginBottom: 20,
   },
   subtitulo: {
     fontSize: 18,
     fontWeight: '600',
     color: '#34495e',
-    marginTop: 20,
     marginBottom: 10,
   },
-  previewCard: { // Tarjeta para la vista previa
-    backgroundColor: '#fff', 
-    padding: 30,
-    borderRadius: 15,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 8,
+  // --- Estilos de la Vista Previa ---
+  previewContainer: {
+    width: 200,
+    height: 350, // Ajusta esta altura
+    alignSelf: 'center',
     marginBottom: 20,
+    backgroundColor: '#fff',
+    borderRadius: 15,
+    overflow: 'hidden',
+    borderWidth: 2,
+    borderColor: '#bdc3c7',
+    position: 'relative', // Contenedor para las imágenes absolutas
   },
-  avatar: {
-    fontSize: 80,
-    marginBottom: 10,
+  avatarPart: {
+    width: '100%',
+    height: '100%',
+    position: 'absolute', // Clave para apilar
+    top: 0,
+    left: 0,
   },
-  texto: {
-    fontSize: 15,
-    color: '#7f8c8d',
+  // Ajusta estos estilos para que tus imágenes encajen
+  cabeza: { zIndex: 3, height: '30%' },
+  torso: { zIndex: 2, height: '60%', top: '25%' }, // Ejemplo: empieza al 25%
+  piernas: { zIndex: 1, height: '50%', top: '50%' }, // Ejemplo: empieza al 50%
+
+  // --- Estilos de los Selectores ---
+  selectorSection: {
+    marginBottom: 20,
   },
   lista: {
     paddingVertical: 10,
-    alignItems: 'center',
-    gap: 15, // 'gap' es más moderno que marginHorizontal
   },
   opcion: {
     backgroundColor: '#fff',
-    padding: 18,
+    paddingVertical: 15,
+    paddingHorizontal: 20,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: 'transparent',
+    borderColor: '#bdc3c7',
+    marginRight: 10,
   },
   opcionTexto: {
-    fontSize: 35,
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#2c3e50',
+    textTransform: 'capitalize',
   },
-  seleccionado: { // Borde para la selección *temporal*
+  seleccionado: {
     borderColor: '#3498db',
     backgroundColor: '#eaf4fd',
   },
-  actual: { // Indicador para el avatar ya guardado (verde)
-    borderWidth: 4,
-    borderColor: '#2ecc71', 
-  },
+  // --- Footer ---
   footer: {
     alignItems: 'center',
-    marginTop: 30,
+    marginTop: 10,
+    marginBottom: 40,
   },
   botonGuardar: {
     backgroundColor: '#f39c12',
-    paddingVertical: 12,
-    paddingHorizontal: 30,
+    paddingVertical: 15,
     borderRadius: 10,
     width: '90%',
     alignItems: 'center',
-    marginBottom: 10,
   },
   botonTexto: {
     color: '#fff',
@@ -174,6 +236,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   guardado: {
+    marginTop: 15,
     fontSize: 16,
     color: '#27ae60',
     fontWeight: 'bold',
