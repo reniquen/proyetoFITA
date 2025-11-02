@@ -1,4 +1,3 @@
-// screens/Home.js
 import {
   Text,
   StyleSheet,
@@ -420,6 +419,16 @@ export default function Home({ navigation }) {
           >
             <Text style={styles.botonTexto}>Ver Avatar</Text>
           </TouchableOpacity>
+          
+          {/* --- NUEVO BOTÓN PARA CHAT --- */}
+          <TouchableOpacity
+            style={styles.boton}
+            onPress={() => navigation.navigate('AvatarChat')} // Asegúrate que 'AvatarChat' sea el nombre en tu Stack Navigator
+          >
+            <Text style={styles.botonTexto}>Chatear con Avatar</Text>
+          </TouchableOpacity>
+          {/* --- FIN DEL NUEVO BOTÓN --- */}
+          
 
           <TouchableOpacity style={[styles.boton, { backgroundColor: '#f27474', marginTop: 15 }]} onPress={cerrarSesion}>
             <Text style={[styles.botonTexto, { color: 'white' }]}>Cerrar Sesión</Text>

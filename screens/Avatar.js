@@ -10,8 +10,8 @@ import {
   Image,
   ScrollView,
 } from 'react-native';
-import { useAvatar } from './AvatarContext';
-import { AVATAR_ASSETS, cabezaOpciones, torsoOpciones, piernasOpciones } from './AvatarAssets'; // Importamos las imágenes
+import { useAvatar } from '../screens/AvatarContext';
+import { AVATAR_ASSETS, cabezaOpciones, torsoOpciones, piernasOpciones } from '../screens/AvatarAssets'; // Importamos las imágenes
 
 // Componente para la Vista Previa del Avatar
 const AvatarPreview = ({ parts, style }) => {

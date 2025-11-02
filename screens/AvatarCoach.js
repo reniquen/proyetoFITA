@@ -1,8 +1,8 @@
 // screens/AvatarCoach.js
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
-import { useAvatar } from './AvatarContext';
-import { AVATAR_ASSETS } from './AvatarAssets'; // Importamos las imágenes
+import { useAvatar } from '../screens/AvatarContext';
+import { AVATAR_ASSETS } from '../screens/AvatarAssets'; // Importamos las imágenes
 
 export default function AvatarCoach() {
   const { avatar, isLoading } = useAvatar(); // 'avatar' ahora es un objeto
