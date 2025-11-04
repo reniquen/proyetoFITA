@@ -7,69 +7,17 @@ import {
   TouchableOpacity,
   FlatList,
   Alert,
-  Image,
   ScrollView,
 } from 'react-native';
-import { useAvatar } from '../screens/AvatarContext';
-import { AVATAR_ASSETS, cabezaOpciones, torsoOpciones, piernasOpciones } from '../screens/AvatarAssets'; // Importamos las imágenes
-
-// Componente para la Vista Previa del Avatar
-const AvatarPreview = ({ parts, style }) => {
-  return (
-    <View style={[styles.previewContainer, style]}>
-      {/* Las imágenes se apilan usando 'position: absolute' */}
-      <Image
-        source={AVATAR_ASSETS.piernas[parts.piernas]}
-        style={[styles.avatarPart, styles.piernas]}
-        resizeMode="contain"
-      />
-      <Image
-        source={AVATAR_ASSETS.torso[parts.torso]}
-        style={[styles.avatarPart, styles.torso]}
-        resizeMode="contain"
-      />
-      <Image
-        source={AVATAR_ASSETS.cabeza[parts.cabeza]}
-        style={[styles.avatarPart, styles.cabeza]}
-        resizeMode="contain"
-      />
-    </View>
-  );
-};
-
-// Componente para un selector de partes (Cabeza, Torso, Piernas)
-const PartSelector = ({ title, partKey, options, selectedValue, onSelect }) => {
-  return (
-    <View style={styles.selectorSection}>
-      <Text style={styles.subtitulo}>{title}</Text>
-      <FlatList
-        data={options}
-        horizontal
-        keyExtractor={(item) => item}
-        showsHorizontalScrollIndicator={false}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={[
-              styles.opcion,
-              item === selectedValue ? styles.seleccionado : null,
-            ]}
-            onPress={() => onSelect(partKey, item)}
-          >
-            {/* Opcional: podrías mostrar una mini-imagen de la parte aquí */}
-            <Text style={styles.opcionTexto}>{item}</Text>
-          </TouchableOpacity>
-        )}
-        contentContainerStyle={styles.lista}
-      />
-    </View>
-  );
-};
+import { useAvatar } from './AvatarContext';
+import { LOTTIE_ASSETS, avatarOpciones } from './AvatarAssets';
+import LottieView from 'lottie-react-native'; // <-- Importar Lottie
 
 // Componente principal de Avatar
 export default function Avatar() {
   const { avatar: avatarActual, guardarAvatar, isLoading } = useAvatar();
   
-  // Estado temporal para la vista previa de los cambios
+  // El estado temporal ahora es solo un string
   const [selection, setSelection] = useState(avatarActual);
   const [guardado, setGuardado] = useState(false);
 
@@ -79,15 +27,10 @@ export default function Avatar() {
     }
   }, [avatarActual, isLoading]);
 
-  // Handler para actualizar la selección temporal
-  const handleSelectPart = (partKey, value) => {
-    setSelection(prev => ({ ...prev, [partKey]: value }));
-  };
-
   // Handler para guardar en el Context y AsyncStorage
   const handleGuardar = async () => {
     try {
-      await guardarAvatar(selection);
+      await guardarAvatar(selection); // Guarda el string (ej: "musculoso")
       setGuardado(true);
       setTimeout(() => setGuardado(false), 2000);
     } catch (e) {
@@ -107,33 +50,39 @@ export default function Avatar() {
     <ScrollView style={styles.container}>
       <Text style={styles.titulo}>Personaliza tu Avatar</Text>
 
-      {/* Vista previa */}
-      <AvatarPreview parts={selection} />
+      {/* --- Vista previa con Lottie --- */}
+      <View style={styles.previewContainer}>
+        <LottieView
+          key={selection} // Forzar re-renderizado al cambiar
+          source={LOTTIE_ASSETS[selection]} // Carga la animación seleccionada
+          autoPlay
+          loop
+          style={styles.lottiePreview}
+        />
+      </View>
 
-      {/* Selectores */}
-      <PartSelector
-        title="Cabeza"
-        partKey="cabeza"
-        options={cabezaOpciones}
-        selectedValue={selection.cabeza}
-        onSelect={handleSelectPart}
-      />
-
-      <PartSelector
-        title="Torso y Brazos"
-        partKey="torso"
-        options={torsoOpciones}
-        selectedValue={selection.torso}
-        onSelect={handleSelectPart}
-      />
-
-      <PartSelector
-        title="Piernas"
-        partKey="piernas"
-        options={piernasOpciones}
-        selectedValue={selection.piernas}
-        onSelect={handleSelectPart}
-      />
+      {/* --- Selector Único --- */}
+      <View style={styles.selectorSection}>
+        <Text style={styles.subtitulo}>Elige tu estilo</Text>
+        <FlatList
+          data={avatarOpciones}
+          horizontal
+          keyExtractor={(item) => item}
+          showsHorizontalScrollIndicator={false}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={[
+                styles.opcion,
+                item === selection ? styles.seleccionado : null,
+              ]}
+              onPress={() => setSelection(item)} // Actualiza el string de selección
+            >
+              <Text style={styles.opcionTexto}>{item}</Text>
+            </TouchableOpacity>
+          )}
+          contentContainerStyle={styles.lista}
+        />
+      </View>
 
       {/* Botón de Guardar */}
       <View style={styles.footer}>
@@ -146,7 +95,7 @@ export default function Avatar() {
   );
 }
 
-// --- Nuevos Estilos para el Personalizador ---
+// --- Estilos actualizados ---
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -166,32 +115,22 @@ const styles = StyleSheet.create({
     color: '#34495e',
     marginBottom: 10,
   },
-  // --- Estilos de la Vista Previa ---
   previewContainer: {
-    width: 200,
-    height: 350, // Ajusta esta altura
+    width: 300,
+    height: 300,
     alignSelf: 'center',
     marginBottom: 20,
     backgroundColor: '#fff',
     borderRadius: 15,
-    overflow: 'hidden',
+    justifyContent: 'center',
+    alignItems: 'center',
     borderWidth: 2,
     borderColor: '#bdc3c7',
-    position: 'relative', // Contenedor para las imágenes absolutas
   },
-  avatarPart: {
+  lottiePreview: {
     width: '100%',
     height: '100%',
-    position: 'absolute', // Clave para apilar
-    top: 0,
-    left: 0,
   },
-  // Ajusta estos estilos para que tus imágenes encajen
-  cabeza: { zIndex: 3, height: '30%' },
-  torso: { zIndex: 2, height: '60%', top: '25%' }, // Ejemplo: empieza al 25%
-  piernas: { zIndex: 1, height: '50%', top: '50%' }, // Ejemplo: empieza al 50%
-
-  // --- Estilos de los Selectores ---
   selectorSection: {
     marginBottom: 20,
   },
@@ -217,7 +156,6 @@ const styles = StyleSheet.create({
     borderColor: '#3498db',
     backgroundColor: '#eaf4fd',
   },
-  // --- Footer ---
   footer: {
     alignItems: 'center',
     marginTop: 10,

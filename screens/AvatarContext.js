@@ -1,14 +1,9 @@
-// contexts/AvatarContext.js
+// screens/AvatarContext.js
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// El avatar por defecto ahora es un objeto
-const AVATAR_KEY = 'avatar_objeto';
-const defaultAvatar = {
-  cabeza: 'normal',
-  torso: 'normal',
-  piernas: 'normal',
-};
+const AVATAR_KEY = 'avatar_animacion'; // Nueva clave
+const defaultAvatar = 'normal'; // Ahora es un string
 
 const AvatarContext = createContext();
 
@@ -16,13 +11,13 @@ export const AvatarProvider = ({ children }) => {
   const [avatar, setAvatar] = useState(defaultAvatar);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Cargar avatar guardado al iniciar la app
+  // Cargar avatar guardado
   useEffect(() => {
     const cargarAvatar = async () => {
       try {
         const value = await AsyncStorage.getItem(AVATAR_KEY);
         if (value) {
-          setAvatar(JSON.parse(value)); // Parseamos el objeto JSON
+          setAvatar(value); // Guardamos el string
         } else {
           setAvatar(defaultAvatar);
         }
@@ -36,11 +31,11 @@ export const AvatarProvider = ({ children }) => {
     cargarAvatar();
   }, []);
 
-  // Función para guardar y actualizar el estado en toda la app
-  const guardarAvatar = async (nuevoAvatar) => {
+  // Función para guardar el string del avatar
+  const guardarAvatar = async (nuevoAvatarString) => {
     try {
-      await AsyncStorage.setItem(AVATAR_KEY, JSON.stringify(nuevoAvatar)); // Guardamos como string
-      setAvatar(nuevoAvatar); // Actualiza el estado global
+      await AsyncStorage.setItem(AVATAR_KEY, nuevoAvatarString);
+      setAvatar(nuevoAvatarString);
     } catch (e) {
       console.error('Error guardando avatar en context:', e);
       throw e; 
@@ -54,5 +49,5 @@ export const AvatarProvider = ({ children }) => {
   );
 };
 
-// Hook personalizado para consumir el contexto fácilmente
+// Hook personalizado
 export const useAvatar = () => useContext(AvatarContext);
