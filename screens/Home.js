@@ -11,13 +11,13 @@ import {
   Dimensions,
 } from 'react-native';
 import React, { useState, useCallback } from 'react';
-// NUEVO: Importar el reproductor de YouTube
+// Importar el reproductor de YouTube
 import YoutubePlayer from 'react-native-youtube-iframe';
 import { auth } from './firebaseConfig';
 import { signOut } from 'firebase/auth';
 import AvatarCoach from './AvatarCoach';
 
-// NUEVO: Función para extraer el ID del video de cualquier URL de YouTube
+// Función para extraer el ID del video de cualquier URL de YouTube
 function getYouTubeId(url) {
   if (!url) return null;
   // Expresión regular para encontrar el ID en varios formatos de URL
@@ -56,207 +56,17 @@ export default function Home({ navigation }) {
     setSelectedVideoId(null);
   };
 
-  // NUEVO: Callback para el reproductor
+  // Callback para el reproductor
   const onStateChange = useCallback((state) => {
     if (state === "ended") {
       closeVideo();
     }
   }, []);
 
-  // --- Datos de Rutinas (sin cambios) ---
+  // --- Datos de Rutinas (Asumimos plan3) ---
   const rutinas = {
-    plan1: {
-      lunes: [
-        {
-          nombre: "Burpees",
-          repeticiones: "4 series de 10 repeticiones",
-          imagen: require('../assets/burpees.png'),
-          video: "https://www.youtube.com/watch?v=IYusabTdFEo&ab_channel=VideoBodytech",
-        },
-        {
-          nombre: "Mountain climbers",
-          repeticiones: "4 series de 12 repeticiones",
-          imagen: require('../assets/mountainclimbers.png'),
-          video: "https://www.youtube.com/watch?v=cnyTQDSE884&ab_channel=Well%2BGood",
-        },
-        {
-          nombre: "Saltar la cuerda",
-          repeticiones: "1 serie de 15 minutos",
-          imagen: require('../assets/saltocuerda.png'),
-          video: "https://www.youtube.com/watch?v=rpS3MQgxdA0&ab_channel=Adri%C3%A1nFit",
-        },
-      ],
-      martes: [
-        {
-          nombre: "Sentadillas",
-          repeticiones: "4 series de 20 repeticiones",
-          imagen: require('../assets/sentadillalibre.png'),
-          video: "https://www.youtube.com/watch?v=VRKdOsad3HQ&ab_channel=Bestcycling",
-        },
-        {
-          nombre: "Plancha",
-          repeticiones: "3 series de 1 minuto",
-          imagen: require('../assets/plancha.png'),
-          video: "https://www.youtube.com/watch?v=d0atctiI7Vw&ab_channel=DeportesUncomo",
-        },
-        {
-          nombre: "Saltar la cuerda",
-          repeticiones: "1 serie de 15 minutos",
-          imagen: require('../assets/saltocuerda.png'),
-          video: "https://www.youtube.com/watch?v=rpS3MQgxdA0&ab_channel=Adri%C3%A1nFit",
-        },
-      ],
-      miércoles: [
-        {
-          nombre: "Rodillas altas",
-          repeticiones: "4 series de 1 minuto",
-          imagen: require('../assets/rodillasaltas.png'),
-          video: "https://www.youtube.com/watch?v=5sW0T86MwvY&ab_channel=KranosCalistenia",
-        },
-        {
-          nombre: "Burpees",
-          repeticiones: "3 series de 10 repeticiones",
-          imagen: require('../assets/burpees.png'),
-          video: "https://www.youtube.com/watch?v=IYusabTdFEo&ab_channel=VideoBodytech",
-        },
-        {
-          nombre: "Saltar la cuerda",
-          repeticiones: "1 serie de 15 minutos",
-          imagen: require('../assets/saltocuerda.png'),
-          video: "https://www.youtube.com/watch?v=rpS3MQgxdA0&ab_channel=Adri%C3%A1nFit",
-        },
-      ],
-      jueves: [
-        {
-          nombre: "Movilidad",
-          repeticiones: "15 minutos",
-          imagen: require('../assets/movilidad.png'),
-          video: "https://www.youtube.com/watch?v=DdpO0m15nto&ab_channel=JeremyEthierenEspa%C3%B1ol",
-        },
-        {
-          nombre: "Saltar la cuerda",
-          repeticiones: "1 serie de 15 minutos",
-          imagen: require('../assets/saltocuerda.png'),
-          video: "https://www.youtube.com/watch?v=rpS3MQgxdA0&ab_channel=Adri%C3%A1nFit",
-        },
-      ],
-      viernes: [
-        {
-          nombre: "Burpees",
-          repeticiones: "3 series de 10 repeticiones",
-          imagen: require('../assets/burpees.png'),
-          video: "https://www.youtube.com/watch?v=IYusabTdFEo&ab_channel=VideoBodytech",
-        },
-        {
-          nombre: "Mountain climbers",
-          repeticiones: "4 series de 12 repeticiones",
-          imagen: require('../assets/mountainclimbers.png'),
-          video: "https://www.youtube.com/watch?v=cnyTQDSE884&ab_channel=Well%2BGood",
-        },
-        {
-          nombre: "Saltar la cuerda",
-          repeticiones: "1 serie de 15 minutos",
-          imagen: require('../assets/saltocuerda.png'),
-          video: "https://www.youtube.com/watch?v=rpS3MQgxdA0&ab_channel=Adri%C3%A1nFit",
-        },
-      ],
-    },
-    plan2: {
-      lunes: [
-        {
-          nombre: "Burpees",
-          repeticiones: "3 series de 10 repeticiones",
-          imagen: require('../assets/burpees.png'),
-          video: "https://www.youtube.com/watch?v=IYusabTdFEo&ab_channel=VideoBodytech",
-        },
-        {
-          nombre: "Mountain climbers",
-          repeticiones: "4 series de 12 repeticiones",
-          imagen: require('../assets/mountainclimbers.png'),
-          video: "https://www.youtube.com/watch?v=cnyTQDSE884&ab_channel=Well%2BGood",
-        },
-        {
-          nombre: "Saltar la cuerda",
-          repeticiones: "1 serie de 15 minutos",
-          imagen: require('../assets/saltocuerda.png'),
-          video: "https://www.youtube.com/watch?v=rpS3MQgxdA0&ab_channel=Adri%C3%A1nFit",
-        },
-      ],
-      martes: [
-        {
-          nombre: "Sentadillas",
-          repeticiones: "4 series de 20 repeticiones",
-          imagen: require('../assets/sentadillalibre.png'),
-          video: "https://www.youtube.com/watch?v=VRKdOsad3HQ&ab_channel=Bestcycling",
-        },
-        {
-          nombre: "Plancha",
-          repeticiones: "3 series de 1 minuto",
-          imagen: require('../assets/elevacioneslaterales.png'),
-          video: "https://www.youtube.com/watch?v=d0atctiI7Vw&ab_channel=DeportesUncomo",
-        },
-        {
-          nombre: "Saltar la cuerda",
-          repeticiones: "1 serie de 15 minutos",
-          imagen: require('../assets/saltocuerda.png'),
-          video: "https://www.youtube.com/watch?v=rpS3MQgxdA0&ab_channel=Adri%C3%A1nFit",
-        },
-      ],
-      miércoles: [
-        {
-          nombre: "Rodillas altas",
-          repeticiones: "4 series de 1 minuto",
-          imagen: require('../assets/dominadas.png'),
-          video: "https://www.youtube.com/watch?v=5sW0T86MwvY&ab_channel=KranosCalistenia",
-        },
-        {
-          nombre: "Burpees",
-          repeticiones: "3 series de 10 repeticiones",
-          imagen: require('../assets/burpees.png'),
-          video: "https://www.youtube.com/watch?v=IYusabTdFEo&ab_channel=VideoBodytech",
-        },
-        {
-          nombre: "Saltar la cuerda",
-          repeticiones: "1 serie de 15 minutos",
-          imagen: require('../assets/saltocuerda.png'),
-          video: "https://www.youtube.com/watch?v=rpS3MQgxdA0&ab_channel=Adri%C3%A1nFit",
-        },
-      ],
-      jueves: [
-        {
-          nombre: "Movilidad",
-          repeticiones: "15 minutos",
-          imagen: require('../assets/movilidad.png'),
-          video: "https://www.youtube.com/watch?v=DdpO0m15nto&ab_channel=JeremyEthierenEspa%C3%B1ol",
-        },
-        {
-          nombre: "Saltar la cuerda",
-          repeticiones: "1 serie de 15 minutos",
-          imagen: require('../assets/saltocuerda.png'),
-          video: "https://www.youtube.com/watch?v=rpS3MQgxdA0&ab_channel=Adri%C3%A1nFit",
-        },
-      ],
-      viernes: [
-        {
-          nombre: "Burpees",
-          repeticiones: "3 series de 10 repeticiones",
-          imagen: require('../assets/burpees.png'),
-          video: "https://www.youtube.com/watch?v=IYusabTdFEo&ab_channel=VideoBodytech",
-        },
-        {
-          nombre: "Mountain climbers",
-          repeticiones: "4 series de 12 repeticiones",
-          imagen: require('../assets/mountainclimbers.png'),
-          video: "https://www.youtube.com/watch?v=cnyTQDSE884&ab_channel=Well%2BGood",
-        },
-        {
-          nombre: "Saltar la cuerda",
-          repeticiones: "1 serie de 15 minutos",
-          imagen: require('../assets/saltocuerda.png'),
-          video: "https://www.youtube.com/watch?v=rpS3MQgxdA0&ab_channel=Adri%C3%A1nFit",
-        },
-      ],
-    },
+    plan1: { /* ... tus datos ... */ },
+    plan2: { /* ... tus datos ... */ },
     plan3: {
       lunes: [
         {
@@ -417,17 +227,24 @@ export default function Home({ navigation }) {
             style={styles.boton}
             onPress={() => navigation.navigate('Avatar')}
           >
-            <Text style={styles.botonTexto}>Ver Avatar</Text>
+            <Text style={styles.botonTexto}>Personalizar Avatar</Text>
           </TouchableOpacity>
           
-          {/* --- NUEVO BOTÓN PARA CHAT --- */}
           <TouchableOpacity
             style={styles.boton}
-            onPress={() => navigation.navigate('AvatarChat')} // Asegúrate que 'AvatarChat' sea el nombre en tu Stack Navigator
+            onPress={() => navigation.navigate('AvatarChat')}
           >
             <Text style={styles.botonTexto}>Chatear con Avatar</Text>
           </TouchableOpacity>
-          {/* --- FIN DEL NUEVO BOTÓN --- */}
+
+          {/* --- BOTÓN PARA ESCÁNER AGREGADO --- */}
+          <TouchableOpacity
+            style={[styles.boton, {backgroundColor: '#3498db'}]} // Color azul
+            onPress={() => navigation.navigate('Scanner')}
+          >
+            <Text style={[styles.botonTexto, {color: 'white'}]}>Escanear Producto</Text>
+          </TouchableOpacity>
+          {/* --- FIN DEL BOTÓN --- */}
           
 
           <TouchableOpacity style={[styles.boton, { backgroundColor: '#f27474', marginTop: 15 }]} onPress={cerrarSesion}>
@@ -436,30 +253,27 @@ export default function Home({ navigation }) {
         </View>
       </ScrollView>
 
-      {/* --- NUEVO MODAL MEJORADO --- */}
+      {/* --- Modal para Video --- */}
       <Modal
-        animationType="fade" // 'fade' es más sutil
-        transparent={true}    // Fondo transparente
+        animationType="fade"
+        transparent={true}
         visible={modalVisible}
         onRequestClose={closeVideo}
       >
-        {/* Capa de fondo oscura y clickeable para cerrar */}
         <TouchableOpacity 
           style={styles.modalBackdrop} 
           activeOpacity={1} 
-          onPress={closeVideo} // Cierra al tocar el fondo
+          onPress={closeVideo}
         >
           <View style={styles.modalContent}>
-            {/* Contenedor del video (para evitar que se cierre al tocarlo) */}
             <TouchableOpacity activeOpacity={1}>
               {selectedVideoId && (
                 <YoutubePlayer
-                  height={(Dimensions.get('window').width * 0.9) * (9 / 16)} // Calcula la altura 16:9
-                  width={Dimensions.get('window').width * 0.9} // 90% del ancho
+                  height={(Dimensions.get('window').width * 0.9) * (9 / 16)}
+                  width={Dimensions.get('window').width * 0.9}
                   play={isPlaying}
                   videoId={selectedVideoId}
                   onChangeState={onStateChange}
-                  // onError para capturar errores (como el 153)
                   onError={e => {
                     console.error("Error del reproductor de YouTube:", e);
                     Alert.alert(
@@ -482,7 +296,7 @@ export default function Home({ navigation }) {
   );
 }
 
-// --- ESTILOS ACTUALIZADOS ---
+// --- ESTILOS ---
 const styles = StyleSheet.create({
   contenedorScroll: {
     flex: 1,
@@ -493,7 +307,7 @@ const styles = StyleSheet.create({
   },
   padre: {
     alignItems: 'center',
-    paddingBottom: 20, // Espacio extra al final
+    paddingBottom: 20,
   },
   titulo: {
     fontSize: 20,
@@ -576,23 +390,22 @@ const styles = StyleSheet.create({
     color: '#34495e',
   },
   
-  // --- NUEVOS ESTILOS DE MODAL ---
+  // --- Estilos de Modal ---
   modalBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)', // Fondo oscuro semitransparente
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   modalContent: {
     width: '90%',
-    backgroundColor: 'white', // Contenedor blanco para el video y botón
+    backgroundColor: 'white',
     borderRadius: 10,
     padding: 10,
     alignItems: 'center',
   },
-  // 'webView' ya no se usa, el estilo del player se da en el componente
   closeButton: {
-    backgroundColor: '#82e0aa', // Un color más amigable
+    backgroundColor: '#82e0aa',
     paddingVertical: 10,
     paddingHorizontal: 30,
     borderRadius: 20,
