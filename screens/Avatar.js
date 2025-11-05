@@ -1,124 +1,182 @@
+// screens/Avatar.js
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Text, TouchableOpacity, FlatList } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import AvatarCoach from './AvatarCoach';
+import {
+  View,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  FlatList,
+  Alert,
+  ScrollView,
+} from 'react-native';
+import { useAvatar } from './AvatarContext';
+import { LOTTIE_ASSETS, avatarOpciones } from './AvatarAssets';
+import LottieView from 'lottie-react-native'; // <-- Importar Lottie
 
+// Componente principal de Avatar
 export default function Avatar() {
-  const [avatar, setAvatar] = useState('🤖'); // valor inicial
+  const { avatar: avatarActual, guardarAvatar, isLoading } = useAvatar();
+  
+  // El estado temporal ahora es solo un string
+  const [selection, setSelection] = useState(avatarActual);
   const [guardado, setGuardado] = useState(false);
 
-  const opciones = ['🤖', '🧑‍🏫', '🦾', '🐼', '🔥', '💪']; // avatares disponibles
-
-  // Cargar avatar guardado al entrar
   useEffect(() => {
-    const cargarAvatar = async () => {
-      try {
-        const value = await AsyncStorage.getItem('avatar');
-        if (value) setAvatar(value);
-      } catch (e) {
-        console.error('Error cargando avatar:', e);
-      }
-    };
-    cargarAvatar();
-  }, []);
+    if (!isLoading) {
+      setSelection(avatarActual);
+    }
+  }, [avatarActual, isLoading]);
 
-  // Guardar avatar en memoria local
-  const guardarAvatar = async (nuevoAvatar) => {
+  // Handler para guardar en el Context y AsyncStorage
+  const handleGuardar = async () => {
     try {
-      await AsyncStorage.setItem('avatar', nuevoAvatar);
-      setAvatar(nuevoAvatar);
+      await guardarAvatar(selection); // Guarda el string (ej: "musculoso")
       setGuardado(true);
-      setTimeout(() => setGuardado(false), 2000); // mensaje temporal
+      setTimeout(() => setGuardado(false), 2000);
     } catch (e) {
-      console.error('Error guardando avatar:', e);
+      Alert.alert('Error', 'No se pudo guardar tu avatar.');
     }
   };
 
-  return (
-    <View style={styles.container}>
-      <Text style={styles.titulo}>Elige tu Avatar</Text>
+  if (isLoading) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.titulo}>Cargando...</Text>
+      </View>
+    );
+  }
 
-      {/* Vista previa */}
-      <View style={styles.preview}>
-        <Text style={styles.avatar}>{avatar}</Text>
-        <Text style={styles.texto}>Vista previa de tu entrenador</Text>
+  return (
+    <ScrollView style={styles.container}>
+      <Text style={styles.titulo}>Personaliza tu Avatar</Text>
+
+      {/* --- Vista previa con Lottie --- */}
+      <View style={styles.previewContainer}>
+        <LottieView
+          key={selection} // Forzar re-renderizado al cambiar
+          source={LOTTIE_ASSETS[selection]} // Carga la animación seleccionada
+          autoPlay
+          loop
+          style={styles.lottiePreview}
+        />
       </View>
 
-      {/* Opciones de avatar */}
-      <FlatList
-        data={opciones}
-        horizontal
-        keyExtractor={(item) => item}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={[
-              styles.opcion,
-              item === avatar ? styles.seleccionado : null,
-            ]}
-            onPress={() => guardarAvatar(item)}
-          >
-            <Text style={styles.opcionTexto}>{item}</Text>
-          </TouchableOpacity>
-        )}
-        contentContainerStyle={styles.lista}
-      />
+      {/* --- Selector Único --- */}
+      <View style={styles.selectorSection}>
+        <Text style={styles.subtitulo}>Elige tu estilo</Text>
+        <FlatList
+          data={avatarOpciones}
+          horizontal
+          keyExtractor={(item) => item}
+          showsHorizontalScrollIndicator={false}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={[
+                styles.opcion,
+                item === selection ? styles.seleccionado : null,
+              ]}
+              onPress={() => setSelection(item)} // Actualiza el string de selección
+            >
+              <Text style={styles.opcionTexto}>{item}</Text>
+            </TouchableOpacity>
+          )}
+          contentContainerStyle={styles.lista}
+        />
+      </View>
 
-      {guardado && <Text style={styles.guardado}>✅ Avatar guardado</Text>}
-
-
-    </View>
+      {/* Botón de Guardar */}
+      <View style={styles.footer}>
+        <TouchableOpacity style={styles.botonGuardar} onPress={handleGuardar}>
+          <Text style={styles.botonTexto}>Guardar Cambios</Text>
+        </TouchableOpacity>
+        {guardado && <Text style={styles.guardado}>✅ ¡Guardado!</Text>}
+      </View>
+    </ScrollView>
   );
 }
 
+// --- Estilos actualizados ---
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    backgroundColor: '#58d68d',
+    backgroundColor: '#ecf0f1',
     padding: 20,
   },
   titulo: {
-    fontSize: 22,
-    fontWeight: 'bold',
+    fontSize: 26,
+    fontWeight: '900',
+    color: '#2c3e50',
+    textAlign: 'center',
     marginBottom: 20,
   },
-  preview: {
-    backgroundColor: '#fad7a0',
-    padding: 20,
+  subtitulo: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#34495e',
+    marginBottom: 10,
+  },
+  previewContainer: {
+    width: 300,
+    height: 300,
+    alignSelf: 'center',
+    marginBottom: 20,
+    backgroundColor: '#fff',
     borderRadius: 15,
+    justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#bdc3c7',
+  },
+  lottiePreview: {
+    width: '100%',
+    height: '100%',
+  },
+  selectorSection: {
     marginBottom: 20,
-  },
-  avatar: {
-    fontSize: 60,
-  },
-  texto: {
-    marginTop: 10,
-    fontSize: 16,
   },
   lista: {
-    justifyContent: 'center',
-    marginVertical: 10,
+    paddingVertical: 10,
   },
   opcion: {
     backgroundColor: '#fff',
-    marginHorizontal: 10,
-    padding: 15,
-    borderRadius: 15,
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#bdc3c7',
+    marginRight: 10,
   },
   opcionTexto: {
-    fontSize: 40,
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#2c3e50',
+    textTransform: 'capitalize',
   },
   seleccionado: {
-    borderWidth: 3,
-    borderColor: '#f39c12',
+    borderColor: '#3498db',
+    backgroundColor: '#eaf4fd',
+  },
+  footer: {
+    alignItems: 'center',
+    marginTop: 10,
+    marginBottom: 40,
+  },
+  botonGuardar: {
+    backgroundColor: '#f39c12',
+    paddingVertical: 15,
+    borderRadius: 10,
+    width: '90%',
+    alignItems: 'center',
+  },
+  botonTexto: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
   guardado: {
     marginTop: 15,
     fontSize: 16,
-    color: 'green',
+    color: '#27ae60',
     fontWeight: 'bold',
   },
 });
-

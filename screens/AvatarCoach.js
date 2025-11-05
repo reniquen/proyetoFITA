@@ -1,9 +1,12 @@
+// screens/AvatarCoach.js
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useAvatar } from './AvatarContext';
+import { LOTTIE_ASSETS } from './AvatarAssets';
+import LottieView from 'lottie-react-native'; // <-- Importar Lottie
 
 export default function AvatarCoach() {
-  const [avatar, setAvatar] = useState('🤖');
+  const { avatar, isLoading } = useAvatar(); // 'avatar' ahora es un string (ej: "normal")
   const [consejo, setConsejo] = useState('');
 
   const consejos = [
@@ -14,19 +17,25 @@ export default function AvatarCoach() {
   ];
 
   useEffect(() => {
-    // cargar avatar guardado
-    AsyncStorage.getItem('avatar').then((value) => {
-      if (value) setAvatar(value);
-    });
-
-    // consejo aleatorio
     const randomConsejo = consejos[Math.floor(Math.random() * consejos.length)];
     setConsejo(randomConsejo);
   }, []);
 
+  if (isLoading || !avatar) {
+    return null; // No mostrar nada mientras carga
+  }
+
   return (
     <View style={styles.container}>
-      <Text style={styles.avatar}>{avatar}</Text>
+      {/* --- Vista previa Lottie --- */}
+      <View style={styles.avatarPreview}>
+        <LottieView
+          source={LOTTIE_ASSETS[avatar]} // Carga la animación guardada
+          autoPlay
+          loop
+          style={styles.lottieAvatar}
+        />
+      </View>
       <Text style={styles.consejo}>{consejo}</Text>
     </View>
   );
@@ -42,8 +51,14 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
   },
-  avatar: {
-    fontSize: 50,
+  avatarPreview: {
+    width: 150, // Tamaño ajustado para Lottie
+    height: 150,
+    marginBottom: 10,
+  },
+  lottieAvatar: {
+    width: '100%',
+    height: '100%',
   },
   consejo: {
     marginTop: 10,
@@ -51,5 +66,3 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
-
-
