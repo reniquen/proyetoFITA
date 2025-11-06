@@ -1,157 +1,94 @@
 // ====================================================================
-// CATÁLOGO DE EJERCICIOS CON LOTTIE
+// 1. CATÁLOGO MAESTRO DE EJERCICIOS
+// Define aquí cada ejercicio una sola vez con todos sus assets.
 // ====================================================================
-// NOTA: Asegúrate de que 'assets/ejercicios/sentadillas.json' exista.
-
-export const EXERCISE_CATALOG = {
-    // PIERNAS
+export const EXERCISES = {
     sentadillas: {
-        nombre: "Sentadillas con Barra",
-        video: "https://www.youtube.com/watch?v=dsCuiccYNGs",
-        animacion: require('../assets/ejercicios/sentadillas.json')
+      id: 'sentadillas',
+      nombre: "Sentadillas",
+      video: "https://www.youtube.com/watch?v=dsCuiccYNGs",
+      // Usamos tus imágenes PNG existentes como fallback si no hay Lottie
+      imagen: require('../assets/sentadilla.png'), 
+      // Si tienes Lotties específicos, úsalos aquí. Si no, usa null o la imagen.
+      animacion: null, 
     },
     prensa: {
-        nombre: "Prensa de Pierna",
-        video: "https://www.youtube.com/watch?v=MTfwemR8QMQ",
-        animacion: require('../assets/ejercicios/sentadillas.json')
+      id: 'prensa',
+      nombre: "Prensa de Pierna",
+      video: "https://www.youtube.com/watch?v=MTfwemR8QMQ",
+      imagen: require('../assets/prensa.png'),
     },
-    hack_squat: {
-        nombre: "Hack Squat",
-        video: "https://www.youtube.com/watch?v=0tn5K9NlCfo",
-        animacion: require('../assets/ejercicios/sentadillas.json')
-    },
-    bulgara: {
-        nombre: "Sentadilla Búlgara",
-        video: "https://www.youtube.com/watch?v=7zBnXPL5cck",
-        animacion: require('../assets/ejercicios/sentadillas.json')
-    },
-    abductores: {
-        nombre: "Máquina de Abductores",
-        video: "https://www.youtube.com/watch?v=fItDiXXZyZo",
-        animacion: require('../assets/ejercicios/sentadillas.json')
-    },
-
-    // PECHO/ESPALDA
-    press_banca: {
-        nombre: "Press de Banca",
-        video: "https://www.youtube.com/watch?v=GeLq8cMODLc",
-        animacion: require('../assets/ejercicios/sentadillas.json')
-    },
-    remo: {
-        nombre: "Remo con Barra",
-        video: "https://www.youtube.com/watch?v=3uiWjik2yEQ",
-        animacion: require('../assets/ejercicios/sentadillas.json')
+    press_militar: {
+      id: 'press_militar',
+      nombre: "Press Militar",
+      video: "https://www.youtube.com/watch?v=waeCyaAQRn8",
+      imagen: require('../assets/pressmilitar.png'),
     },
     dominadas: {
-        nombre: "Dominadas",
-        video: "https://www.youtube.com/watch?v=fJ1Sq208UVA",
-        animacion: require('../assets/ejercicios/sentadillas.json')
+      id: 'dominadas',
+      nombre: "Dominadas",
+      video: "https://www.youtube.com/watch?v=fJ1Sq208UVA",
+      imagen: require('../assets/dominadas.png'),
     },
-    pullover: {
-        nombre: "Pull Over en Polea",
-        video: "https://www.youtube.com/watch?v=9YQ1YXKko8s",
-        animacion: require('../assets/ejercicios/sentadillas.json')
-    },
-    cruce_poleas: {
-        nombre: "Cruce de Poleas",
-        video: "https://www.youtube.com/watch?v=gFoMzh-5H-8",
-        animacion: require('../assets/ejercicios/sentadillas.json')
-    },
-
-    // HOMBROS/BRAZOS/CARDIO
-    press_militar: {
-        nombre: "Press Militar",
-        video: "https://www.youtube.com/watch?v=waeCyaAQRn8",
-        animacion: require('../assets/ejercicios/sentadillas.json')
-    },
-    laterales_polea: {
-        nombre: "Elevaciones Laterales",
-        video: "https://www.youtube.com/watch?v=gjUrYfNU1-M",
-        animacion: require('../assets/ejercicios/sentadillas.json')
+    press_banca: {
+      id: 'press_banca',
+      nombre: "Press de Banca",
+      video: "https://www.youtube.com/watch?v=GeLq8cMODLc",
+      imagen: require('../assets/pressbanca.png'),
     },
     burpees: {
-        nombre: "Burpees",
-        video: "https://www.youtube.com/watch?v=IYusabTdFEo",
-        animacion: require('../assets/ejercicios/sentadillas.json')
+      id: 'burpees',
+      nombre: "Burpees",
+      video: "https://www.youtube.com/watch?v=IYusabTdFEo",
+      imagen: require('../assets/burpees.png'),
     },
-    mountain_climbers: {
-        nombre: "Mountain Climbers",
-        video: "https://www.youtube.com/watch?v=cnyTQDSE884",
-        animacion: require('../assets/ejercicios/sentadillas.json')
-    },
-    cuerda: {
-        nombre: "Saltar la Cuerda",
-        video: "https://www.youtube.com/watch?v=rpS3MQgxdA0",
-        animacion: require('../assets/ejercicios/sentadillas.json')
-    },
-
-    // OTROS
     descanso: {
-        nombre: "Descanso Total",
-        repeticiones: "Día libre",
-        animacion: null,
-        video: null
+      id: 'descanso',
+      nombre: "Descanso Activo",
+      video: null,
+      imagen: require('../assets/vidasaludable.png'), // Asegúrate de tener una imagen genérica
     },
-};
-
-// ====================================================================
-// RUTINAS POR DEFECTO
-// ====================================================================
-
-export const DEFAULT_USER_ROUTINES = {
-    lunes: [
-        { ...EXERCISE_CATALOG.sentadillas, repeticiones: "4 series de 10 reps" },
-        { ...EXERCISE_CATALOG.prensa, repeticiones: "4 series de 12 reps" },
-        { ...EXERCISE_CATALOG.hack_squat, repeticiones: "3 series de 12 reps" },
+    // ... AGREGA AQUÍ TODOS TUS OTROS EJERCICIOS ...
+  };
+  
+  // ====================================================================
+  // 2. RUTINAS PREDEFINIDAS (PACKS)
+  // La IA usará estos nombres (ej: "FULL_BODY_LIGERO") para cambiar rutinas completas.
+  // ====================================================================
+  export const PRESET_ROUTINES = {
+    PIERNA_BASICO: [
+      { ...EXERCISES.sentadillas, repeticiones: "4 series de 12 reps" },
+      { ...EXERCISES.prensa, repeticiones: "4 series de 15 reps" },
     ],
-    martes: [
-        { ...EXERCISE_CATALOG.press_militar, repeticiones: "4 series de 8 reps" },
-        { ...EXERCISE_CATALOG.laterales_polea, repeticiones: "3 series de 15 reps" },
-        // { ...EXERCISE_CATALOG.posterior, repeticiones: "3 series de 15 reps" }, // Falta en catálogo
+    PIERNA_FUERTE: [
+      { ...EXERCISES.sentadillas, repeticiones: "5 series de 5 reps (Pesado)" },
+      { ...EXERCISES.prensa, repeticiones: "4 series de 10 reps" },
+      { ...EXERCISES.burpees, repeticiones: "3 series al fallo" },
     ],
-    miércoles: [
-        { ...EXERCISE_CATALOG.dominadas, repeticiones: "4 series al fallo" },
-        { ...EXERCISE_CATALOG.remo, repeticiones: "4 series de 10 reps" },
-        { ...EXERCISE_CATALOG.pullover, repeticiones: "3 series de 12 reps" },
+    TORSO_SUPERIOR: [
+      { ...EXERCISES.press_banca, repeticiones: "4 series de 10 reps" },
+      { ...EXERCISES.dominadas, repeticiones: "4 series al fallo" },
+      { ...EXERCISES.press_militar, repeticiones: "3 series de 12 reps" },
     ],
-    jueves: [
-        { ...EXERCISE_CATALOG.bulgara, repeticiones: "4 series de 12 reps" },
-        // { ...EXERCISE_CATALOG.pesom, repeticiones: "4 series de 10 reps" }, // Falta en catálogo
-        { ...EXERCISE_CATALOG.abductores, repeticiones: "4 series de 10 reps" },
+    CARDIO_QUEMA: [
+      { ...EXERCISES.burpees, repeticiones: "4 rondas de 1 min" },
+      // Puedes reusar ejercicios o añadir nuevos al catálogo
+      { ...EXERCISES.descanso, repeticiones: "Caminar 30 min" },
     ],
-    viernes: [
-        { ...EXERCISE_CATALOG.press_banca, repeticiones: "4 series de 8 reps" },
-        { ...EXERCISE_CATALOG.cruce_poleas, repeticiones: "4 series de 12 reps" },
-        { ...EXERCISE_CATALOG.laterales_polea, repeticiones: "3 series de 15 reps" },
-    ],
-    sábado: [
-        { ...EXERCISE_CATALOG.burpees, repeticiones: "3 series de 10 reps" },
-        { ...EXERCISE_CATALOG.mountain_climbers, repeticiones: "4 series de 12 reps" },
-        { ...EXERCISE_CATALOG.cuerda, repeticiones: "1 serie de 15 minutos" },
-    ],
-    domingo: [
-        { nombre: "Descanso Activo", repeticiones: "Yoga o caminata 30min", animacion: null },
-    ],
-};
-
-export const AI_SUGGESTED_ROUTINES = {
-    PIERNAS_LIGERO: [
-        { ...EXERCISE_CATALOG.bulgara, repeticiones: "3 series de 10 reps" },
-        { ...EXERCISE_CATALOG.abductores, repeticiones: "3 series de 10 reps" },
-        { nombre: "Extensiones de Cuádriceps", repeticiones: "3 series de 15 reps", animacion: null, video: null },
-    ],
-    PECHO_ESPALDA_FUERTE: [
-        { ...EXERCISE_CATALOG.press_banca, repeticiones: "5 series de 5 reps (Pesado)" },
-        { ...EXERCISE_CATALOG.dominadas, repeticiones: "4 series al fallo (Máximo)" },
-        { ...EXERCISE_CATALOG.remo, repeticiones: "4 series de 8 reps (Pesado)" },
-    ],
-    CARDIO_HIIT: [
-        { ...EXERCISE_CATALOG.burpees, repeticiones: "3 series de 1 min" },
-        { ...EXERCISE_CATALOG.mountain_climbers, repeticiones: "4 series de 1 min" },
-        { ...EXERCISE_CATALOG.cuerda, repeticiones: "2 series de 10 minutos" },
-    ],
-};
-
-export const { sentadillas, prensa, hack_squat, bulgara, abductores, press_banca, remo, dominadas, pullover, cruce_poleas, press_militar, laterales_polea, burpees, mountain_climbers, cuerda, descanso } = EXERCISE_CATALOG;
-
-export default DEFAULT_USER_ROUTINES;
+    DESCANSO_TOTAL: [
+       { ...EXERCISES.descanso, repeticiones: "Día libre de recuperación" },
+    ]
+  };
+  
+  // ====================================================================
+  // 3. RUTINA INICIAL DEL USUARIO (Lunes a Domingo)
+  // ====================================================================
+  export const DEFAULT_WEEKLY_ROUTINE = {
+    lunes: PRESET_ROUTINES.PIERNA_BASICO,
+    martes: PRESET_ROUTINES.TORSO_SUPERIOR,
+    miércoles: PRESET_ROUTINES.CARDIO_QUEMA,
+    jueves: PRESET_ROUTINES.PIERNA_FUERTE,
+    viernes: PRESET_ROUTINES.TORSO_SUPERIOR,
+    sábado: PRESET_ROUTINES.CARDIO_QUEMA,
+    domingo: PRESET_ROUTINES.DESCANSO_TOTAL,
+  };
