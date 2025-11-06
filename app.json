@@ -17,7 +17,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/avatar/Imagen de WhatsApp 2024-09-11 a las 00.17.00_c14768cf.jpg",
+        "foregroundImage": "./assets/avatar/iconof.jpg",
         "backgroundColor": "#ffffff"
       },
       "package": "com.reniquen.fitA"

@@ -1,38 +1,38 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { View } from 'react-native'; // Importar View
+import { View } from 'react-native';
 
-// --- 1. IMPORTAR SPLASH SCREEN Y EL CONTEXTO ---
+// --- 1. IMPORTAR LIBRERÍAS DE GESTIÓN ---
 import * as SplashScreen from 'expo-splash-screen';
-import { AvatarProvider, useAvatar } from './screens/AvatarContext'; 
+import { AvatarProvider, useAvatar } from './screens/AvatarContext';
+import { UserDataProvider, useUserData } from './screens/UserDataContext'; // Contexto de Rutinas/Recetas
 
-// Importa TODAS tus pantallas
+// --- 2. IMPORTAR TODAS LAS PANTALLAS ---
 import LoginScreen from './screens/Login';
 import HomeScreen from './screens/Home';
 import AvatarScreen from './screens/Avatar';
-import ComidasScreen from './screens/Comidas';
+import ComidasScreen from './screens/Comidas'; 
 import AvatarChatScreen from './screens/AvatarChatScreen';
 import AdminPanelScreen from './screens/AdminPanel';
 import RegistroScreen from './screens/Registro';
 import ScannerScreen from './screens/ScannerScreen';
+import CalendarRecipesScreen from './screens/CalendarRecipesScreen'; // Pantalla de Calendario
 
 const Stack = createNativeStackNavigator();
 
-// --- 2. EVITAR QUE EL SPLASH SE OCULTE AUTOMÁTICAMENTE ---
+// Evita que el splash se oculte automáticamente
 SplashScreen.preventAutoHideAsync();
 
 /**
- * Creamos un componente interno que consume el contexto.
- * No podemos usar 'useAvatar' en 'App' porque está fuera del 'AvatarProvider'.
+ * Componente interno para gestionar la navegación y la pantalla de carga.
  */
 function AppNavigation() {
-  
-  // 3. Obtenemos el estado de carga del avatar
-  const { isLoading } = useAvatar();
+  const { isLoading: isLoadingAvatar } = useAvatar();
+  const { isLoadingData } = useUserData(); 
 
-  // 4. Creamos un 'onLayout' para evitar parpadeos
-  // Ocultamos el splash SOLO cuando el avatar ha cargado Y el layout está listo
+  const isLoading = isLoadingAvatar || isLoadingData; // Espera a que ambos carguen
+
   const onLayoutRootView = useCallback(async () => {
     if (!isLoading) {
       await SplashScreen.hideAsync();
@@ -40,11 +40,9 @@ function AppNavigation() {
   }, [isLoading]);
 
   if (isLoading) {
-    // Si el contexto sigue cargando, no renderizamos nada (el splash sigue activo)
-    return null; 
+    return null; // Muestra el Splash Screen mientras carga
   }
 
-  // 5. Renderizamos la app principal en un View con el onLayout
   return (
     <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
       <NavigationContainer>
@@ -52,42 +50,41 @@ function AppNavigation() {
           initialRouteName="Login"
           screenOptions={{ headerShown: false }}
         >
-          {/* Todas tus pantallas */}
+          {/* Tus pantallas esenciales */}
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Home" component={HomeScreen} />
           <Stack.Screen name="Avatar" component={AvatarScreen} />
           <Stack.Screen name="Comidas" component={ComidasScreen} />
+          <Stack.Screen name="AdminPanel" component={AdminPanelScreen} options={{ headerShown: true, title: 'Panel de Admin' }} />
+          <Stack.Screen name="Registro" component={RegistroScreen} options={{ headerShown: true, title: 'Crear Cuenta' }} />
+
+          {/* Funciones de IA y Utilidades */}
+          <Stack.Screen name="AvatarChat" component={AvatarChatScreen} options={{ headerShown: true, title: 'Chat con tu Avatar' }} />
+          <Stack.Screen name="Scanner" component={ScannerScreen} options={{ headerShown: false }} />
+          
+          {/* --- PANTALLA DEL CALENDARIO --- */}
           <Stack.Screen 
-            name="AvatarChat" 
-            component={AvatarChatScreen} 
-            options={{ headerShown: true, title: 'Chat con tu Avatar' }}
+            name="CalendarRecipes" 
+            component={CalendarRecipesScreen} 
+            options={{ 
+              headerShown: true, 
+              title: 'Calendario de Recetas' 
+            }}
           />
-          <Stack.Screen 
-            name="AdminPanel" 
-            component={AdminPanelScreen} 
-            options={{ headerShown: true, title: 'Panel de Admin' }}
-          />
-          <Stack.Screen 
-            name="Registro" 
-            component={RegistroScreen} 
-            options={{ headerShown: true, title: 'Crear Cuenta' }}
-          />
-          <Stack.Screen 
-            name="Scanner" 
-            component={ScannerScreen} 
-            options={{ headerShown: false }}
-          />
+
         </Stack.Navigator>
       </NavigationContainer>
     </View>
   );
 }
 
-// El componente App principal ahora solo se encarga de proveer el contexto
+// El componente App principal ahora envuelve con AMBOS providers
 export default function App() {
   return (
     <AvatarProvider>
-      <AppNavigation />
+      <UserDataProvider>
+        <AppNavigation />
+      </UserDataProvider>
     </AvatarProvider>
   );
 }

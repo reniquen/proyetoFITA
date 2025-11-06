@@ -2,202 +2,163 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { View, StyleSheet, Text, SafeAreaView, ActivityIndicator, Alert } from 'react-native';
 import { GiftedChat, Bubble } from 'react-native-gifted-chat';
 import { useAvatar } from './AvatarContext';
+import { useUserData } from './UserDataContext'; // <-- IMPORTANTE: Acceso a los datos
 import { LOTTIE_ASSETS } from './AvatarAssets';
 import LottieView from 'lottie-react-native';
-
-// --- 1. IMPORTAR GEMINI ---
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-// --- 2. CONFIGURAR GEMINI (¡PON TU CLAVE AQUÍ!) ---
+// ¡RECUERDA USAR TU API KEY REAL AQUÍ!
 const API_KEY = "AIzaSyC1pejgzyzB-aZlIvMxKl--PTUC7UKQ8xM"; 
 const genAI = new GoogleGenerativeAI(API_KEY);
+// Usamos gemini-1.5-flash que es mejor para seguir instrucciones complejas (JSON)
+const model = genAI.getGenerativeModel({ 
+  model: "gemini-2.5-flash",
+  generationConfig: { responseMimeType: "application/json" } // FORZAMOS RESPUESTA JSON SIEMPRE
+});
 
-// --- ¡¡¡CAMBIO AQUÍ!!! ---
-// Corregimos el nombre del modelo al más reciente
-const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-
-// --- Definir usuario ---
-const USER = {
-  _id: 1,
-  name: 'Tú',
-};
+const USER = { _id: 1, name: 'Tú' };
 
 const AvatarChatScreen = () => {
   const [messages, setMessages] = useState([]);
-  const { avatar, isLoading } = useAvatar();
+  const { avatar, isLoading: isLoadingAvatar } = useAvatar();
+  // Obtenemos datos y funciones para manipularlos
+  const { rutinas, recetasCalendar, updateRoutine, addRecipeToCalendar, isLoadingData } = useUserData();
   
   const [isBotSpeaking, setIsBotSpeaking] = useState(false);
   const [avatarBot, setAvatarBot] = useState(null);
 
   useEffect(() => {
-    if (!isLoading && avatar) {
-      const bot = {
-        _id: 2,
-        name: 'Tu Avatar',
-        avatar: null,
-      };
-      setAvatarBot(bot);
-
-      // Comprobación de seguridad por si 'avatar' es inválido
-      const avatarStyle = LOTTIE_ASSETS[avatar] ? avatar : 'normal';
-
-      setMessages([
-        {
-          _id: 1,
-          text: `¡Hola! Soy tu avatar con estilo ${avatarStyle}. ¡Estoy listo para motivarte! ¿Qué entrenamos hoy?`,
-          createdAt: new Date(),
-          user: bot,
-        },
-      ]);
+    if (!isLoadingAvatar && avatar) {
+      const currentAvatarKey = LOTTIE_ASSETS[avatar] ? avatar : 'normal';
+      setAvatarBot({ _id: 2, name: 'Tu Avatar', avatar: null });
+      setMessages([{
+        _id: 1,
+        text: `¡Hola! Soy tu coach inteligente. Puedo ver y modificar tus rutinas y tu calendario de comidas. ¿Qué necesitas?`,
+        createdAt: new Date(),
+        user: { _id: 2, name: 'Avatar' },
+      }]);
     }
-  }, [isLoading, avatar]);
+  }, [isLoadingAvatar, avatar]);
 
   const onSend = useCallback((newMessages = []) => {
-    setMessages(previousMessages =>
-      GiftedChat.append(previousMessages, newMessages),
-    );
-    const userMessageText = newMessages[0].text;
-    handleAvatarResponse(userMessageText);
-  }, [avatar, avatarBot]);
+    setMessages(prev => GiftedChat.append(prev, newMessages));
+    handleAvatarResponse(newMessages[0].text);
+  }, []);
 
   const handleAvatarResponse = async (userMessage) => {
-    if (!avatarBot || !avatar) return;
-
-    setIsBotSpeaking(true); 
-
+    setIsBotSpeaking(true);
     try {
-      const geminiResponseText = await getGeminiResponse(userMessage, avatar);
+      // 1. Llamamos a Gemini (que ahora puede decidir usar herramientas)
+      const responseJSON = await getGeminiAdvancedResponse(userMessage);
+      
+      // 2. Analizamos si Gemini quiere usar una herramienta
+      if (responseJSON.tool_calls) {
+        for (const call of responseJSON.tool_calls) {
+          if (call.tool_name === 'update_routine') {
+             // EJECUTAMOS LA FUNCIÓN REAL EN LA APP
+             await updateRoutine(call.parameters.dia, [{ nombre: call.parameters.ejercicio, repeticiones: call.parameters.reps }]);
+             // Añadimos un mensaje de sistema invisible para confirmar
+             // (En una implementación real, volveríamos a llamar a Gemini con el resultado)
+          } else if (call.tool_name === 'add_recipe_calendar') {
+             await addRecipeToCalendar(call.parameters.fecha, call.parameters.receta);
+          }
+        }
+      }
 
-      const responseMessage = {
+      // 3. Mostramos la respuesta de texto final al usuario
+      const botMessage = {
         _id: Math.random().toString(36).substring(7),
-        text: geminiResponseText,
+        text: responseJSON.final_response || "¡Hecho!", // Usa la respuesta del JSON
         createdAt: new Date(),
         user: avatarBot,
       };
+      setMessages(prev => GiftedChat.append(prev, [botMessage]));
 
-      setMessages(previousMessages =>
-        GiftedChat.append(previousMessages, [responseMessage]),
-      );
     } catch (error) {
-      console.error("Error al conectar con Gemini:", error);
-      Alert.alert("Error de Avatar", "Tu avatar se mareó un poco y no pudo responder. Revisa tu API Key o la conexión.");
+      console.error("Error IA:", error);
+      Alert.alert("Error", "Tu IA tuvo un cortocircuito. Intenta de nuevo.");
     } finally {
       setIsBotSpeaking(false);
     }
   };
 
-  // --- 3. FUNCIÓN REAL DE GEMINI ---
-  const getGeminiResponse = async (userMessage, avatarState) => {
+  // --- CEREBRO AVANZADO DE GEMINI ---
+  const getGeminiAdvancedResponse = async (userMessage) => {
+    // 1. Preparamos el CONTEXTO (RAG-lite)
+    // Le damos a la IA los datos actuales para que sepa qué contestar
+    const contextData = JSON.stringify({
+      dia_actual: new Date().toLocaleDateString('es-ES', { weekday: 'long' }),
+      fecha_hoy: new Date().toISOString().split('T')[0],
+      rutinas_actuales: rutinas,
+      // Solo le damos las recetas de los próximos 3 días para no saturar el prompt
+      calendario_reciente: Object.entries(recetasCalendar).slice(-3) 
+    });
+
+    // 2. El Prompt de Sistema "Agente"
+    const systemPrompt = `
+      Eres un coach de fitness avanzado en una app. Tienes personalidad: ${avatar || 'normal'}.
+      
+      TU SUPERPODER: Puedes leer y MODIFICAR los datos del usuario usando "herramientas".
+      
+      HERRAMIENTAS DISPONIBLES (si el usuario pide un cambio, DEBES usarlas):
+      - update_routine(dia: string, ejercicio: string, reps: string): Reemplaza la rutina de un día COMPLETO.
+      - add_recipe_calendar(fecha: string YYYY-MM-DD, receta: string): Agrega una comida al calendario.
+
+      DATOS ACTUALES DEL USUARIO (Contexto):
+      ${contextData}
+
+      INSTRUCCIONES DE RESPUESTA (OBLIGATORIO RESPONDER SIEMPRE EN ESTE FORMATO JSON):
+      {
+        "tool_calls": [ // Array opcional, solo si necesitas ejecutar acciones
+          { "tool_name": "nombre_herramienta", "parameters": { ...argumentos } }
+        ],
+        "final_response": "Tu respuesta conversacional amigable aquí para el usuario."
+      }
+
+      Ejemplo 1 (Usuario: "Cambia mi rutina del lunes a solo 100 burpees"):
+      {
+        "tool_calls": [{ "tool_name": "update_routine", "parameters": { "dia": "lunes", "ejercicio": "100 Burpees mortales", "reps": "1 serie" } }],
+        "final_response": "¡Entendido! He cambiado tu rutina del lunes. ¡Prepárate para sufrir con esos burpees! 🔥"
+      }
+      
+      Ejemplo 2 (Usuario: "¿Qué me toca hoy?"):
+      {
+        "final_response": "Hoy [día] te toca [ver rutinas_actuales en el contexto]. ¡A darle con todo!"
+      }
+    `;
+
+    const result = await model.generateContent(systemPrompt + `\nUsuario: "${userMessage}"`);
+    const text = result.response.text();
+    console.log("Respuesta RAW de Gemini (JSON):", text);
+    
     try {
-      // Asegurarse de que avatarState es un string válido
-      const validAvatarState = LOTTIE_ASSETS[avatarState] ? avatarState : 'normal';
-
-      const prompt = `
-        Eres el avatar personalizado de un usuario en una app de fitness.
-        Tu misión es ser su compañero amigable, motivador y un poco divertido.
-        
-        El estado/estilo que el usuario eligió para ti es: "${validAvatarState}"
-
-        Reglas OBLIGATORIAS:
-        1. RESPONDRE SIEMPRE en primera persona (usa "yo", "mi", "nosotros").
-        2. Tu personalidad debe reflejar un estilo "${validAvatarState}".
-        3. NUNCA digas que eres una IA, modelo de lenguaje o Gemini. ERES el avatar.
-        4. Mantén las respuestas BREVES (máximo 2 o 3 frases) para que parezca un chat real.
-        
-        Usuario: "${userMessage}"
-        Tu respuesta (como avatar):
-      `;
-      
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text();
-      
-      return text;
-
-    } catch (error) {
-      console.error("Error en getGeminiResponse:", error);
-      throw error;
+      // Parseamos la respuesta JSON que forzamos a Gemini a generar
+      return JSON.parse(text);
+    } catch (e) {
+      console.error("Gemini no devolvió JSON válido:", text);
+      return { final_response: text }; // Fallback por si acaso
     }
   };
 
-  if (isLoading || !avatarBot) {
-    return (
-      <View style={[styles.container, styles.loadingContainer]}>
-        <ActivityIndicator size="large" color="#007AFF" />
-      </View>
-    );
+  if (isLoadingAvatar || isLoadingData || !avatarBot) {
+    return <View style={styles.loading}><ActivityIndicator size="large" color="#007AFF" /></View>;
   }
-
-  // Comprobación de seguridad para la animación
-  const currentAvatarKey = LOTTIE_ASSETS[avatar] ? avatar : 'normal';
-  const currentAnimation = isBotSpeaking
-    ? LOTTIE_ASSETS['hablando']
-    : LOTTIE_ASSETS[currentAvatarKey];
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.avatarHeader}>
-        <LottieView
-          key={isBotSpeaking ? 'hablando' : currentAvatarKey}
-          source={currentAnimation}
-          autoPlay
-          loop
-          style={styles.lottieAvatar}
-        />
-        <Text style={styles.avatarName}>Chat con tu Avatar</Text>
+      <View style={styles.header}>
+         <LottieView source={LOTTIE_ASSETS[avatar] || LOTTIE_ASSETS['normal']} autoPlay loop style={styles.lottie} />
       </View>
-
-      <GiftedChat
-        messages={messages}
-        onSend={messages => onSend(messages)}
-        user={USER}
-        placeholder="Escríbele a tu avatar..."
-        alwaysShowSend
-        renderAvatar={null}
-        renderBubble={props => (
-          <Bubble
-            {...props}
-            wrapperStyle={{
-              right: { backgroundColor: '#007AFF' },
-              left: { backgroundColor: '#E5E5EA' },
-            }}
-            textStyle={{
-              right: { color: '#FFF' },
-              left: { color: '#000' },
-            }}
-          />
-        )}
-      />
+      <GiftedChat messages={messages} onSend={messages => onSend(messages)} user={USER} renderAvatar={null} />
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  avatarHeader: {
-    alignItems: 'center',
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#EEE',
-    backgroundColor: '#F8F8F8',
-  },
-  lottieAvatar: {
-    width: 120,
-    height: 120,
-  },
-  avatarName: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginTop: 5,
-  },
+  container: { flex: 1, backgroundColor: '#fff' },
+  loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  header: { alignItems: 'center', padding: 10, backgroundColor: '#f8f8f8' },
+  lottie: { width: 100, height: 100 },
 });
 
 export default AvatarChatScreen;
