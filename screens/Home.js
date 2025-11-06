@@ -9,25 +9,25 @@ import {
   SafeAreaView,
   Alert,
   Dimensions,
-  ActivityIndicator, // Para la carga
+  ActivityIndicator, 
 } from 'react-native';
 import React, { useState, useCallback } from 'react';
 import YoutubePlayer from 'react-native-youtube-iframe';
 import { auth } from './firebaseConfig';
 import { signOut } from 'firebase/auth';
 import AvatarCoach from './AvatarCoach';
-import { useUserData } from './UserDataContext'; // <-- 1. IMPORTAR DATOS DE USUARIO
+import { useUserData } from './UserDataContext'; // <-- IMPORTAR CONTEXTO
 
 // Función para extraer el ID del video (sin cambios)
 function getYouTubeId(url) {
   if (!url) return null;
-  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const regExp = /^.(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]).*/;
   const match = url.match(regExp);
   return (match && match[2].length === 11) ? match[2] : null;
 }
 
 export default function Home({ navigation }) {
-  // --- Estados del Modal (sin cambios) ---
+  // --- Estados del Modal ---
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedVideoId, setSelectedVideoId] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -35,15 +35,16 @@ export default function Home({ navigation }) {
   // --- 2. LEER RUTINAS DESDE EL CONTEXTO ---
   const { rutinas, isLoadingData } = useUserData();
 
-  // --- Funciones del Modal (sin cambios) ---
+  // --- Funciones del Modal ---
   const openVideo = (videoUrl) => {
     const videoId = getYouTubeId(videoUrl);
+    // Solo abrir si hay un videoId válido
     if (videoId) {
       setSelectedVideoId(videoId);
       setIsPlaying(true);
       setModalVisible(true);
     } else {
-      Alert.alert("Video no válido", "No se pudo encontrar el ID del video de YouTube.");
+      Alert.alert("Error", "Este ejercicio no tiene un video de demostración.");
     }
   };
 
@@ -57,7 +58,7 @@ export default function Home({ navigation }) {
     if (state === "ended") closeVideo();
   }, []);
 
-  // --- Datos de Rutinas (DINÁMICOS) ---
+  // --- Rutina del Día ---
   const diasSemana = [ "domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado" ];
   const diaActual = diasSemana[new Date().getDay()];
   const rutinaHoy = rutinas[diaActual] || []; // Obtiene la rutina del contexto
@@ -85,7 +86,19 @@ export default function Home({ navigation }) {
           ) : rutinaHoy.length > 0 ? (
             rutinaHoy.map((ejercicio, index) => (
               <View key={index} style={styles.tarjeta}>
-                {/* Nota: Se eliminó el <Image> y video. Si tu app los necesita, debes restaurarlos aquí */}
+                {/* 4. Usar la imagen y video del objeto de rutina */}
+                <TouchableOpacity 
+                  onPress={() => openVideo(ejercicio.video)}
+                  disabled={!ejercicio.video} // Deshabilita si no hay video
+                >
+                  {ejercicio.imagen ? (
+                    <Image source={ejercicio.imagen} style={styles.imagen} />
+                  ) : (
+                    <View style={styles.imagenPlaceholder}>
+                      <Text style={styles.placeholderText}>No Image</Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
                 <View style={styles.textoContainer}>
                   <Text style={styles.nombre}>{ejercicio.nombre}</Text>
                   <Text style={styles.repeticiones}>{ejercicio.repeticiones}</Text>
@@ -126,14 +139,9 @@ export default function Home({ navigation }) {
             <Text style={[styles.botonTexto, {color: 'white'}]}>Escanear Producto</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.boton, {backgroundColor: '#f39c12'}]} 
-            onPress={() => navigation.navigate('Comparador')}
-          >
-            <Text style={[styles.botonTexto, {color: 'white'}]}>Comparador Nutricional</Text>
-          </TouchableOpacity>
+          {/* Se eliminó el botón "Comparador Nutricional" */}
 
-          {/* --- NUEVO BOTÓN CALENDARIO --- */}
+          {/* --- NUEVO BOTÓN CALENDARIO DE RECETAS --- */}
           <TouchableOpacity
             style={[styles.boton, {backgroundColor: '#9b59b6'}]} // Morado
             onPress={() => navigation.navigate('CalendarRecipes')}
@@ -208,6 +216,13 @@ const styles = StyleSheet.create({
     elevation: 8,
     width: '100%',
   },
+  avatarTexto: {
+    marginTop: 10,
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    color: '#34495e',
+  },
   titulo: {
     fontSize: 22,
     fontWeight: 'bold',
@@ -216,6 +231,8 @@ const styles = StyleSheet.create({
     color: '#2c3e50',
   },
   tarjeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: '#fad7a0',
     borderRadius: 10,
     padding: 20,
@@ -226,6 +243,26 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 5,
+  },
+  imagen: {
+    width: 80, 
+    height: 80,
+    borderRadius: 8,
+    marginRight: 15,
+  },
+  imagenPlaceholder: { // Estilo para cuando no hay imagen
+    width: 80,
+    height: 80,
+    borderRadius: 8,
+    marginRight: 15,
+    backgroundColor: '#ccc',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  placeholderText: {
+    fontSize: 12,
+    textAlign: 'center',
+    color: '#666',
   },
   textoContainer: { flex: 1 },
   nombre: { fontSize: 18, fontWeight: 'bold', marginBottom: 5 },
@@ -254,5 +291,5 @@ const styles = StyleSheet.create({
   modalBackdrop: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.7)', justifyContent: 'center', alignItems: 'center' },
   modalContent: { width: '90%', backgroundColor: 'white', borderRadius: 10, padding: 10, alignItems: 'center' },
   closeButton: { backgroundColor: '#82e0aa', paddingVertical: 10, paddingHorizontal: 30, borderRadius: 20, marginTop: 15 },
-  closeButtonText: { color: 'black', fontSize: 16, fontWeight: 'bold' },
+  closeButtonText: { color: 'black', fontSize: 16, fontWeight: 'bold' },
 });
