@@ -1,38 +1,90 @@
-
-
-// App.js
-import React from 'react';
+import React, { useCallback } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { AvatarProvider } from './screens/AvatarContext.js'; // 1. Importar
+import { View } from 'react-native';
 
-import Login from './screens/Login';
-import Registro from './screens/Registro';
-import Datos from './screens/Datos';
-import Planes from './screens/Planes';
-import Home from './screens/Home';
-import Comidas from './screens/Comidas';
-import AdminPanel from './screens/AdminPanel.js';
-import Avatar from './screens/Avatar.js';
+// --- 1. IMPORTAR LIBRERÍAS DE GESTIÓN ---
+import * as SplashScreen from 'expo-splash-screen';
+import { AvatarProvider, useAvatar } from './screens/AvatarContext';
+import { UserDataProvider, useUserData } from './screens/UserDataContext'; // Contexto de Rutinas/Recetas
+
+// --- 2. IMPORTAR TODAS LAS PANTALLAS ---
+import LoginScreen from './screens/Login';
+import HomeScreen from './screens/Home';
+import AvatarScreen from './screens/Avatar';
+import ComidasScreen from './screens/Comidas'; 
+import AvatarChatScreen from './screens/AvatarChatScreen';
+import AdminPanelScreen from './screens/AdminPanel';
+import RegistroScreen from './screens/Registro';
+import ScannerScreen from './screens/ScannerScreen';
+import CalendarRecipesScreen from './screens/CalendarRecipesScreen'; // Pantalla de Calendario
 
 const Stack = createNativeStackNavigator();
 
-export default function App() {
+// Evita que el splash se oculte automáticamente
+SplashScreen.preventAutoHideAsync();
+
+/**
+ * Componente interno para gestionar la navegación y la pantalla de carga.
+ */
+function AppNavigation() {
+  const { isLoading: isLoadingAvatar } = useAvatar();
+  const { isLoadingData } = useUserData(); 
+
+  const isLoading = isLoadingAvatar || isLoadingData; // Espera a que ambos carguen
+
+  const onLayoutRootView = useCallback(async () => {
+    if (!isLoading) {
+      await SplashScreen.hideAsync();
+    }
+  }, [isLoading]);
+
+  if (isLoading) {
+    return null; // Muestra el Splash Screen mientras carga
+  }
+
   return (
-    // 2. Envolver la navegación con el Provider
-    <AvatarProvider>
+    <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
       <NavigationContainer>
-        <Stack.Navigator initialRouteName="Login">
-          <Stack.Screen name="Login" component={Login} options={{ title: 'Iniciar Sesión' }} />
-          <Stack.Screen name="Registro" component={Registro} options={{ title: 'Registro' }} />
-          <Stack.Screen name="Datos" component={Datos} options={{ title: 'Datos' }} />
-          <Stack.Screen name="Planes" component={Planes} options={{ title: 'Planes' }} />
-          <Stack.Screen name="Home" component={Home} options={{ title: 'Home' }} />
-          <Stack.Screen name="Comidas" component={Comidas} options={{ title: 'Comidas' }} />
-          <Stack.Screen name="AdminPanel" component={AdminPanel} />
-          <Stack.Screen name="Avatar" component={Avatar} options={{ title: 'Tu Avatar' }} />
+        <Stack.Navigator 
+          initialRouteName="Login"
+          screenOptions={{ headerShown: false }}
+        >
+          {/* Tus pantallas esenciales */}
+          <Stack.Screen name="Login" component={LoginScreen} />
+          <Stack.Screen name="Home" component={HomeScreen} />
+          <Stack.Screen name="Avatar" component={AvatarScreen} />
+          <Stack.Screen name="Comidas" component={ComidasScreen} />
+          <Stack.Screen name="AdminPanel" component={AdminPanelScreen} options={{ headerShown: true, title: 'Panel de Admin' }} />
+          <Stack.Screen name="Registro" component={RegistroScreen} options={{ headerShown: true, title: 'Crear Cuenta' }} />
+
+          {/* Funciones de IA y Utilidades */}
+          <Stack.Screen name="AvatarChat" component={AvatarChatScreen} options={{ headerShown: true, title: 'Chat con tu Avatar' }} />
+          <Stack.Screen name="Scanner" component={ScannerScreen} options={{ headerShown: false }} />
+          
+          {/* --- PANTALLA DEL CALENDARIO --- */}
+          <Stack.Screen 
+            name="CalendarRecipes" 
+            component={CalendarRecipesScreen} 
+            options={{ 
+              headerShown: true, 
+              title: 'Calendario de Recetas' 
+            }}
+          />
+
         </Stack.Navigator>
       </NavigationContainer>
+    </View>
+  );
+}
+
+// El componente App principal ahora envuelve con AMBOS providers
+export default function App() {
+  return (
+    <AvatarProvider>
+      <UserDataProvider>
+        <AppNavigation />
+      </UserDataProvider>
     </AvatarProvider>
   );
 }

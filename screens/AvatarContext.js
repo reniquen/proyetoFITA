@@ -1,24 +1,29 @@
-// contexts/AvatarContext.js
+// screens/AvatarContext.js
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const AVATAR_KEY = 'avatar';
+const AVATAR_KEY = 'avatar_animacion'; // Nueva clave
+const defaultAvatar = 'normal'; // Ahora es un string
+
 const AvatarContext = createContext();
 
 export const AvatarProvider = ({ children }) => {
-  const [avatar, setAvatar] = useState('🤖');
+  const [avatar, setAvatar] = useState(defaultAvatar);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Cargar avatar guardado al iniciar la app
+  // Cargar avatar guardado
   useEffect(() => {
     const cargarAvatar = async () => {
       try {
         const value = await AsyncStorage.getItem(AVATAR_KEY);
         if (value) {
-          setAvatar(value);
+          setAvatar(value); // Guardamos el string
+        } else {
+          setAvatar(defaultAvatar);
         }
       } catch (e) {
         console.error('Error cargando avatar desde context:', e);
+        setAvatar(defaultAvatar);
       } finally {
         setIsLoading(false);
       }
@@ -26,14 +31,14 @@ export const AvatarProvider = ({ children }) => {
     cargarAvatar();
   }, []);
 
-  // Función para guardar y actualizar el estado en toda la app
-  const guardarAvatar = async (nuevoAvatar) => {
+  // Función para guardar el string del avatar
+  const guardarAvatar = async (nuevoAvatarString) => {
     try {
-      await AsyncStorage.setItem(AVATAR_KEY, nuevoAvatar);
-      setAvatar(nuevoAvatar); // Actualiza el estado global
+      await AsyncStorage.setItem(AVATAR_KEY, nuevoAvatarString);
+      setAvatar(nuevoAvatarString);
     } catch (e) {
       console.error('Error guardando avatar en context:', e);
-      throw e; // Propagamos el error por si la pantalla Avatar lo necesita
+      throw e; 
     }
   };
 
@@ -44,5 +49,5 @@ export const AvatarProvider = ({ children }) => {
   );
 };
 
-// Hook personalizado para consumir el contexto fácilmente
+// Hook personalizado
 export const useAvatar = () => useContext(AvatarContext);

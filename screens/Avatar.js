@@ -1,38 +1,40 @@
 // screens/Avatar.js
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Text, TouchableOpacity, FlatList, Alert } from 'react-native';
-import { useAvatar } from './AvatarContext'; // 1. Importar el Hook
+import {
+  View,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  FlatList,
+  Alert,
+  ScrollView,
+} from 'react-native';
+import { useAvatar } from './AvatarContext';
+import { LOTTIE_ASSETS, avatarOpciones } from './AvatarAssets';
+import LottieView from 'lottie-react-native'; // <-- Importar Lottie
 
+// Componente principal de Avatar
 export default function Avatar() {
-  // 2. Usar el contexto
-  const { avatar: avatarActual, guardarAvatar, isLoading } = useAvatar(); 
+  const { avatar: avatarActual, guardarAvatar, isLoading } = useAvatar();
   
-  const [avatarSeleccionado, setAvatarSeleccionado] = useState(avatarActual);
+  // El estado temporal ahora es solo un string
+  const [selection, setSelection] = useState(avatarActual);
   const [guardado, setGuardado] = useState(false);
 
-  const opciones = ['🤖', '🧑‍🏫', '🦾', '🐼', '🔥', '💪', '👑', '🧙'];
-
-  // Sincronizar el seleccionado cuando el actual cambie (al cargar)
   useEffect(() => {
     if (!isLoading) {
-      setAvatarSeleccionado(avatarActual);
+      setSelection(avatarActual);
     }
   }, [avatarActual, isLoading]);
 
+  // Handler para guardar en el Context y AsyncStorage
   const handleGuardar = async () => {
-    if (avatarSeleccionado === avatarActual) {
-        setGuardado(true);
-        setTimeout(() => setGuardado(false), 1500);
-        return;
-    }
     try {
-      // 3. Llamar a la función del contexto para guardar
-      await guardarAvatar(avatarSeleccionado); 
+      await guardarAvatar(selection); // Guarda el string (ej: "musculoso")
       setGuardado(true);
-      setTimeout(() => setGuardado(false), 1500);
+      setTimeout(() => setGuardado(false), 2000);
     } catch (e) {
-      console.error('Error guardando avatar:', e);
-      Alert.alert('Error', 'No se pudo guardar el avatar.');
+      Alert.alert('Error', 'No se pudo guardar tu avatar.');
     }
   };
 
@@ -45,128 +47,126 @@ export default function Avatar() {
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.titulo}>Elige tu Entrenador 🏆</Text>
+    <ScrollView style={styles.container}>
+      <Text style={styles.titulo}>Personaliza tu Avatar</Text>
 
-      <View style={styles.previewCard}>
-        <Text style={styles.avatar}>{avatarSeleccionado}</Text>
-        <Text style={styles.texto}>Este será tu compañero.</Text>
+      {/* --- Vista previa con Lottie --- */}
+      <View style={styles.previewContainer}>
+        <LottieView
+          key={selection} // Forzar re-renderizado al cambiar
+          source={LOTTIE_ASSETS[selection]} // Carga la animación seleccionada
+          autoPlay
+          loop
+          style={styles.lottiePreview}
+        />
       </View>
 
-      <Text style={styles.subtitulo}>Opciones</Text>
-      
-      <FlatList
-        data={opciones}
-        horizontal
-        keyExtractor={(item) => item}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={[
-              styles.opcion,
-              // Estilo para el que estás seleccionando
-              item === avatarSeleccionado ? styles.seleccionado : null,
-              // Estilo para el que ya está guardado
-              item === avatarActual ? styles.actual : null, 
-            ]}
-            onPress={() => setAvatarSeleccionado(item)}
-          >
-            <Text style={styles.opcionTexto}>{item}</Text>
-          </TouchableOpacity>
-        )}
-        contentContainerStyle={styles.lista}
-        showsHorizontalScrollIndicator={false}
-      />
-      
+      {/* --- Selector Único --- */}
+      <View style={styles.selectorSection}>
+        <Text style={styles.subtitulo}>Elige tu estilo</Text>
+        <FlatList
+          data={avatarOpciones}
+          horizontal
+          keyExtractor={(item) => item}
+          showsHorizontalScrollIndicator={false}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={[
+                styles.opcion,
+                item === selection ? styles.seleccionado : null,
+              ]}
+              onPress={() => setSelection(item)} // Actualiza el string de selección
+            >
+              <Text style={styles.opcionTexto}>{item}</Text>
+            </TouchableOpacity>
+          )}
+          contentContainerStyle={styles.lista}
+        />
+      </View>
+
+      {/* Botón de Guardar */}
       <View style={styles.footer}>
-        <TouchableOpacity 
-          style={styles.botonGuardar}
-          onPress={handleGuardar}
-        >
-          <Text style={styles.botonTexto}>Guardar: {avatarSeleccionado}</Text>
+        <TouchableOpacity style={styles.botonGuardar} onPress={handleGuardar}>
+          <Text style={styles.botonTexto}>Guardar Cambios</Text>
         </TouchableOpacity>
         {guardado && <Text style={styles.guardado}>✅ ¡Guardado!</Text>}
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
-// Estilos mejorados
+// --- Estilos actualizados ---
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 25,
-    backgroundColor: '#ecf0f1', // Fondo más neutro
+    backgroundColor: '#ecf0f1',
+    padding: 20,
   },
   titulo: {
     fontSize: 26,
     fontWeight: '900',
     color: '#2c3e50',
-    marginBottom: 15,
     textAlign: 'center',
+    marginBottom: 20,
   },
   subtitulo: {
     fontSize: 18,
     fontWeight: '600',
     color: '#34495e',
-    marginTop: 20,
     marginBottom: 10,
   },
-  previewCard: { // Tarjeta para la vista previa
-    backgroundColor: '#fff', 
-    padding: 30,
-    borderRadius: 15,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 8,
+  previewContainer: {
+    width: 300,
+    height: 300,
+    alignSelf: 'center',
     marginBottom: 20,
+    backgroundColor: '#fff',
+    borderRadius: 15,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#bdc3c7',
   },
-  avatar: {
-    fontSize: 80,
-    marginBottom: 10,
+  lottiePreview: {
+    width: '100%',
+    height: '100%',
   },
-  texto: {
-    fontSize: 15,
-    color: '#7f8c8d',
+  selectorSection: {
+    marginBottom: 20,
   },
   lista: {
     paddingVertical: 10,
-    alignItems: 'center',
-    gap: 15, // 'gap' es más moderno que marginHorizontal
   },
   opcion: {
     backgroundColor: '#fff',
-    padding: 18,
+    paddingVertical: 15,
+    paddingHorizontal: 20,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: 'transparent',
+    borderColor: '#bdc3c7',
+    marginRight: 10,
   },
   opcionTexto: {
-    fontSize: 35,
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#2c3e50',
+    textTransform: 'capitalize',
   },
-  seleccionado: { // Borde para la selección *temporal*
+  seleccionado: {
     borderColor: '#3498db',
     backgroundColor: '#eaf4fd',
   },
-  actual: { // Indicador para el avatar ya guardado (verde)
-    borderWidth: 4,
-    borderColor: '#2ecc71', 
-  },
   footer: {
     alignItems: 'center',
-    marginTop: 30,
+    marginTop: 10,
+    marginBottom: 40,
   },
   botonGuardar: {
     backgroundColor: '#f39c12',
-    paddingVertical: 12,
-    paddingHorizontal: 30,
+    paddingVertical: 15,
     borderRadius: 10,
     width: '90%',
     alignItems: 'center',
-    marginBottom: 10,
   },
   botonTexto: {
     color: '#fff',
@@ -174,6 +174,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   guardado: {
+    marginTop: 15,
     fontSize: 16,
     color: '#27ae60',
     fontWeight: 'bold',
