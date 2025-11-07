@@ -7,7 +7,7 @@ app.use(cors());
 app.use(express.json());
 
 // 🔑 Aquí pones la API Key directamente (solo para pruebas, no recomendado en producción)
-const ai = new GoogleGenAI({ apiKey: 'AIzaSyCRLZO3Nyaq8N6Eb3z6TThzv7kaJrsGs8c' });
+const ai = new GoogleGenAI({ apiKey: 'AIzaSyArG2Kc14abo9gFJTxpfmnH7LJnUuOAMIo' });
 
 app.post('/chat', async (req, res) => {
   try {
