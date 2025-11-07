@@ -136,7 +136,7 @@ export default function Home({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  contenedorScroll: { flex: 1, backgroundColor: '#f5f6fa' },
+  contenedorScroll: { flex: 1, backgroundColor: '#58d68d' },
   scrollContent: { padding: 20 },
   padre: { alignItems: 'center' },
   avatarContainer: { backgroundColor: '#fff', padding: 15, borderRadius: 15, alignItems: 'center', marginBottom: 20, width: '100%', elevation: 3 },

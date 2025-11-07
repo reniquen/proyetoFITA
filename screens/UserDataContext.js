@@ -2,6 +2,7 @@ import React, { createContext, useState, useEffect, useContext } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DEFAULT_WEEKLY_ROUTINE, PRESET_ROUTINES } from './RoutineCatalog';
 
+
 const ROUTINES_KEY = 'user_routines_v2'; // Cambié la clave para forzar recarga limpia
 const RECIPES_KEY = 'user_recipes_calendar';
 

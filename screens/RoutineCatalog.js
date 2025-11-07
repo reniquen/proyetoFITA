@@ -8,7 +8,7 @@ export const EXERCISES = {
       nombre: "Sentadillas",
       video: "https://www.youtube.com/watch?v=dsCuiccYNGs",
       // Usamos tus imágenes PNG existentes como fallback si no hay Lottie
-      imagen: require('../assets/sentadilla.png'), 
+      imagen: require('../assets/ejercicios/sentadillas.json'), 
       // Si tienes Lotties específicos, úsalos aquí. Si no, usa null o la imagen.
       animacion: null, 
     },
