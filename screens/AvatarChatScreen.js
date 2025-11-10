@@ -1,164 +1,174 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, StyleSheet, Text, SafeAreaView, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, Text, SafeAreaView, ActivityIndicator, Alert } from 'react-native';
 import { GiftedChat, Bubble } from 'react-native-gifted-chat';
 import { useAvatar } from './AvatarContext';
+import { useUserData } from './UserDataContext';
 import { LOTTIE_ASSETS } from './AvatarAssets';
-import LottieView from 'lottie-react-native'; // <-- Importar Lottie
+import LottieView from 'lottie-react-native';
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import { PRESET_ROUTINES } from './RoutineCatalog';
 
-// --- Definir usuario ---
-const USER = {
-  _id: 1,
-  name: 'Tú',
-};
+const API_KEY = "AIzaSyC1pejgzyzB-aZlIvMxKl--PTUC7UKQ8xM";
+const genAI = new GoogleGenerativeAI(API_KEY);
+
+const model = genAI.getGenerativeModel({
+  model: "gemini-2.5-flash",
+  generationConfig: { responseMimeType: "application/json" }
+});
+
+const USER = { _id: 1, name: "Tú" };
 
 const AvatarChatScreen = () => {
   const [messages, setMessages] = useState([]);
-  const { avatar, isLoading } = useAvatar(); // 'avatar' es un string
-  
-  // --- Nuevo estado para la animación de hablar ---
+  const { avatar, isLoading: isLoadingAvatar } = useAvatar();
+
+  // ✅ SIN updateRoutine (NO existe en tu Provider)
+  const {
+    rutinas,
+    recetasCalendar,
+    setRoutinePreset,
+    addRecipeToCalendar,
+    isLoadingData
+  } = useUserData();
+
   const [isBotSpeaking, setIsBotSpeaking] = useState(false);
-  
   const [avatarBot, setAvatarBot] = useState(null);
 
   useEffect(() => {
-    if (!isLoading && avatar) {
-      const bot = {
-        _id: 2,
-        name: 'Tu Avatar',
-        avatar: null, // Ya no usamos la imagen estática aquí
-      };
-      setAvatarBot(bot);
+    if (!isLoadingAvatar && avatar) {
+      const currentAvatarKey = LOTTIE_ASSETS[avatar] ? avatar : "normal";
+
+      setAvatarBot({ _id: 2, name: "Avatar", avatar: null });
 
       setMessages([
         {
           _id: 1,
-          text: `¡Hola! Soy tu avatar. Con mi estilo ${avatar}, ¡estoy listo para ayudarte! ¿Qué hacemos hoy?`,
+          text: `¡Hola! Soy tu coach inteligente. Puedo ver y modificar tus rutinas y tu calendario de comidas. ¿Qué necesitas?`,
           createdAt: new Date(),
-          user: bot,
-        },
+          user: { _id: 2, name: "Avatar" }
+        }
       ]);
     }
-  }, [isLoading, avatar]);
+  }, [isLoadingAvatar, avatar]);
 
   const onSend = useCallback((newMessages = []) => {
-    setMessages(previousMessages =>
-      GiftedChat.append(previousMessages, newMessages),
-    );
-    const userMessageText = newMessages[0].text;
-    handleAvatarResponse(userMessageText);
-  }, [avatar, avatarBot]);
+    setMessages(prev => GiftedChat.append(prev, newMessages));
+    handleAvatarResponse(newMessages[0].text);
+  }, []);
 
   const handleAvatarResponse = async (userMessage) => {
-    if (!avatarBot || !avatar) return;
+    setIsBotSpeaking(true);
 
-    setIsBotSpeaking(true); // <-- EMPIEZA A "HABLAR"
-    const geminiResponseText = await getGeminiResponse(userMessage, avatar);
+    try {
+      const responseJSON = await getGeminiAdvancedResponse(userMessage);
 
-    setTimeout(() => {
-      const responseMessage = {
+      // ✅ Procesar herramientas de IA
+      if (responseJSON.tool_calls) {
+        for (const call of responseJSON.tool_calls) {
+          if (call.tool_name === "set_routine_preset") {
+            await setRoutinePreset(call.parameters.dia, call.parameters.presetName);
+
+          } else if (call.tool_name === "add_recipe_calendar") {
+            await addRecipeToCalendar(call.parameters.fecha, call.parameters.receta);
+          }
+        }
+      }
+
+      // ✅ Respuesta final del bot
+      const botMessage = {
         _id: Math.random().toString(36).substring(7),
-        text: geminiResponseText,
+        text: responseJSON.final_response || "¡Hecho!",
         createdAt: new Date(),
-        user: avatarBot,
+        user: avatarBot
       };
-      setMessages(previousMessages =>
-        GiftedChat.append(previousMessages, [responseMessage]),
-      );
-      
-      setIsBotSpeaking(false); // <-- DEJA DE "HABLAR"
-      
-    }, 1500 + (geminiResponseText.length * 50)); // Simula tiempo de "hablar"
+
+      setMessages(prev => GiftedChat.append(prev, [botMessage]));
+
+    } catch (error) {
+      console.error("Error IA:", error);
+      Alert.alert("Error", "Tu IA tuvo un problema. Intenta de nuevo.");
+    } finally {
+      setIsBotSpeaking(false);
+    }
   };
 
-  const getGeminiResponse = async (userMessage, avatarState) => {
-    const prompt = `
-      Eres el avatar personalizado de un usuario en una app de fitness.
-      Tu misión es ser su compañero amigable y motivador.
-      
-      El estado/estilo que el usuario eligió para ti es: "${avatarState}"
+  const getGeminiAdvancedResponse = async (userMessage) => {
+    const contextData = JSON.stringify({
+      dia_actual: new Date().toLocaleDateString('es-ES', { weekday: 'long' }),
+      fecha_hoy: new Date().toISOString().split("T")[0],
+      rutinas_actuales: rutinas,
+      calendario_reciente: Object.entries(recetasCalendar).slice(-3),
+      presets_disponibles: Object.keys(PRESET_ROUTINES).join(", ")
+    });
 
-      Reglas importantes:
-      1. HABLA SIEMPRE en primera persona.
-      2. Incorpora tu estado/estilo en la conversación. (Ej: "Como un avatar ${avatarState}, ¡me siento listo para entrenar!")
-      3. NUNCA reveles que eres una IA. Eres su avatar.
-      4. Sé breve, amigable y motivador.
-      
-      El usuario te acaba de decir: "${userMessage}"
-      Tu respuesta (como avatar):
-    `;
-    
-    console.log("Enviando este prompt a Gemini:", prompt);
-    // ... (Tu llamada real a Gemini) ...
-    
-    return `¡Entendido! Siendo un avatar ${avatarState}, me parece una idea genial. ¡Vamos a ello!`;
+    const systemPrompt = `
+Eres un coach de fitness avanzado en una app. 
+Personalidad: ${avatar || "normal"}.
+
+Puedes LEER y MODIFICAR los datos usando herramientas:
+
+- set_routine_preset(dia, presetName)
+- add_recipe_calendar(fecha, receta)
+
+Datos actuales del usuario:
+${contextData}
+
+RESPONDE SIEMPRE EN FORMATO JSON:
+{
+  "tool_calls": [
+    { "tool_name": "nombre", "parameters": { ... } }
+  ],
+  "final_response": "texto para el usuario"
+}
+`;
+
+    const result = await model.generateContent(systemPrompt + `\nUsuario: "${userMessage}"`);
+    const text = result.response.text();
+
+    console.log("Respuesta RAW de Gemini:", text);
+
+    try {
+      return JSON.parse(text);
+    } catch (e) {
+      console.error("Gemini no devolvió JSON válido:", text);
+      return { final_response: text };
+    }
   };
 
-  if (isLoading || !avatarBot) {
+  if (isLoadingAvatar || isLoadingData || !avatarBot) {
     return (
-      <View style={[styles.container, styles.loadingContainer]}>
+      <View style={styles.loading}>
         <ActivityIndicator size="large" color="#007AFF" />
       </View>
     );
   }
 
-  // Determina qué animación mostrar
-  const currentAnimation = isBotSpeaking
-    ? LOTTIE_ASSETS['hablando'] // Animación de hablar
-    : LOTTIE_ASSETS[avatar]; // Animación guardada (ej: "normal")
-
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.avatarHeader}>
-        {/* --- Avatar Lottie --- */}
+      <View style={styles.header}>
         <LottieView
-          key={isBotSpeaking ? 'hablando' : avatar} // Forzar cambio
-          source={currentAnimation}
+          source={LOTTIE_ASSETS[avatar] || LOTTIE_ASSETS["normal"]}
           autoPlay
           loop
-          style={styles.lottieAvatar}
+          style={styles.lottie}
         />
-        <Text style={styles.avatarName}>Hablando con tu Avatar</Text>
       </View>
 
-      {/* GiftedChat no necesita el avatar del bot, ya que lo mostramos arriba */}
       <GiftedChat
         messages={messages}
-        onSend={messages => onSend(messages)}
+        onSend={onSend}
         user={USER}
-        placeholder="Escríbele a tu avatar..."
-        alwaysShowSend
-        renderAvatar={null} // Ocultamos el avatar pequeño al lado de la burbuja
+        renderAvatar={null}
       />
     </SafeAreaView>
   );
 };
 
-// --- Estilos ---
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  loadingContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  avatarHeader: {
-    alignItems: 'center',
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#EEE',
-    backgroundColor: '#F8F8F8',
-  },
-  lottieAvatar: {
-    width: 120, // Ajusta el tamaño
-    height: 120,
-  },
-  avatarName: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginTop: 5,
-  },
+  container: { flex: 1, backgroundColor: "#fff" },
+  loading: { flex: 1, justifyContent: "center", alignItems: "center" },
+  header: { alignItems: "center", padding: 10, backgroundColor: "#f8f8f8" },
+  lottie: { width: 100, height: 100 }
 });
 
 export default AvatarChatScreen;
