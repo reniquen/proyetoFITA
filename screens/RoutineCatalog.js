@@ -46,7 +46,7 @@ export const EXERCISES = {
       id: 'descanso',
       nombre: "Descanso Activo",
       video: null,
-      imagen: require('../assets/lotties/Woman Avatar.json'), // Asegúrate de tener una imagen genérica
+      imagen: require('../assets/vidasaludable.png'), // Asegúrate de tener una imagen genérica
     },
     // ... AGREGA AQUÍ TODOS TUS OTROS EJERCICIOS ...
   };
