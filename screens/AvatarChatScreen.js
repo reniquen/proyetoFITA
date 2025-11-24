@@ -44,7 +44,7 @@ const AvatarChatScreen = () => {
       setMessages([
         {
           _id: 1,
-          text: `¡Hola! Soy tu coach inteligente. Puedo ver y modificar tus rutinas (Home), tu dieta del día (Home) y tu calendario de comidas. ¿Qué necesitas?`, // 👈 Texto actualizado
+          text: `¡Hola! Soy tu coach inteligente. ¿Qué necesitas?`, // 👈 Texto actualizado
           createdAt: new Date(),
           user: { _id: 2, name: "Avatar" }
         }
