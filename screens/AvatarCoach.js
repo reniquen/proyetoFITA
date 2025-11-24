@@ -9,17 +9,7 @@ export default function AvatarCoach() {
   const { avatar, isLoading } = useAvatar(); // 'avatar' ahora es un string (ej: "normal")
   const [consejo, setConsejo] = useState('');
 
-  const consejos = [
-    "¡No olvides hidratarte! 💧",
-    "Hoy es un gran día para darlo todo 💪",
-    "La constancia es más importante que la perfección 🔑",
-    "Recuerda estirar antes de entrenar 🧘",
-  ];
 
-  useEffect(() => {
-    const randomConsejo = consejos[Math.floor(Math.random() * consejos.length)];
-    setConsejo(randomConsejo);
-  }, []);
 
   if (isLoading || !avatar) {
     return null; // No mostrar nada mientras carga

@@ -95,11 +95,11 @@ export default function Avatar() {
   );
 }
 
-// --- Estilos actualizados ---
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ecf0f1',
+    backgroundColor: '#58d68d',
     padding: 20,
   },
   titulo: {
