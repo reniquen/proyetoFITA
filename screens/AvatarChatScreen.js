@@ -8,7 +8,7 @@ import LottieView from 'lottie-react-native';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { PRESET_ROUTINES } from './RoutineCatalog';
 
-const API_KEY = "AIzaSyC1pejgzyzB-aZlIvMxKl--PTUC7UKQ8xM";
+const API_KEY = "AIzaSyD0b2vVee6OYEWfwABSw6GTTrLoQbMv0dg";
 const genAI = new GoogleGenerativeAI(API_KEY);
 
 const model = genAI.getGenerativeModel({
