@@ -1,295 +1,350 @@
+// Home.js (reemplaza tu Home actual con este contenido)
 import {
-  Text,
-  StyleSheet,
-  View,
-  Image,
-  TouchableOpacity,
-  ScrollView,
-  Modal,
-  SafeAreaView,
-  Alert,
-  Dimensions,
-  ActivityIndicator, 
-} from 'react-native';
-import React, { useState, useCallback } from 'react';
-import YoutubePlayer from 'react-native-youtube-iframe';
-import { auth } from './firebaseConfig';
-import { signOut } from 'firebase/auth';
-import AvatarCoach from './AvatarCoach';
-import { useUserData } from './UserDataContext'; // <-- IMPORTAR CONTEXTO
-
-// Función para extraer el ID del video (sin cambios)
-function getYouTubeId(url) {
-  if (!url) return null;
-  const regExp = /^.(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]).*/;
-  const match = url.match(regExp);
-  return (match && match[2].length === 11) ? match[2] : null;
-}
-
-export default function Home({ navigation }) {
-  // --- Estados del Modal ---
-  const [modalVisible, setModalVisible] = useState(false);
-  const [selectedVideoId, setSelectedVideoId] = useState(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-
-  // --- 2. LEER RUTINAS DESDE EL CONTEXTO ---
-  const { rutinas, isLoadingData } = useUserData();
-
-  // --- Funciones del Modal ---
-  const openVideo = (videoUrl) => {
-    const videoId = getYouTubeId(videoUrl);
-    // Solo abrir si hay un videoId válido
-    if (videoId) {
-      setSelectedVideoId(videoId);
-      setIsPlaying(true);
-      setModalVisible(true);
-    } else {
-      Alert.alert("Error", "Este ejercicio no tiene un video de demostración.");
-    }
-  };
-
-  const closeVideo = () => {
-    setIsPlaying(false);
-    setModalVisible(false);
-    setSelectedVideoId(null);
-  };
-
-  const onStateChange = useCallback((state) => {
-    if (state === "ended") closeVideo();
-  }, []);
-
-  // --- Rutina del Día ---
-  const diasSemana = [ "domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado" ];
-  const diaActual = diasSemana[new Date().getDay()];
-  const rutinaHoy = rutinas[diaActual] || []; // Obtiene la rutina del contexto
-
-  const cerrarSesion = () => {
-    signOut(auth)
-      .then(() => navigation.replace('Login'))
-      .catch(() => Alert.alert('Error', 'No se pudo cerrar sesión.'));
-  };
-
-  return (
-    <SafeAreaView style={styles.contenedorScroll}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.padre}>
-          <View style={styles.avatarContainer}>
-            <AvatarCoach />
-            <Text style={styles.avatarTexto}>¡Hola! Hoy te motivaré en tu rutina 💪</Text>
-          </View>
-
-          <Text style={styles.titulo}>Hoy {diaActual}, ¡CON TODO!:</Text>
-          
-          {/* Muestra un "cargando" mientras se leen las rutinas */}
-          {isLoadingData ? (
-            <ActivityIndicator size="large" color="#fad7a0" style={{ marginVertical: 20 }} />
-          ) : rutinaHoy.length > 0 ? (
-            rutinaHoy.map((ejercicio, index) => (
-              <View key={index} style={styles.tarjeta}>
-                {/* 4. Usar la imagen y video del objeto de rutina */}
-                <TouchableOpacity 
-                  onPress={() => openVideo(ejercicio.video)}
-                  disabled={!ejercicio.video} // Deshabilita si no hay video
-                >
-                  {ejercicio.imagen ? (
-                    <Image source={ejercicio.imagen} style={styles.imagen} />
-                  ) : (
-                    <View style={styles.imagenPlaceholder}>
-                      <Text style={styles.placeholderText}>No Image</Text>
-                    </View>
-                  )}
-                </TouchableOpacity>
-                <View style={styles.textoContainer}>
-                  <Text style={styles.nombre}>{ejercicio.nombre}</Text>
-                  <Text style={styles.repeticiones}>{ejercicio.repeticiones}</Text>
-                </View>
-              </View>
-            ))
-          ) : (
-            <Text style={styles.noRutina}>Hoy te toca descanso.</Text>
-          )}
-
-          {/* --- BOTONES DE NAVEGACIÓN --- */}
-          
-          <TouchableOpacity
-            style={styles.boton}
-            onPress={() => navigation.navigate('Comidas')}
-          >
-            <Text style={styles.botonTexto}>Ver Dieta (Planes)</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.boton}
-            onPress={() => navigation.navigate('Avatar')}
-          >
-            <Text style={styles.botonTexto}>Personalizar Avatar</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity
-            style={styles.boton}
-            onPress={() => navigation.navigate('AvatarChat')}
-          >
-            <Text style={styles.botonTexto}>Chatear con Coach IA</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity
-            style={[styles.boton, {backgroundColor: '#3498db'}]} 
-            onPress={() => navigation.navigate('Scanner')}
-          >
-            <Text style={[styles.botonTexto, {color: 'white'}]}>Escanear Producto</Text>
-          </TouchableOpacity>
-
-          {/* Se eliminó el botón "Comparador Nutricional" */}
-
-          {/* --- NUEVO BOTÓN CALENDARIO DE RECETAS --- */}
-          <TouchableOpacity
-            style={[styles.boton, {backgroundColor: '#9b59b6'}]} // Morado
-            onPress={() => navigation.navigate('CalendarRecipes')}
-          >
-            <Text style={[styles.botonTexto, {color: 'white'}]}>Calendario de Recetas</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={[styles.boton, { backgroundColor: '#e74c3c', marginTop: 15 }]} // Rojo
-            onPress={cerrarSesion}
-          >
-            <Text style={[styles.botonTexto, { color: 'white' }]}>Cerrar Sesión</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-
-      {/* --- Modal para Video (Sin cambios) --- */}
-      <Modal
-        animationType="fade"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={closeVideo}
-      >
-        <TouchableOpacity 
-          style={styles.modalBackdrop} 
-          activeOpacity={1} 
-          onPress={closeVideo}
-        >
-          <View style={styles.modalContent}>
-            <TouchableOpacity activeOpacity={1}>
-              {selectedVideoId && (
-                <YoutubePlayer
-                  height={(Dimensions.get('window').width * 0.9) * (9 / 16)} 
-                  width={Dimensions.get('window').width * 0.9} 
-                  play={isPlaying}
-                  videoId={selectedVideoId}
-                  onChangeState={onStateChange}
-                  onError={e => {
-                    console.error("Error del reproductor de YouTube:", e);
-                    Alert.alert("Error", "El propietario de este video ha restringido su reproducción.");
-                    closeVideo();
-                  }}
-                />
+    Text, StyleSheet, View, Image, TouchableOpacity, ScrollView, Modal,
+    SafeAreaView, Alert, Dimensions, ActivityIndicator
+  } from 'react-native';
+  import React, { useState, useCallback, useEffect } from 'react';
+  import YoutubePlayer from 'react-native-youtube-iframe';
+  import { auth } from './firebaseConfig';
+  import { signOut } from 'firebase/auth';
+  import AvatarCoach from './AvatarCoach';
+  import { useUserData } from './UserDataContext';
+  import LottieView from 'lottie-react-native';
+  import { useSubscription } from './SubscriptionContext';
+  
+  function getYouTubeId(url) {
+      if (!url) return null;
+      const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+      const match = url.match(regExp);
+      return (match && match[2].length === 11) ? match[2] : null;
+  }
+  
+  export default function Home({ navigation }) {
+      const [modalVisible, setModalVisible] = useState(false);
+      const [selectedVideoId, setSelectedVideoId] = useState(null);
+      const [isPlaying, setIsPlaying] = useState(false);
+      const [menuOpen, setMenuOpen] = useState(false);
+      const [dynamicTip, setDynamicTip] = useState("¡Vamos a entrenar!");
+      const { rutinas, dietas, isLoadingData } = useUserData();
+      const { isSubscribed } = useSubscription();
+  
+      useEffect(() => {
+          setDynamicTip(getDynamicTip());
+      }, []);
+  
+      const getDynamicTip = () => {
+          const hour = new Date().getHours();
+          const morningTips = [
+              "¡Buen día! Un desayuno alto en proteína es clave.",
+              "Recuerda calentar bien antes de tu rutina de hoy.",
+              "La consistencia gana a la intensidad. ¡Vamos por ello!",
+              "¡A empezar el día con energía! ¿Listo/a para hoy?",
+              "No olvides tu botella de agua. La hidratación es primero."
+          ];
+          const afternoonTips = [
+              "¡Buenas tardes! ¿Listo/a para la rutina de hoy?",
+              "No olvides hidratarte bien durante la tarde.",
+              "Un snack saludable ahora te dará energía para el entreno.",
+              "¡Vamos a entrenar! Termina el día con fuerza.",
+              "Revisa tu postura. Un pequeño ajuste hace una gran diferencia."
+          ];
+          const eveningTips = [
+              "¡Buenas noches! ¿Completaste tu rutina de hoy?",
+              "Una cena ligera y proteica ayuda a la recuperación muscular.",
+              "Recuerda estirar 10 minutos antes de dormir. Tu cuerpo lo agradecerá.",
+              "El descanso es parte del entrenamiento. ¡A dormir bien!",
+              "Planifica tu día de mañana para asegurar el éxito."
+          ];
+          let tipsList;
+          if (hour < 12) tipsList = morningTips;
+          else if (hour < 19) tipsList = afternoonTips;
+          else tipsList = eveningTips;
+          return tipsList[Math.floor(Math.random() * tipsList.length)];
+      };
+  
+      const openVideo = (videoUrl) => {
+          const videoId = getYouTubeId(videoUrl);
+          if (videoId) {
+              setSelectedVideoId(videoId);
+              setIsPlaying(true);
+              setModalVisible(true);
+          } else {
+              Alert.alert("Aviso", "Este ejercicio no tiene video disponible.");
+          }
+      };
+  
+      const closeVideo = () => {
+          setIsPlaying(false);
+          setModalVisible(false);
+          setSelectedVideoId(null);
+      };
+  
+      const onStateChange = useCallback((state) => {
+          if (state === "ended") closeVideo();
+      }, []);
+  
+      const diasSemana = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
+      const diaActual = diasSemana[new Date().getDay()];
+      const rutinaHoy = rutinas[diaActual] || [];
+  
+      const cerrarSesion = () => {
+          signOut(auth)
+              .then(() => navigation.replace('Login'))
+              .catch(() => Alert.alert('Error', 'No se pudo cerrar sesión.'));
+      };
+  
+      const dietaHoy = (dietas && dietas[diaActual]) ? dietas[diaActual] : [];
+      const totalCalorias = dietaHoy.reduce((total, comida) => total + (comida.calorias || 0), 0);
+  
+      const renderAsset = (ejercicio) => {
+          if (!ejercicio.imagen) {
+              return (
+                  <View style={[styles.mediaAsset, { backgroundColor: '#ccc', justifyContent: 'center', alignItems: 'center' }]}>
+                      <Text style={{ color: '#666', fontSize: 12 }}>Sin Media</Text>
+                  </View>
+              );
+          }
+          const isLottie = typeof ejercicio.imagen === 'object' && ejercicio.imagen !== null;
+          if (isLottie) {
+              return <LottieView source={ejercicio.imagen} autoPlay loop style={styles.mediaAsset} />;
+          } else {
+              return <Image source={ejercicio.imagen} style={styles.mediaAsset} resizeMode="cover" />;
+          }
+      };
+  
+      const toggleMenu = () => {
+          setMenuOpen(!menuOpen);
+      };
+  
+      return (
+          <SafeAreaView style={styles.contenedorScroll}>
+              <ScrollView contentContainerStyle={styles.scrollContent}>
+                  <View style={styles.padre}>
+                      <View style={styles.avatarContainer}>
+                          <AvatarCoach />
+                          <Text style={styles.avatarTexto}>{dynamicTip}</Text>
+                      </View>
+  
+                      <Text style={styles.titulo}>Rutina de hoy ({diaActual}):</Text>
+  
+                      {isLoadingData ? (
+                          <ActivityIndicator size="large" color="#3498db" />
+                      ) : rutinaHoy.length > 0 ? (
+                          rutinaHoy.map((ejercicio, index) => (
+                              <View key={index} style={styles.tarjeta}>
+                                  <TouchableOpacity onPress={() => openVideo(ejercicio.video)} disabled={!ejercicio.video}>
+                                      {renderAsset(ejercicio)}
+                                  </TouchableOpacity>
+                                  <View style={styles.textoContainer}>
+                                      <Text style={styles.nombre}>{ejercicio.nombre}</Text>
+                                      <Text style={styles.repeticiones}>{ejercicio.repeticiones}</Text>
+                                      {ejercicio.video && <Text style={styles.verVideo}>📺 Ver video</Text>}
+                                  </View>
+                              </View>
+                          ))
+                      ) : (
+                          <Text style={styles.noRutina}>Hoy es día de descanso 😴</Text>
+                      )}
+  
+                      <View style={styles.dietaContainer}>
+                          <Text style={styles.titulo}>Dieta del día ({diaActual}):</Text>
+  
+                          {isLoadingData ? (
+                              <ActivityIndicator size="small" color="#f39c12" />
+                          ) : dietaHoy.length > 0 ? (
+                              dietaHoy.map((comida, index) => (
+                                  <View key={index} style={styles.tarjetaDieta}>
+                                      <Text style={styles.nombre}>{comida.nombre}</Text>
+                                      <Text style={styles.comida}>{comida.comida}</Text>
+                                      <Text style={styles.calorias}>Calorías: {comida.calorias} kcal</Text>
+                                  </View>
+                              ))
+                          ) : (
+                              <Text style={styles.noRutina}>Hoy no hay dieta programada 🍎</Text>
+                          )}
+                          {!isLoadingData && <Text style={styles.totalCalorias}>Total del día: {totalCalorias} kcal</Text>}
+                      </View>
+  
+                      <View style={{height: 100}} />
+                  </View>
+              </ScrollView>
+  
+              {menuOpen && (
+                  <TouchableOpacity
+                      style={styles.overlay}
+                      activeOpacity={1}
+                      onPress={() => setMenuOpen(false)}
+                  />
               )}
-            </TouchableOpacity>
-            
-            <TouchableOpacity style={styles.closeButton} onPress={closeVideo}>
-              <Text style={styles.closeButtonText}>Cerrar</Text>
-            </TouchableOpacity>
-          </View>
-        </TouchableOpacity>
-      </Modal>
-    </SafeAreaView>
-  );
-}
-
-// --- ESTILOS (Ajustados) ---
-const styles = StyleSheet.create({
-  contenedorScroll: { flex: 1, backgroundColor: '#58d68d' },
-  scrollContent: { padding: 20, paddingBottom: 40 },
-  padre: { alignItems: 'center' },
-  avatarContainer: {
-    backgroundColor: '#fff3e0',
-    padding: 20,
-    borderRadius: 20,
-    alignItems: 'center',
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 8,
-    width: '100%',
-  },
-  avatarTexto: {
-    marginTop: 10,
-    fontSize: 16,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    color: '#34495e',
-  },
-  titulo: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
-    color: '#2c3e50',
-  },
-  tarjeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fad7a0',
-    borderRadius: 10,
-    padding: 20,
-    marginVertical: 8,
-    width: '100%',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  imagen: {
-    width: 80, 
-    height: 80,
-    borderRadius: 8,
-    marginRight: 15,
-  },
-  imagenPlaceholder: { // Estilo para cuando no hay imagen
-    width: 80,
-    height: 80,
-    borderRadius: 8,
-    marginRight: 15,
-    backgroundColor: '#ccc',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  placeholderText: {
-    fontSize: 12,
-    textAlign: 'center',
-    color: '#666',
-  },
-  textoContainer: { flex: 1 },
-  nombre: { fontSize: 18, fontWeight: 'bold', marginBottom: 5 },
-  repeticiones: { fontSize: 16, color: '#333' },
-  noRutina: {
-    fontSize: 18,
-    fontStyle: 'italic',
-    color: '#fff',
-    textAlign: 'center',
-    marginTop: 20,
-    backgroundColor: 'rgba(0,0,0,0.1)',
-    padding: 15,
-    borderRadius: 10,
-  },
-  boton: {
-    borderRadius: 50,
-    paddingVertical: 18,
-    width: '100%',
-    marginTop: 15,
-    shadowOpacity: 1,
-    shadowRadius: 5,
-    elevation: 5,
-    backgroundColor: '#82e0aa', // Color base
-  },
-  botonTexto: { textAlign: 'center', color: 'black', fontWeight: 'bold', fontSize: 16 },
-  modalBackdrop: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.7)', justifyContent: 'center', alignItems: 'center' },
-  modalContent: { width: '90%', backgroundColor: 'white', borderRadius: 10, padding: 10, alignItems: 'center' },
-  closeButton: { backgroundColor: '#82e0aa', paddingVertical: 10, paddingHorizontal: 30, borderRadius: 20, marginTop: 15 },
-  closeButtonText: { color: 'black', fontSize: 16, fontWeight: 'bold' },
-});
+  
+              {menuOpen && (
+                  <View style={styles.fabOptionsContainer}>
+                      <View style={styles.fabOptionRow}>
+                          <View style={styles.fabLabel}><Text style={styles.fabLabelText}>Cerrar Sesión</Text></View>
+                          <TouchableOpacity style={[styles.fabSmall, { backgroundColor: '#e74c3c' }]} onPress={cerrarSesion}>
+                              <Text style={styles.fabIcon}>🚪</Text>
+                          </TouchableOpacity>
+                      </View>
+  
+                      <View style={styles.fabOptionRow}>
+                          <View style={styles.fabLabel}><Text style={styles.fabLabelText}>Recetas</Text></View>
+                          <TouchableOpacity style={[styles.fabSmall, { backgroundColor: '#9b59b6' }]} onPress={() => navigation.navigate('CalendarRecipes')}>
+                              <Text style={styles.fabIcon}>📅</Text>
+                          </TouchableOpacity>
+                      </View>
+  
+                      <View style={styles.fabOptionRow}>
+                          <View style={styles.fabLabel}><Text style={styles.fabLabelText}>Scanner</Text></View>
+                          <TouchableOpacity style={[styles.fabSmall, { backgroundColor: '#f39c12' }]} onPress={() => navigation.navigate('Scanner')}>
+                              <Text style={styles.fabIcon}>📷</Text>
+                          </TouchableOpacity>
+                      </View>
+  
+                      <View style={styles.fabOptionRow}>
+                          <View style={styles.fabLabel}><Text style={styles.fabLabelText}>Coach IA</Text></View>
+                          <TouchableOpacity style={[styles.fabSmall, { backgroundColor: '#3498db' }]} onPress={() => {
+                              if (!isSubscribed) {
+                                  return Alert.alert(
+                                      "Suscripción requerida",
+                                      "Necesitas una suscripción activa para acceder al Coach IA.",
+                                      [
+                                          { text: "Suscribirme", onPress: () => navigation.navigate('Suscripcion') },
+                                          { text: "Cancelar", style: "cancel" }
+                                      ]
+                                  );
+                              }
+                              navigation.navigate('AvatarChat');
+                          }}>
+                              <Text style={styles.fabIcon}>💬</Text>
+                          </TouchableOpacity>
+                      </View>
+  
+                      <View style={styles.fabOptionRow}>
+                          <View style={styles.fabLabel}><Text style={styles.fabLabelText}>Avatar</Text></View>
+                          <TouchableOpacity style={[styles.fabSmall, { backgroundColor: '#1abc9c' }]} onPress={() => navigation.navigate('Avatar')}>
+                              <Text style={styles.fabIcon}>👤</Text>
+                          </TouchableOpacity>
+                      </View>
+                  </View>
+              )}
+  
+              <TouchableOpacity style={styles.fabMain} onPress={toggleMenu} activeOpacity={0.8}>
+                  <Text style={styles.fabMainText}>{menuOpen ? '✖' : '☰'}</Text>
+              </TouchableOpacity>
+  
+              <Modal animationType="fade" transparent={true} visible={modalVisible} onRequestClose={closeVideo}>
+                  <View style={styles.modalBackdrop}>
+                      <View style={styles.modalContent}>
+                          {selectedVideoId && (
+                              <YoutubePlayer
+                                  height={200}
+                                  width={Dimensions.get('window').width * 0.85}
+                                  play={isPlaying}
+                                  videoId={selectedVideoId}
+                                  onChangeState={onStateChange}
+                              />
+                          )}
+                          <TouchableOpacity style={styles.closeButton} onPress={closeVideo}>
+                              <Text style={styles.closeButtonText}>Cerrar Video</Text>
+                          </TouchableOpacity>
+                      </View>
+                  </View>
+              </Modal>
+          </SafeAreaView>
+      );
+  }
+  
+  const styles = StyleSheet.create({
+      contenedorScroll: { flex: 1, backgroundColor: '#58d68d' },
+      scrollContent: { padding: 20 },
+  
+      padre: { alignItems: 'center' },
+      avatarContainer: { backgroundColor: '#fff', padding: 15, borderRadius: 15, alignItems: 'center', marginBottom: 20, width: '100%', elevation: 3 },
+      avatarTexto: { marginTop: 10, fontSize: 18, fontWeight: 'bold', color: '#2c3e50', textAlign: 'center', paddingHorizontal: 10 },
+  
+      titulo: { fontSize: 20, fontWeight: 'bold', marginBottom: 15, alignSelf: 'flex-start', color: '#34495e' },
+      tarjeta: { flexDirection: 'row', backgroundColor: '#fff', borderRadius: 12, padding: 10, marginBottom: 10, width: '100%', elevation: 2, alignItems: 'center' },
+      mediaAsset: { width: 80, height: 80, borderRadius: 10, marginRight: 15, backgroundColor: '#eee' },
+      textoContainer: { flex: 1, justifyContent: 'center' },
+      nombre: { fontSize: 16, fontWeight: 'bold', color: '#2c3e50' },
+      repeticiones: { fontSize: 14, color: '#7f8c8d', marginTop: 4 },
+      verVideo: { fontSize: 12, color: '#3498db', marginTop: 5, fontWeight: 'bold' },
+      noRutina: { fontSize: 18, color: '#95a5a6', fontStyle: 'italic', marginVertical: 20 },
+      dietaContainer: { backgroundColor: '#fff9e6', borderRadius: 15, padding: 15, marginTop: 25, width: '100%', elevation: 3 },
+      tarjetaDieta: { backgroundColor: '#fad7a0', borderRadius: 10, padding: 10, marginVertical: 8 },
+      comida: { fontSize: 15, color: '#333' },
+      calorias: { fontSize: 14, color: '#666', marginTop: 5 },
+      totalCalorias: { fontSize: 16, fontWeight: 'bold', color: '#2c3e50', marginTop: 10, textAlign: 'center' },
+  
+      modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'center', alignItems: 'center' },
+      modalContent: { backgroundColor: '#fff', padding: 10, borderRadius: 15, alignItems: 'center' },
+      closeButton: { marginTop: 15, padding: 10, backgroundColor: '#e74c3c', borderRadius: 8, width: '100%', alignItems: 'center' },
+      closeButtonText: { color: 'white', fontWeight: 'bold' },
+  
+      overlay: {
+          position: 'absolute',
+          top: 0, bottom: 0, left: 0, right: 0,
+          backgroundColor: 'rgba(0,0,0,0.3)',
+          zIndex: 1,
+      },
+      fabMain: {
+          position: 'absolute',
+          bottom: 30,
+          right: 30,
+          width: 60,
+          height: 60,
+          borderRadius: 30,
+          backgroundColor: '#2c3e50',
+          justifyContent: 'center',
+          alignItems: 'center',
+          elevation: 5,
+          zIndex: 10,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.25,
+          shadowRadius: 3.84,
+      },
+      fabMainText: {
+          color: 'white',
+          fontSize: 30,
+          fontWeight: 'bold',
+          marginTop: -2
+      },
+      fabOptionsContainer: {
+          position: 'absolute',
+          bottom: 100,
+          right: 30,
+          alignItems: 'flex-end',
+          zIndex: 5,
+      },
+      fabOptionRow: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          marginBottom: 15,
+      },
+      fabSmall: {
+          width: 45,
+          height: 45,
+          borderRadius: 22.5,
+          justifyContent: 'center',
+          alignItems: 'center',
+          elevation: 4,
+          marginLeft: 10,
+      },
+      fabIcon: {
+          fontSize: 20,
+      },
+      fabLabel: {
+          backgroundColor: 'white',
+          paddingVertical: 5,
+          paddingHorizontal: 10,
+          borderRadius: 5,
+          elevation: 3,
+      },
+      fabLabelText: {
+          fontSize: 14,
+          fontWeight: 'bold',
+          color: '#2c3e50',
+      }
+  });
+  

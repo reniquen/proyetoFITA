@@ -1,42 +1,55 @@
+// ./screens/AvatarChatScreen.js
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, StyleSheet, Text, SafeAreaView, ActivityIndicator, Alert } from 'react-native';
-import { GiftedChat, Bubble } from 'react-native-gifted-chat';
+import { View, StyleSheet, Text, SafeAreaView, ActivityIndicator, Alert, TouchableOpacity } from 'react-native';
+import { GiftedChat } from 'react-native-gifted-chat';
 import { useAvatar } from './AvatarContext';
-import { useUserData } from './UserDataContext'; // <-- IMPORTANTE: Acceso a los datos
+import { useUserData } from './UserDataContext';
 import { LOTTIE_ASSETS } from './AvatarAssets';
 import LottieView from 'lottie-react-native';
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { PRESET_ROUTINES } from './RoutineCatalog';
+import { useSubscription } from './SubscriptionContext';
 
-// ¡RECUERDA USAR TU API KEY REAL AQUÍ!
-const API_KEY = "AIzaSyC1pejgzyzB-aZlIvMxKl--PTUC7UKQ8xM"; 
+const API_KEY = "AIzaSyC1pejgzyzB-aZlIvMxKl--PTUC7UKQ8xM";
 const genAI = new GoogleGenerativeAI(API_KEY);
-// Usamos gemini-1.5-flash que es mejor para seguir instrucciones complejas (JSON)
-const model = genAI.getGenerativeModel({ 
+
+const model = genAI.getGenerativeModel({
   model: "gemini-2.5-flash",
-  generationConfig: { responseMimeType: "application/json" } // FORZAMOS RESPUESTA JSON SIEMPRE
+  generationConfig: { responseMimeType: "application/json" }
 });
 
-const USER = { _id: 1, name: 'Tú' };
+const USER = { _id: 1, name: "Tú" };
 
-const AvatarChatScreen = () => {
+const AvatarChatScreen = ({ navigation }) => {
   const [messages, setMessages] = useState([]);
   const { avatar, isLoading: isLoadingAvatar } = useAvatar();
-  // Obtenemos datos y funciones para manipularlos
-  const { rutinas, recetasCalendar, updateRoutine, addRecipeToCalendar, isLoadingData } = useUserData();
-  
+
+  const {
+    rutinas,
+    dietas,
+    recetasCalendar,
+    setRoutinePreset,
+    addRecipeToCalendar,
+    updateDietTemplate,
+    isLoadingData
+  } = useUserData();
+
+  const { isSubscribed, loadingSubscription } = useSubscription();
+
   const [isBotSpeaking, setIsBotSpeaking] = useState(false);
   const [avatarBot, setAvatarBot] = useState(null);
 
   useEffect(() => {
     if (!isLoadingAvatar && avatar) {
-      const currentAvatarKey = LOTTIE_ASSETS[avatar] ? avatar : 'normal';
-      setAvatarBot({ _id: 2, name: 'Tu Avatar', avatar: null });
-      setMessages([{
-        _id: 1,
-        text: `¡Hola! Soy tu coach inteligente. Puedo ver y modificar tus rutinas y tu calendario de comidas. ¿Qué necesitas?`,
-        createdAt: new Date(),
-        user: { _id: 2, name: 'Avatar' },
-      }]);
+      setAvatarBot({ _id: 2, name: "Avatar", avatar: null });
+      setMessages([
+        {
+          _id: 1,
+          text: `¡Hola! Soy tu coach inteligente. ¿Qué necesitas?`,
+          createdAt: new Date(),
+          user: { _id: 2, name: "Avatar" }
+        }
+      ]);
     }
   }, [isLoadingAvatar, avatar]);
 
@@ -48,117 +61,142 @@ const AvatarChatScreen = () => {
   const handleAvatarResponse = async (userMessage) => {
     setIsBotSpeaking(true);
     try {
-      // 1. Llamamos a Gemini (que ahora puede decidir usar herramientas)
       const responseJSON = await getGeminiAdvancedResponse(userMessage);
-      
-      // 2. Analizamos si Gemini quiere usar una herramienta
+
       if (responseJSON.tool_calls) {
         for (const call of responseJSON.tool_calls) {
-          if (call.tool_name === 'update_routine') {
-             // EJECUTAMOS LA FUNCIÓN REAL EN LA APP
-             await updateRoutine(call.parameters.dia, [{ nombre: call.parameters.ejercicio, repeticiones: call.parameters.reps }]);
-             // Añadimos un mensaje de sistema invisible para confirmar
-             // (En una implementación real, volveríamos a llamar a Gemini con el resultado)
-          } else if (call.tool_name === 'add_recipe_calendar') {
-             await addRecipeToCalendar(call.parameters.fecha, call.parameters.receta);
+          if (call.tool_name === "set_routine_preset") {
+            await setRoutinePreset(call.parameters.dia, call.parameters.presetName);
+          } else if (call.tool_name === "add_recipe_calendar") {
+            await addRecipeToCalendar(call.parameters.fecha, call.parameters.receta);
+          } else if (call.tool_name === "update_diet_template") {
+            await updateDietTemplate(
+              call.parameters.dia,
+              call.parameters.nombre_comida,
+              call.parameters.comida_detalle,
+              call.parameters.calorias
+            );
           }
         }
       }
 
-      // 3. Mostramos la respuesta de texto final al usuario
       const botMessage = {
         _id: Math.random().toString(36).substring(7),
-        text: responseJSON.final_response || "¡Hecho!", // Usa la respuesta del JSON
+        text: responseJSON.final_response || "¡Hecho! He actualizado tu plan.",
         createdAt: new Date(),
-        user: avatarBot,
+        user: avatarBot
       };
+
       setMessages(prev => GiftedChat.append(prev, [botMessage]));
 
     } catch (error) {
       console.error("Error IA:", error);
-      Alert.alert("Error", "Tu IA tuvo un cortocircuito. Intenta de nuevo.");
+      Alert.alert("Error", "Tu IA tuvo un problema. Intenta de nuevo.");
     } finally {
       setIsBotSpeaking(false);
     }
   };
 
-  // --- CEREBRO AVANZADO DE GEMINI ---
   const getGeminiAdvancedResponse = async (userMessage) => {
-    // 1. Preparamos el CONTEXTO (RAG-lite)
-    // Le damos a la IA los datos actuales para que sepa qué contestar
     const contextData = JSON.stringify({
       dia_actual: new Date().toLocaleDateString('es-ES', { weekday: 'long' }),
-      fecha_hoy: new Date().toISOString().split('T')[0],
+      fecha_hoy: new Date().toISOString().split("T")[0],
       rutinas_actuales: rutinas,
-      // Solo le damos las recetas de los próximos 3 días para no saturar el prompt
-      calendario_reciente: Object.entries(recetasCalendar).slice(-3) 
+      dietas_actuales: dietas,
+      calendario_reciente: Object.entries(recetasCalendar).slice(-3),
+      presets_disponibles: Object.keys(PRESET_ROUTINES).join(", ")
     });
 
-    // 2. El Prompt de Sistema "Agente"
     const systemPrompt = `
-      Eres un coach de fitness avanzado en una app. Tienes personalidad: ${avatar || 'normal'}.
-      
-      TU SUPERPODER: Puedes leer y MODIFICAR los datos del usuario usando "herramientas".
-      
-      HERRAMIENTAS DISPONIBLES (si el usuario pide un cambio, DEBES usarlas):
-      - update_routine(dia: string, ejercicio: string, reps: string): Reemplaza la rutina de un día COMPLETO.
-      - add_recipe_calendar(fecha: string YYYY-MM-DD, receta: string): Agrega una comida al calendario.
+Eres un coach de fitness avanzado en una app. 
+Personalidad: ${avatar || "normal"}.
 
-      DATOS ACTUALES DEL USUARIO (Contexto):
-      ${contextData}
+Puedes LEER y MODIFICAR los datos usando herramientas. Tienes dos tipos de datos de comida:
+1. DIETAS (plantillas del Home, por día de la semana, ej: "lunes").
+2. CALENDARIO (comidas específicas por fecha, ej: "2025-11-13").
 
-      INSTRUCCIONES DE RESPUESTA (OBLIGATORIO RESPONDER SIEMPRE EN ESTE FORMATO JSON):
-      {
-        "tool_calls": [ // Array opcional, solo si necesitas ejecutar acciones
-          { "tool_name": "nombre_herramienta", "parameters": { ...argumentos } }
-        ],
-        "final_response": "Tu respuesta conversacional amigable aquí para el usuario."
-      }
+HERRAMIENTAS DISPONIBLES:
+- set_routine_preset(dia: string, presetName: string)
+- update_diet_template(dia: string, nombre_comida: string, comida_detalle: string, calorias: number)
+- add_recipe_calendar(fecha: string, receta: string)
 
-      Ejemplo 1 (Usuario: "Cambia mi rutina del lunes a solo 100 burpees"):
-      {
-        "tool_calls": [{ "tool_name": "update_routine", "parameters": { "dia": "lunes", "ejercicio": "100 Burpees mortales", "reps": "1 serie" } }],
-        "final_response": "¡Entendido! He cambiado tu rutina del lunes. ¡Prepárate para sufrir con esos burpees! 🔥"
-      }
-      
-      Ejemplo 2 (Usuario: "¿Qué me toca hoy?"):
-      {
-        "final_response": "Hoy [día] te toca [ver rutinas_actuales en el contexto]. ¡A darle con todo!"
-      }
-    `;
+Datos actuales del usuario:
+${contextData}
 
+RESPONDE SIEMPRE EN FORMATO JSON:
+{
+  "tool_calls": [
+    { "tool_name": "nombre", "parameters": { } }
+  ],
+  "final_response": "texto para el usuario"
+}
+`;
     const result = await model.generateContent(systemPrompt + `\nUsuario: "${userMessage}"`);
     const text = result.response.text();
-    console.log("Respuesta RAW de Gemini (JSON):", text);
-    
+    console.log("Respuesta RAW de Gemini:", text);
+
     try {
-      // Parseamos la respuesta JSON que forzamos a Gemini a generar
       return JSON.parse(text);
     } catch (e) {
       console.error("Gemini no devolvió JSON válido:", text);
-      return { final_response: text }; // Fallback por si acaso
+      return { final_response: text.replace(/```json|```/g, '') };
     }
   };
 
-  if (isLoadingAvatar || isLoadingData || !avatarBot) {
-    return <View style={styles.loading}><ActivityIndicator size="large" color="#007AFF" /></View>;
+  // loaders
+  if (isLoadingAvatar || isLoadingData || loadingSubscription || !avatarBot) {
+    return (
+      <View style={styles.loading}>
+        <ActivityIndicator size="large" color="#007AFF" />
+      </View>
+    );
+  }
+
+  // bloqueo por suscripción
+  if (!isSubscribed) {
+    return (
+      <SafeAreaView style={{ flex: 1, justifyContent: "center", alignItems: "center", padding: 20 }}>
+        <Text style={{ fontSize: 22, fontWeight: "700", marginBottom: 12 }}>Chatbot bloqueado 🔒</Text>
+        <Text style={{ textAlign: "center", marginBottom: 20 }}>
+          Debes suscribirte para acceder al entrenador inteligente.
+        </Text>
+
+        <TouchableOpacity
+          style={{ backgroundColor: "#007AFF", padding: 14, borderRadius: 10 }}
+          onPress={() => navigation.navigate("Suscripcion")}
+        >
+          <Text style={{ color: "#fff", fontWeight: "700" }}>Suscribirme</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
   }
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-         <LottieView source={LOTTIE_ASSETS[avatar] || LOTTIE_ASSETS['normal']} autoPlay loop style={styles.lottie} />
+        <LottieView
+          source={LOTTIE_ASSETS[avatar] || LOTTIE_ASSETS["normal"]}
+          autoPlay
+          loop
+          style={styles.lottie}
+        />
       </View>
-      <GiftedChat messages={messages} onSend={messages => onSend(messages)} user={USER} renderAvatar={null} />
+
+      <GiftedChat
+        messages={messages}
+        onSend={onSend}
+        user={USER}
+        renderAvatar={null}
+      />
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  header: { alignItems: 'center', padding: 10, backgroundColor: '#f8f8f8' },
-  lottie: { width: 100, height: 100 },
+  container: { flex: 1, backgroundColor: "#fff" },
+  loading: { flex: 1, justifyContent: "center", alignItems: "center" },
+  header: { alignItems: "center", padding: 10, backgroundColor: "#f8f8f8" },
+  lottie: { width: 100, height: 100 }
 });
 
 export default AvatarChatScreen;
