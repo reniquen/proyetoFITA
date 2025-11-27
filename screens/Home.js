@@ -196,7 +196,7 @@ import {
                       </View>
   
                       <View style={styles.fabOptionRow}>
-                          <View style={styles.fabLabel}><Text style={styles.fabLabelText}>Calendario</Text></View>
+                          <View style={styles.fabLabel}><Text style={styles.fabLabelText}>Recetas</Text></View>
                           <TouchableOpacity style={[styles.fabSmall, { backgroundColor: '#9b59b6' }]} onPress={() => navigation.navigate('CalendarRecipes')}>
                               <Text style={styles.fabIcon}>📅</Text>
                           </TouchableOpacity>
@@ -220,7 +220,7 @@ import {
                                           { text: "Cancelar", style: "cancel" },
                                           { 
                                               text: "Suscribirme", 
-                                              onPress: () => navigation.navigate('SuscripcionScreen') // Revisa si el nombre en tu Stack es 'SuscripcionScreen' o 'Subscription'
+                                              onPress: () => navigation.navigate('Suscripcion') // Revisa si el nombre en tu Stack es 'SuscripcionScreen' o 'Subscription'
                                           },
                                           {
                                               // 👇 BOTÓN CORREGIDO PARA DESARROLLADORES

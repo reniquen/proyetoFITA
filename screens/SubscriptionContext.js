@@ -1,42 +1,77 @@
 // ./screens/SubscriptionContext.js
 import React, { createContext, useState, useEffect, useContext } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "./firebaseConfig"; // Asegúrate de importar auth
 
 const SubscriptionContext = createContext();
 
 export const SubscriptionProvider = ({ children }) => {
-  const SUB_KEY = "fita_subscription_active_v1";
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState(null);
 
+  // 1. Escuchar cambios de usuario (Login/Logout)
   useEffect(() => {
-    (async () => {
-      try {
-        const s = await AsyncStorage.getItem(SUB_KEY);
-        setIsSubscribed(s === "active");
-      } catch (e) {
-        console.warn("Error cargando subs:", e);
-      } finally {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      setCurrentUser(user);
+      if (user) {
+        // Si hay usuario, verificamos SU suscripción específica
+        await checkSubscription(user.uid);
+      } else {
+        // Si no hay usuario, reseteamos todo
+        setIsSubscribed(false);
         setLoading(false);
       }
-    })();
+    });
+
+    return () => unsubscribe();
   }, []);
 
-  const activateSubscription = async () => {
-    setIsSubscribed(true);
+  // Función auxiliar para leer la key única del usuario
+  const checkSubscription = async (uid) => {
+    setLoading(true);
     try {
-      await AsyncStorage.setItem(SUB_KEY, "active");
+      // Usamos el UID en la key para que sea única por cuenta
+      const key = `sub_status_${uid}`; 
+      const storedValue = await AsyncStorage.getItem(key);
+      
+      if (storedValue === "active") {
+        setIsSubscribed(true);
+      } else {
+        setIsSubscribed(false);
+      }
     } catch (e) {
-      console.warn("Error guardando subs:", e);
+      console.warn("Error leyendo suscripción:", e);
+    } finally {
+      setLoading(false);
     }
   };
 
+  // 2. Activar suscripción (Botón Dev o Pago)
+  const activateSubscription = async () => {
+    if (!currentUser) return; // Seguridad: no activar si no hay usuario logueado
+
+    setIsSubscribed(true);
+    try {
+      const key = `sub_status_${currentUser.uid}`;
+      await AsyncStorage.setItem(key, "active");
+      console.log(`Suscripción activada localmente para: ${currentUser.email}`);
+    } catch (e) {
+      console.warn("Error guardando suscripción:", e);
+    }
+  };
+
+  // 3. Desactivar suscripción
   const deactivateSubscription = async () => {
+    if (!currentUser) return;
+
     setIsSubscribed(false);
     try {
-      await AsyncStorage.removeItem(SUB_KEY);
+      const key = `sub_status_${currentUser.uid}`;
+      await AsyncStorage.removeItem(key);
     } catch (e) {
-      console.warn("Error removiendo subs:", e);
+      console.warn("Error removiendo suscripción:", e);
     }
   };
 
