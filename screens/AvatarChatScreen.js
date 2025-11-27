@@ -10,7 +10,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { PRESET_ROUTINES } from './RoutineCatalog';
 import { useSubscription } from './SubscriptionContext';
 
-const API_KEY = "AIzaSyC1pejgzyzB-aZlIvMxKl--PTUC7UKQ8xM";
+const API_KEY = "AIzaSyCEOCeMBan4derIYjkWza67EVxWvFIno1I";
 const genAI = new GoogleGenerativeAI(API_KEY);
 
 const model = genAI.getGenerativeModel({

@@ -1,4 +1,3 @@
-// Home.js (reemplaza tu Home actual con este contenido)
 import {
     Text, StyleSheet, View, Image, TouchableOpacity, ScrollView, Modal,
     SafeAreaView, Alert, Dimensions, ActivityIndicator
@@ -8,9 +7,11 @@ import {
   import { auth } from './firebaseConfig';
   import { signOut } from 'firebase/auth';
   import AvatarCoach from './AvatarCoach';
-  import { useUserData } from './UserDataContext';
   import LottieView from 'lottie-react-native';
-  import { useSubscription } from './SubscriptionContext';
+  
+  // ✅ Importamos los contextos correctos
+  import { useUserData } from './UserDataContext'; 
+  import { useSubscription } from './SubscriptionContext'; // <--- AGREGADO
   
   function getYouTubeId(url) {
       if (!url) return null;
@@ -25,8 +26,16 @@ import {
       const [isPlaying, setIsPlaying] = useState(false);
       const [menuOpen, setMenuOpen] = useState(false);
       const [dynamicTip, setDynamicTip] = useState("¡Vamos a entrenar!");
-      const { rutinas, dietas, isLoadingData } = useUserData();
-      const { isSubscribed } = useSubscription();
+  
+      // ✅ Obtenemos datos del usuario (rutinas, dietas)
+      const { 
+          rutinas, 
+          dietas, 
+          isLoadingData 
+      } = useUserData();
+  
+      // ✅ Obtenemos la suscripción del contexto correcto (SubscriptionContext)
+      const { isSubscribed, activateSubscription } = useSubscription();
   
       useEffect(() => {
           setDynamicTip(getDynamicTip());
@@ -187,7 +196,7 @@ import {
                       </View>
   
                       <View style={styles.fabOptionRow}>
-                          <View style={styles.fabLabel}><Text style={styles.fabLabelText}>Recetas</Text></View>
+                          <View style={styles.fabLabel}><Text style={styles.fabLabelText}>Calendario</Text></View>
                           <TouchableOpacity style={[styles.fabSmall, { backgroundColor: '#9b59b6' }]} onPress={() => navigation.navigate('CalendarRecipes')}>
                               <Text style={styles.fabIcon}>📅</Text>
                           </TouchableOpacity>
@@ -208,8 +217,21 @@ import {
                                       "Suscripción requerida",
                                       "Necesitas una suscripción activa para acceder al Coach IA.",
                                       [
-                                          { text: "Suscribirme", onPress: () => navigation.navigate('Suscripcion') },
-                                          { text: "Cancelar", style: "cancel" }
+                                          { text: "Cancelar", style: "cancel" },
+                                          { 
+                                              text: "Suscribirme", 
+                                              onPress: () => navigation.navigate('SuscripcionScreen') // Revisa si el nombre en tu Stack es 'SuscripcionScreen' o 'Subscription'
+                                          },
+                                          {
+                                              // 👇 BOTÓN CORREGIDO PARA DESARROLLADORES
+                                              text: "🔓 ACTIVAR YA (DEV)",
+                                              onPress: async () => {
+                                                  await activateSubscription(); // <--- FUNCIÓN CORRECTA
+                                                  Alert.alert("Éxito", "Modo Premium activado para desarrollo.");
+                                                  navigation.navigate('AvatarChat');
+                                              },
+                                              style: "default"
+                                          }
                                       ]
                                   );
                               }
@@ -347,4 +369,3 @@ import {
           color: '#2c3e50',
       }
   });
-  
