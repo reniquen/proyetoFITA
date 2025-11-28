@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import {
   Text,
   StyleSheet,
-  View,
+  View, // Cambiado de LinearGradient a View
   Image,
   TextInput,
   TouchableOpacity,
@@ -14,9 +14,11 @@ import {
   ScrollView,
 } from 'react-native';
 import { signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
-import { auth, db } from './firebaseConfig';
+// No necesitamos getDoc ni db si no verificamos isAdmin en Firestore
+import { auth } from './firebaseConfig'; 
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+// No necesitamos LinearGradient si usamos fondo sólido
+// import { LinearGradient } from 'expo-linear-gradient';
 
 export default function Login({ navigation }) {
   const [correo, setCorreo] = useState('');
@@ -65,18 +67,16 @@ export default function Login({ navigation }) {
 
     setLoading(true);
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, correo, contrasena);
-      const user = userCredential.user;
+      await signInWithEmailAndPassword(auth, correo, contrasena);
 
-      const userDocRef = doc(db, 'usuarios', user.uid);
-      const userDoc = await getDoc(userDocRef);
-
-      if (userDoc.exists() && userDoc.data().isAdmin) {
-        navigation.replace('AdminPanel');
+      // --- LÓGICA DE ADMINISTRADOR POR LISTA DE CORREOS ---
+      const correosAdmin = ["reniquen@hotmail.com", "jno@gmail.com", "root@fita.com"];
+      if (correosAdmin.includes(correo)) {
+        navigation.replace('AdminPanel'); // Redirección directa sin Alert
       } else {
-        Alert.alert('Bienvenido', 'Inicio de sesión exitoso como usuario.');
-        navigation.navigate('Home');
+        navigation.navigate('Home'); // Redirección directa sin Alert para usuarios normales
       }
+      // --- FIN LÓGICA DE ADMINISTRADOR ---
 
     } catch (error) {
       console.error('Error al iniciar sesión:', error);
@@ -108,7 +108,7 @@ export default function Login({ navigation }) {
   };
 
   return (
-    // Usamos un View con tu estilo de fondo original
+    // Usamos un View con tu estilo de fondo original 'padre'
     <View style={styles.padre}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -176,7 +176,7 @@ export default function Login({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  // Tu estilo original para el fondo
+  // Tu estilo original para el fondo sólido
   padre: {
     flex: 1,
     backgroundColor: '#58d68d', // Color de fondo original
