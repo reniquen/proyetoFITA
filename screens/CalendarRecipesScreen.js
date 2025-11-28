@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, Alert } 
 import { Calendar, LocaleConfig } from 'react-native-calendars';
 import { useUserData } from './UserDataContext';
 
-// Configuración opcional para español
+
 LocaleConfig.locales['es'] = {
   monthNames: ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'],
   dayNames: ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'],
@@ -17,13 +17,13 @@ export default function CalendarRecipesScreen() {
   const [selectedDate, setSelectedDate] = useState('');
   const [newRecipe, setNewRecipe] = useState('');
 
-  // Marcar días que tienen recetas en el calendario
+  
   const markedDates = Object.keys(recetasCalendar).reduce((acc, date) => {
     acc[date] = { marked: true, dotColor: 'orange' };
     return acc;
   }, {});
 
-  // Cuando seleccionas un día
+  
   if (selectedDate) {
     markedDates[selectedDate] = { ...markedDates[selectedDate], selected: true, selectedColor: '#3498db' };
   }
@@ -66,7 +66,7 @@ export default function CalendarRecipesScreen() {
               ListEmptyComponent={<Text style={styles.emptyText}>No hay recetas para este día.</Text>}
             />
 
-            {/* Input rápido para añadir manualmente */}
+            {}
             <View style={styles.inputContainer}>
               <TextInput 
                 style={styles.input}

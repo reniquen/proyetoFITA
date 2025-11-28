@@ -11,7 +11,7 @@ import {
   
   // ✅ Importamos los contextos correctos
   import { useUserData } from './UserDataContext'; 
-  import { useSubscription } from './SubscriptionContext'; // <--- AGREGADO
+  import { useSubscription } from './SubscriptionContext';
   
   function getYouTubeId(url) {
       if (!url) return null;
@@ -27,14 +27,12 @@ import {
       const [menuOpen, setMenuOpen] = useState(false);
       const [dynamicTip, setDynamicTip] = useState("¡Vamos a entrenar!");
   
-      // ✅ Obtenemos datos del usuario (rutinas, dietas)
       const { 
           rutinas, 
           dietas, 
           isLoadingData 
       } = useUserData();
   
-      // ✅ Obtenemos la suscripción del contexto correcto (SubscriptionContext)
       const { isSubscribed, activateSubscription } = useSubscription();
   
       useEffect(() => {
@@ -188,6 +186,16 @@ import {
   
               {menuOpen && (
                   <View style={styles.fabOptionsContainer}>
+                      
+                      {/* --- NUEVO BOTÓN: QUIÉNES SOMOS --- */}
+                      <View style={styles.fabOptionRow}>
+                          <View style={styles.fabLabel}><Text style={styles.fabLabelText}>Quiénes Somos</Text></View>
+                          <TouchableOpacity style={[styles.fabSmall, { backgroundColor: '#34495e' }]} onPress={() => navigation.navigate('AboutUs')}>
+                              <Text style={styles.fabIcon}>👥</Text>
+                          </TouchableOpacity>
+                      </View>
+                      {/* ---------------------------------- */}
+  
                       <View style={styles.fabOptionRow}>
                           <View style={styles.fabLabel}><Text style={styles.fabLabelText}>Cerrar Sesión</Text></View>
                           <TouchableOpacity style={[styles.fabSmall, { backgroundColor: '#e74c3c' }]} onPress={cerrarSesion}>
@@ -220,13 +228,12 @@ import {
                                           { text: "Cancelar", style: "cancel" },
                                           { 
                                               text: "Suscribirme", 
-                                              onPress: () => navigation.navigate('Suscripcion') // Revisa si el nombre en tu Stack es 'SuscripcionScreen' o 'Subscription'
+                                              onPress: () => navigation.navigate('Suscripcion') 
                                           },
                                           {
-                                              // 👇 BOTÓN CORREGIDO PARA DESARROLLADORES
                                               text: "🔓 ACTIVAR YA (DEV)",
                                               onPress: async () => {
-                                                  await activateSubscription(); // <--- FUNCIÓN CORRECTA
+                                                  await activateSubscription();
                                                   Alert.alert("Éxito", "Modo Premium activado para desarrollo.");
                                                   navigation.navigate('AvatarChat');
                                               },
