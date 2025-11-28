@@ -1,4 +1,4 @@
-
+// ./screens/AvatarChatScreen.js
 import React, { useState, useCallback, useEffect } from 'react';
 import { View, StyleSheet, Text, SafeAreaView, ActivityIndicator, Alert, TouchableOpacity } from 'react-native';
 import { GiftedChat } from 'react-native-gifted-chat';
@@ -9,8 +9,13 @@ import LottieView from 'lottie-react-native';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { PRESET_ROUTINES } from './RoutineCatalog';
 import { useSubscription } from './SubscriptionContext';
+// 👇 1. IMPORTAMOS EL NUEVO CATÁLOGO CHILENO
+import { CHILEAN_FOOD } from './ChileanFoodCatalog';
 
-const API_KEY = "AIzaSyCEOCeMBan4derIYjkWza67EVxWvFIno1I";
+// ⚠️ IMPORTANTE: Usa tu clave segura aquí (desde .env o backend)
+// Si usas .env: import { GEMINI_API_KEY } from '@env';
+const API_KEY = "AIzaSyAAafhpOoBcZ2voadkJMFOd86W4gM5tXHo"; 
+
 const genAI = new GoogleGenerativeAI(API_KEY);
 
 const model = genAI.getGenerativeModel({
@@ -45,7 +50,7 @@ const AvatarChatScreen = ({ navigation }) => {
       setMessages([
         {
           _id: 1,
-          text: `¡Hola! Soy tu coach inteligente. ¿Qué necesitas?`,
+          text: `¡Hola! Soy tu coach inteligente. ¿Buscamos una rutina o quizás una receta rica (y chilena 🇨🇱)?`,
           createdAt: new Date(),
           user: { _id: 2, name: "Avatar" }
         }
@@ -98,29 +103,34 @@ const AvatarChatScreen = ({ navigation }) => {
   };
 
   const getGeminiAdvancedResponse = async (userMessage) => {
+    // 👇 2. INYECTAMOS LOS DATOS CHILENOS EN EL CONTEXTO
     const contextData = JSON.stringify({
-      dia_actual: new Date().toLocaleDateString('es-ES', { weekday: 'long' }),
+      dia_actual: new Date().toLocaleDateString('es-CL', { weekday: 'long' }),
       fecha_hoy: new Date().toISOString().split("T")[0],
       rutinas_actuales: rutinas,
       dietas_actuales: dietas,
       calendario_reciente: Object.entries(recetasCalendar).slice(-3),
-      presets_disponibles: Object.keys(PRESET_ROUTINES).join(", ")
+      presets_disponibles: Object.keys(PRESET_ROUTINES).join(", "),
+      catalogo_chileno: CHILEAN_FOOD // <--- Aquí va la magia
     });
 
     const systemPrompt = `
-Eres un coach de fitness avanzado en una app. 
+Eres un coach de fitness avanzado en una app llamada FITA. 
 Personalidad: ${avatar || "normal"}.
+Ubicación/Contexto cultural: Chile 🇨🇱.
 
-Puedes LEER y MODIFICAR los datos usando herramientas. Tienes dos tipos de datos de comida:
-1. DIETAS (plantillas del Home, por día de la semana, ej: "lunes").
-2. CALENDARIO (comidas específicas por fecha, ej: "2025-11-13").
+OBJETIVO PRINCIPAL:
+Ayudar al usuario con sus rutinas y dietas. Tienes acceso a una base de datos especial de **Comida Chilena** (ingredientes y recetas típicas pero saludables).
+- Cuando el usuario pida comida, intenta sugerir opciones chilenas del catálogo si encajan en sus macros, o mézclalas con opciones internacionales estándar.
+- Si sugieres un plato chileno (ej: Cazuela, Charquicán), explica brevemente por qué es bueno (ej: "es alto en fibra").
+- Mantén un tono motivador y cercano.
 
 HERRAMIENTAS DISPONIBLES:
 - set_routine_preset(dia: string, presetName: string)
 - update_diet_template(dia: string, nombre_comida: string, comida_detalle: string, calorias: number)
 - add_recipe_calendar(fecha: string, receta: string)
 
-Datos actuales del usuario:
+Datos actuales del usuario y Catálogo Chileno:
 ${contextData}
 
 RESPONDE SIEMPRE EN FORMATO JSON:
@@ -128,7 +138,7 @@ RESPONDE SIEMPRE EN FORMATO JSON:
   "tool_calls": [
     { "tool_name": "nombre", "parameters": { } }
   ],
-  "final_response": "texto para el usuario"
+  "final_response": "texto para el usuario (usa emojis)"
 }
 `;
     const result = await model.generateContent(systemPrompt + `\nUsuario: "${userMessage}"`);
@@ -136,14 +146,16 @@ RESPONDE SIEMPRE EN FORMATO JSON:
     console.log("Respuesta RAW de Gemini:", text);
 
     try {
-      return JSON.parse(text);
+      // Limpieza básica por si Gemini devuelve markdown ```json ... ```
+      const cleanedText = text.replace(/```json|```/g, '').trim();
+      return JSON.parse(cleanedText);
     } catch (e) {
       console.error("Gemini no devolvió JSON válido:", text);
-      return { final_response: text.replace(/```json|```/g, '') };
+      return { final_response: cleanedText || text };
     }
   };
 
- 
+  // loaders
   if (isLoadingAvatar || isLoadingData || loadingSubscription || !avatarBot) {
     return (
       <View style={styles.loading}>
@@ -152,7 +164,7 @@ RESPONDE SIEMPRE EN FORMATO JSON:
     );
   }
 
- 
+  // bloqueo por suscripción
   if (!isSubscribed) {
     return (
       <SafeAreaView style={{ flex: 1, justifyContent: "center", alignItems: "center", padding: 20 }}>
@@ -187,6 +199,7 @@ RESPONDE SIEMPRE EN FORMATO JSON:
         onSend={onSend}
         user={USER}
         renderAvatar={null}
+        placeholder="Escribe aquí... (ej: 'Dame una cena chilena ligera')"
       />
     </SafeAreaView>
   );
