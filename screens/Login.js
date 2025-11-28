@@ -17,6 +17,8 @@ import { signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/aut
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from './firebaseConfig';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+// IMPORTANTE: Importamos LinearGradient
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function Login({ navigation }) {
   const [correo, setCorreo] = useState('');
@@ -108,8 +110,15 @@ export default function Login({ navigation }) {
   };
 
   return (
-    // Usamos un View con tu estilo de fondo original
-    <View style={styles.padre}>
+    // Usamos LinearGradient para el fondo
+    <LinearGradient
+      // Definimos los colores del degradado (del verde al amarillo/naranja)
+      colors={['#58d68d', '#f7dc6f']}
+      // Dirección del degradado (de arriba a la izquierda hacia abajo a la derecha)
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.gradientBackground}
+    >
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.container}
@@ -171,15 +180,15 @@ export default function Login({ navigation }) {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </View>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-  // Tu estilo original para el fondo
-  padre: {
+  // Estilo para el fondo degradado
+  gradientBackground: {
     flex: 1,
-    backgroundColor: '#58d68d', // Color de fondo original
+    width: '100%',
   },
   container: {
     flex: 1,
@@ -200,7 +209,7 @@ const styles = StyleSheet.create({
     height: 260,
   },
   card: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: 'rgba(255, 255, 255, 0.95)', // Blanco semitransparente para que resalte
     borderRadius: 20,
     padding: 25,
     width: '85%',
