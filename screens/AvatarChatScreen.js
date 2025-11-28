@@ -16,7 +16,7 @@ import { CHILEAN_FOOD } from './ChileanFoodCatalog';
 // Si usas .env: import { GEMINI_API_KEY } from '@env';
 const API_KEY = "AIzaSyAAafhpOoBcZ2voadkJMFOd86W4gM5tXHo"; 
 
-const API_KEY = "AIzaSyD0b2vVee6OYEWfwABSw6GTTrLoQbMv0dg";
+
 const genAI = new GoogleGenerativeAI(API_KEY);
 
 const model = genAI.getGenerativeModel({
