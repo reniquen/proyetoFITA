@@ -1,8 +1,8 @@
-// ./screens/SubscriptionContext.js
 import React, { createContext, useState, useEffect, useContext } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "./firebaseConfig"; // Asegúrate de importar auth
+import { doc, updateDoc, getDoc, setDoc } from "firebase/firestore"; // Importamos funciones de Firestore
+import { auth, db } from "./firebaseConfig"; // Importamos db
 
 const SubscriptionContext = createContext();
 
@@ -11,65 +11,84 @@ export const SubscriptionProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
 
-  // 1. Escuchar cambios de usuario (Login/Logout)
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user);
       if (user) {
-        // Si hay usuario, verificamos SU suscripción específica
         await checkSubscription(user.uid);
       } else {
-        // Si no hay usuario, reseteamos todo
         setIsSubscribed(false);
         setLoading(false);
       }
     });
-
     return () => unsubscribe();
   }, []);
 
-  // Función auxiliar para leer la key única del usuario
+  // Verificar estado (Leemos primero de Firebase para tener la verdad absoluta)
   const checkSubscription = async (uid) => {
     setLoading(true);
     try {
-      // Usamos el UID en la key para que sea única por cuenta
-      const key = `sub_status_${uid}`; 
-      const storedValue = await AsyncStorage.getItem(key);
-      
-      if (storedValue === "active") {
+      // 1. Intentamos leer desde Firestore (La nube manda)
+      const userDocRef = doc(db, "usuarios", uid);
+      const userDoc = await getDoc(userDocRef);
+
+      if (userDoc.exists() && userDoc.data().isPremium === true) {
         setIsSubscribed(true);
+        // Sincronizamos localmente por si acaso
+        await AsyncStorage.setItem(`sub_status_${uid}`, "active");
       } else {
-        setIsSubscribed(false);
+        // Si no es premium en la nube, revisamos local (por si no hay internet)
+        const localStatus = await AsyncStorage.getItem(`sub_status_${uid}`);
+        setIsSubscribed(localStatus === "active");
       }
     } catch (e) {
-      console.warn("Error leyendo suscripción:", e);
+      console.warn("Error verificando suscripción:", e);
+      // Fallback a local si falla internet
+      const localStatus = await AsyncStorage.getItem(`sub_status_${uid}`);
+      setIsSubscribed(localStatus === "active");
     } finally {
       setLoading(false);
     }
   };
 
-  // 2. Activar suscripción (Botón Dev o Pago)
+  // ACTIVAR: Guarda en Local Y en Firebase
   const activateSubscription = async () => {
-    if (!currentUser) return; // Seguridad: no activar si no hay usuario logueado
+    if (!currentUser) return;
 
     setIsSubscribed(true);
     try {
-      const key = `sub_status_${currentUser.uid}`;
-      await AsyncStorage.setItem(key, "active");
-      console.log(`Suscripción activada localmente para: ${currentUser.email}`);
+      // 1. Guardar en Local
+      await AsyncStorage.setItem(`sub_status_${currentUser.uid}`, "active");
+
+      // 2. Guardar en Firebase (Esto es lo que te faltaba)
+      const userDocRef = doc(db, "usuarios", currentUser.uid);
+      
+      // Usamos setDoc con merge: true por si el documento no existiera
+      await setDoc(userDocRef, { 
+        isPremium: true,
+        fechaSuscripcion: new Date().toISOString() // Opcional: para saber cuándo pagó
+      }, { merge: true });
+
+      console.log("Suscripción guardada en Firebase y Local");
+
     } catch (e) {
-      console.warn("Error guardando suscripción:", e);
+      console.error("Error guardando suscripción en nube:", e);
+      // Aunque falle la nube, mantenemos el estado local para que el usuario no pierda acceso
     }
   };
 
-  // 3. Desactivar suscripción
+  // DESACTIVAR
   const deactivateSubscription = async () => {
     if (!currentUser) return;
 
     setIsSubscribed(false);
     try {
-      const key = `sub_status_${currentUser.uid}`;
-      await AsyncStorage.removeItem(key);
+      await AsyncStorage.removeItem(`sub_status_${currentUser.uid}`);
+      
+      // Actualizamos Firebase
+      const userDocRef = doc(db, "usuarios", currentUser.uid);
+      await updateDoc(userDocRef, { isPremium: false });
+      
     } catch (e) {
       console.warn("Error removiendo suscripción:", e);
     }
