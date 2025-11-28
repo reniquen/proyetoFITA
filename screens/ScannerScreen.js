@@ -1,6 +1,5 @@
-// screens/ScannerScreen.js
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Alert, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Alert, ActivityIndicator, TouchableOpacity, Button } from 'react-native';
 import { BarCodeScanner } from 'expo-barcode-scanner';
 
 export default function ScannerScreen({ navigation }) {
@@ -17,10 +16,20 @@ export default function ScannerScreen({ navigation }) {
     getBarCodeScannerPermissions();
   }, []);
 
+  // --- FUNCIÓN HELPER PARA CALIFICAR CALORÍAS ---
+  const analizarCalorias = (kcal) => {
+    // Estos rangos son aproximados para alimentos sólidos por 100g
+    if (kcal === 0) return "No disponible";
+    if (kcal < 150) return "🟢 Buena (Baja densidad)";
+    if (kcal < 350) return "🟡 Media (Moderada)";
+    if (kcal < 550) return "🟠 Mala (Alta densidad)";
+    return "🔴 Horrible (Muy alta densidad)";
+  };
+
   // 2. Función que se llama al escanear un código
   const handleBarCodeScanned = async ({ type, data }) => {
-    setScanned(true); // Marca como escaneado para evitar múltiples lecturas
-    setIsLoading(true); // Muestra el indicador de carga
+    setScanned(true); // Marca como escaneado
+    setIsLoading(true); // Muestra loading
 
     console.log(`Código escaneado (${type}): ${data}`);
 
@@ -28,7 +37,7 @@ export default function ScannerScreen({ navigation }) {
       // 3. Llamada a la API de Open Food Facts
       const response = await fetch(`https://world.openfoodfacts.org/api/v0/product/${data}.json`);
       const json = await response.json();
-      setIsLoading(false); // Oculta el indicador de carga
+      setIsLoading(false); 
 
       // 4. Revisar si la API encontró el producto
       if (json.status === 1) {
@@ -36,16 +45,26 @@ export default function ScannerScreen({ navigation }) {
         const productName = product.product_name_es || product.product_name || "Nombre no encontrado";
         const nutriments = product.nutriments || {};
         
-        // Obtenemos los datos por 100g. Usamos '|| 0' por si el dato no existe
+        // Datos nutricionales por 100g
         const protein = nutriments['proteins_100g'] || 0;
         const carbs = nutriments['carbohydrates_100g'] || 0;
         const fat = nutriments['fat_100g'] || 0;
         const energy = nutriments['energy-kcal_100g'] || 0;
 
-        // 5. Mostrar los resultados en una alerta
+        // --- ANÁLISIS ---
+        const calificacionCalorias = analizarCalorias(energy);
+
+        // 5. Mostrar los resultados en una alerta formateada
         Alert.alert(
-          `Producto: ${productName}`,
-          `Info Nutricional (por 100g):\n\nKcal: ${energy} kcal\nProteínas: ${protein} g\nCarbohidratos: ${carbs} g\nGrasas: ${fat} g`,
+          `🔍 ${productName}`,
+          `\n📊 RESUMEN NUTRICIONAL (100g):\n` +
+          `-----------------------------------\n` +
+          `🔥 Calorías: ${energy} kcal\n` +
+          `   ➤ Clasificación: ${calificacionCalorias}\n\n` +
+          `🥩 Proteínas: ${protein} g\n` +
+          `🍞 Carbohidratos: ${carbs} g\n` +
+          `🥑 Grasas: ${fat} g\n` +
+          `-----------------------------------`,
           [
             { text: 'Escanear de Nuevo', onPress: () => setScanned(false) },
             { text: 'Volver', onPress: () => navigation.goBack() }
@@ -55,7 +74,7 @@ export default function ScannerScreen({ navigation }) {
         // 4b. Producto no encontrado
         Alert.alert(
           'Producto no encontrado',
-          'Este código de barras no se encontró en la base de datos de Open Food Facts.',
+          'Este código no está en la base de datos.',
           [{ text: 'OK', onPress: () => setScanned(false) }]
         );
       }
@@ -63,7 +82,7 @@ export default function ScannerScreen({ navigation }) {
       // 4c. Error de red
       setIsLoading(false);
       console.error(error);
-      Alert.alert('Error de Red', 'No se pudo conectar con el servidor. Intenta de nuevo.', [
+      Alert.alert('Error de Red', 'Verifica tu conexión a internet.', [
         { text: 'OK', onPress: () => setScanned(false) }
       ]);
     }
@@ -77,13 +96,13 @@ export default function ScannerScreen({ navigation }) {
     return (
       <View style={styles.container}>
         <Text style={styles.text}>Sin acceso a la cámara</Text>
-        <Text style={styles.textSmall}>Debes habilitar el permiso en la configuración de tu teléfono para usar el escáner.</Text>
+        <Text style={styles.textSmall}>Debes habilitar el permiso en la configuración de tu teléfono.</Text>
         <Button title={'Volver'} onPress={() => navigation.goBack()} />
       </View>
     );
   }
 
-  // 7. Mostrar el escáner
+  // 7. Renderizado principal
   return (
     <View style={styles.container}>
       <BarCodeScanner
@@ -91,9 +110,9 @@ export default function ScannerScreen({ navigation }) {
         style={StyleSheet.absoluteFillObject}
       />
       
-      {/* Overlay para guiar al usuario */}
+      {/* Overlay Visual */}
       <View style={styles.overlay}>
-        <Text style={styles.overlayText}>Apunta al código de barras del producto</Text>
+        <Text style={styles.overlayText}>Apunta al código de barras</Text>
         <View style={styles.scanBox} />
       </View>
 
@@ -101,11 +120,11 @@ export default function ScannerScreen({ navigation }) {
       {isLoading && (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#FFFFFF" />
-          <Text style={styles.loadingText}>Buscando información...</Text>
+          <Text style={styles.loadingText}>Analizando producto...</Text>
         </View>
       )}
 
-      {/* Botón para volver */}
+      {/* Botón Cancelar */}
       <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
         <Text style={styles.backButtonText}>Cancelar</Text>
       </TouchableOpacity>
@@ -113,7 +132,7 @@ export default function ScannerScreen({ navigation }) {
   );
 }
 
-// --- Estilos para el Escáner ---
+// --- Estilos ---
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -147,34 +166,38 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 5,
     position: 'absolute',
-    top: '20%',
+    top: '15%',
   },
   scanBox: {
-    width: '80%',
-    height: '30%',
+    width: 250,
+    height: 250,
     borderWidth: 2,
-    borderColor: '#4CAF50', // Verde
-    borderRadius: 10,
+    borderColor: '#4CAF50', // Verde neón
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.1)',
   },
   loadingContainer: {
     ...StyleSheet.absoluteFillObject,
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
     justifyContent: 'center',
     alignItems: 'center',
+    zIndex: 10,
   },
   loadingText: {
-    fontSize: 16,
+    fontSize: 18,
     color: 'white',
-    marginTop: 10,
+    marginTop: 15,
+    fontWeight: 'bold',
   },
   backButton: {
     position: 'absolute',
-    bottom: 40,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    bottom: 50,
+    backgroundColor: 'rgba(231, 76, 60, 0.9)', // Rojo suave
     paddingVertical: 15,
     paddingHorizontal: 30,
     borderRadius: 25,
+    elevation: 5,
   },
   backButtonText: {
     color: 'white',

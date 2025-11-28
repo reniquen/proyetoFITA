@@ -1,14 +1,22 @@
+// ./screens/AvatarChatScreen.js
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, StyleSheet, Text, SafeAreaView, ActivityIndicator, Alert } from 'react-native';
-import { GiftedChat, Bubble } from 'react-native-gifted-chat';
+import { View, StyleSheet, Text, SafeAreaView, ActivityIndicator, Alert, TouchableOpacity } from 'react-native';
+import { GiftedChat } from 'react-native-gifted-chat';
 import { useAvatar } from './AvatarContext';
 import { useUserData } from './UserDataContext';
 import { LOTTIE_ASSETS } from './AvatarAssets';
 import LottieView from 'lottie-react-native';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { PRESET_ROUTINES } from './RoutineCatalog';
+import { useSubscription } from './SubscriptionContext';
+// 👇 1. IMPORTAMOS EL NUEVO CATÁLOGO CHILENO
+import { CHILEAN_FOOD } from './ChileanFoodCatalog';
 
-const API_KEY = "AIzaSyC1pejgzyzB-aZlIvMxKl--PTUC7UKQ8xM";
+// ⚠️ IMPORTANTE: Usa tu clave segura aquí (desde .env o backend)
+// Si usas .env: import { GEMINI_API_KEY } from '@env';
+const API_KEY = "AIzaSyAAafhpOoBcZ2voadkJMFOd86W4gM5tXHo"; 
+
+const API_KEY = "AIzaSyD0b2vVee6OYEWfwABSw6GTTrLoQbMv0dg";
 const genAI = new GoogleGenerativeAI(API_KEY);
 
 const model = genAI.getGenerativeModel({
@@ -18,32 +26,32 @@ const model = genAI.getGenerativeModel({
 
 const USER = { _id: 1, name: "Tú" };
 
-const AvatarChatScreen = () => {
+const AvatarChatScreen = ({ navigation }) => {
   const [messages, setMessages] = useState([]);
   const { avatar, isLoading: isLoadingAvatar } = useAvatar();
 
-  // ✅ SIN updateRoutine (NO existe en tu Provider)
   const {
     rutinas,
+    dietas,
     recetasCalendar,
     setRoutinePreset,
     addRecipeToCalendar,
+    updateDietTemplate,
     isLoadingData
   } = useUserData();
+
+  const { isSubscribed, loadingSubscription } = useSubscription();
 
   const [isBotSpeaking, setIsBotSpeaking] = useState(false);
   const [avatarBot, setAvatarBot] = useState(null);
 
   useEffect(() => {
     if (!isLoadingAvatar && avatar) {
-      const currentAvatarKey = LOTTIE_ASSETS[avatar] ? avatar : "normal";
-
       setAvatarBot({ _id: 2, name: "Avatar", avatar: null });
-
       setMessages([
         {
           _id: 1,
-          text: `¡Hola! Soy tu coach inteligente. Puedo ver y modificar tus rutinas y tu calendario de comidas. ¿Qué necesitas?`,
+          text: `¡Hola! Soy tu coach inteligente. ¿Buscamos una rutina o quizás una receta rica (y chilena 🇨🇱)?`,
           createdAt: new Date(),
           user: { _id: 2, name: "Avatar" }
         }
@@ -58,26 +66,29 @@ const AvatarChatScreen = () => {
 
   const handleAvatarResponse = async (userMessage) => {
     setIsBotSpeaking(true);
-
     try {
       const responseJSON = await getGeminiAdvancedResponse(userMessage);
 
-      // ✅ Procesar herramientas de IA
       if (responseJSON.tool_calls) {
         for (const call of responseJSON.tool_calls) {
           if (call.tool_name === "set_routine_preset") {
             await setRoutinePreset(call.parameters.dia, call.parameters.presetName);
-
           } else if (call.tool_name === "add_recipe_calendar") {
             await addRecipeToCalendar(call.parameters.fecha, call.parameters.receta);
+          } else if (call.tool_name === "update_diet_template") {
+            await updateDietTemplate(
+              call.parameters.dia,
+              call.parameters.nombre_comida,
+              call.parameters.comida_detalle,
+              call.parameters.calorias
+            );
           }
         }
       }
 
-      // ✅ Respuesta final del bot
       const botMessage = {
         _id: Math.random().toString(36).substring(7),
-        text: responseJSON.final_response || "¡Hecho!",
+        text: responseJSON.final_response || "¡Hecho! He actualizado tu plan.",
         createdAt: new Date(),
         user: avatarBot
       };
@@ -93,53 +104,83 @@ const AvatarChatScreen = () => {
   };
 
   const getGeminiAdvancedResponse = async (userMessage) => {
+    // 👇 2. INYECTAMOS LOS DATOS CHILENOS EN EL CONTEXTO
     const contextData = JSON.stringify({
-      dia_actual: new Date().toLocaleDateString('es-ES', { weekday: 'long' }),
+      dia_actual: new Date().toLocaleDateString('es-CL', { weekday: 'long' }),
       fecha_hoy: new Date().toISOString().split("T")[0],
       rutinas_actuales: rutinas,
+      dietas_actuales: dietas,
       calendario_reciente: Object.entries(recetasCalendar).slice(-3),
-      presets_disponibles: Object.keys(PRESET_ROUTINES).join(", ")
+      presets_disponibles: Object.keys(PRESET_ROUTINES).join(", "),
+      catalogo_chileno: CHILEAN_FOOD // <--- Aquí va la magia
     });
 
     const systemPrompt = `
-Eres un coach de fitness avanzado en una app. 
+Eres un coach de fitness avanzado en una app llamada FITA. 
 Personalidad: ${avatar || "normal"}.
+Ubicación/Contexto cultural: Chile 🇨🇱.
 
-Puedes LEER y MODIFICAR los datos usando herramientas:
+OBJETIVO PRINCIPAL:
+Ayudar al usuario con sus rutinas y dietas. Tienes acceso a una base de datos especial de **Comida Chilena** (ingredientes y recetas típicas pero saludables).
+- Cuando el usuario pida comida, intenta sugerir opciones chilenas del catálogo si encajan en sus macros, o mézclalas con opciones internacionales estándar.
+- Si sugieres un plato chileno (ej: Cazuela, Charquicán), explica brevemente por qué es bueno (ej: "es alto en fibra").
+- Mantén un tono motivador y cercano.
 
-- set_routine_preset(dia, presetName)
-- add_recipe_calendar(fecha, receta)
+HERRAMIENTAS DISPONIBLES:
+- set_routine_preset(dia: string, presetName: string)
+- update_diet_template(dia: string, nombre_comida: string, comida_detalle: string, calorias: number)
+- add_recipe_calendar(fecha: string, receta: string)
 
-Datos actuales del usuario:
+Datos actuales del usuario y Catálogo Chileno:
 ${contextData}
 
 RESPONDE SIEMPRE EN FORMATO JSON:
 {
   "tool_calls": [
-    { "tool_name": "nombre", "parameters": { ... } }
+    { "tool_name": "nombre", "parameters": { } }
   ],
-  "final_response": "texto para el usuario"
+  "final_response": "texto para el usuario (usa emojis)"
 }
 `;
-
     const result = await model.generateContent(systemPrompt + `\nUsuario: "${userMessage}"`);
     const text = result.response.text();
-
     console.log("Respuesta RAW de Gemini:", text);
 
     try {
-      return JSON.parse(text);
+      // Limpieza básica por si Gemini devuelve markdown ```json ... ```
+      const cleanedText = text.replace(/```json|```/g, '').trim();
+      return JSON.parse(cleanedText);
     } catch (e) {
       console.error("Gemini no devolvió JSON válido:", text);
-      return { final_response: text };
+      return { final_response: cleanedText || text };
     }
   };
 
-  if (isLoadingAvatar || isLoadingData || !avatarBot) {
+  // loaders
+  if (isLoadingAvatar || isLoadingData || loadingSubscription || !avatarBot) {
     return (
       <View style={styles.loading}>
         <ActivityIndicator size="large" color="#007AFF" />
       </View>
+    );
+  }
+
+  // bloqueo por suscripción
+  if (!isSubscribed) {
+    return (
+      <SafeAreaView style={{ flex: 1, justifyContent: "center", alignItems: "center", padding: 20 }}>
+        <Text style={{ fontSize: 22, fontWeight: "700", marginBottom: 12 }}>Chatbot bloqueado 🔒</Text>
+        <Text style={{ textAlign: "center", marginBottom: 20 }}>
+          Debes suscribirte para acceder al entrenador inteligente.
+        </Text>
+
+        <TouchableOpacity
+          style={{ backgroundColor: "#007AFF", padding: 14, borderRadius: 10 }}
+          onPress={() => navigation.navigate("Suscripcion")}
+        >
+          <Text style={{ color: "#fff", fontWeight: "700" }}>Suscribirme</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
     );
   }
 
@@ -159,6 +200,7 @@ RESPONDE SIEMPRE EN FORMATO JSON:
         onSend={onSend}
         user={USER}
         renderAvatar={null}
+        placeholder="Escribe aquí... (ej: 'Dame una cena chilena ligera')"
       />
     </SafeAreaView>
   );

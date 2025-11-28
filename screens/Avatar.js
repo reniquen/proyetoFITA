@@ -11,13 +11,13 @@ import {
 } from 'react-native';
 import { useAvatar } from './AvatarContext';
 import { LOTTIE_ASSETS, avatarOpciones } from './AvatarAssets';
-import LottieView from 'lottie-react-native'; // <-- Importar Lottie
+import LottieView from 'lottie-react-native'; 
 
-// Componente principal de Avatar
+
 export default function Avatar() {
   const { avatar: avatarActual, guardarAvatar, isLoading } = useAvatar();
   
-  // El estado temporal ahora es solo un string
+  
   const [selection, setSelection] = useState(avatarActual);
   const [guardado, setGuardado] = useState(false);
 
@@ -27,10 +27,10 @@ export default function Avatar() {
     }
   }, [avatarActual, isLoading]);
 
-  // Handler para guardar en el Context y AsyncStorage
+  
   const handleGuardar = async () => {
     try {
-      await guardarAvatar(selection); // Guarda el string (ej: "musculoso")
+      await guardarAvatar(selection); 
       setGuardado(true);
       setTimeout(() => setGuardado(false), 2000);
     } catch (e) {
@@ -50,18 +50,18 @@ export default function Avatar() {
     <ScrollView style={styles.container}>
       <Text style={styles.titulo}>Personaliza tu Avatar</Text>
 
-      {/* --- Vista previa con Lottie --- */}
+      {}
       <View style={styles.previewContainer}>
         <LottieView
-          key={selection} // Forzar re-renderizado al cambiar
-          source={LOTTIE_ASSETS[selection]} // Carga la animación seleccionada
+          key={selection} 
+          source={LOTTIE_ASSETS[selection]} 
           autoPlay
           loop
           style={styles.lottiePreview}
         />
       </View>
 
-      {/* --- Selector Único --- */}
+      {}
       <View style={styles.selectorSection}>
         <Text style={styles.subtitulo}>Elige tu estilo</Text>
         <FlatList
@@ -75,7 +75,7 @@ export default function Avatar() {
                 styles.opcion,
                 item === selection ? styles.seleccionado : null,
               ]}
-              onPress={() => setSelection(item)} // Actualiza el string de selección
+              onPress={() => setSelection(item)} 
             >
               <Text style={styles.opcionTexto}>{item}</Text>
             </TouchableOpacity>
@@ -84,7 +84,7 @@ export default function Avatar() {
         />
       </View>
 
-      {/* Botón de Guardar */}
+      {}
       <View style={styles.footer}>
         <TouchableOpacity style={styles.botonGuardar} onPress={handleGuardar}>
           <Text style={styles.botonTexto}>Guardar Cambios</Text>
@@ -95,11 +95,11 @@ export default function Avatar() {
   );
 }
 
-// --- Estilos actualizados ---
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ecf0f1',
+    backgroundColor: '#58d68d',
     padding: 20,
   },
   titulo: {
