@@ -43,22 +43,39 @@ export default function AboutUs({ navigation }) {
 
         {/* Sección: ¿Qué nos hace únicos? */}
         <View style={styles.valuesContainer}>
-          <View style={[styles.valueCard, { backgroundColor: '#e8f8f5' }]}>
-            <Text style={styles.valueEmoji}>🤖</Text>
-            <Text style={styles.valueTitle}>IA Avanzada</Text>
-            <Text style={styles.valueText}>Coach inteligente 24/7.</Text>
-          </View>
-          <View style={[styles.valueCard, { backgroundColor: '#fef5e7' }]}>
-            <Text style={styles.valueEmoji}>🥗</Text>
-            <Text style={styles.valueTitle}>Nutrición</Text>
-            <Text style={styles.valueText}>Planes a tu medida.</Text>
-          </View>
-          <View style={[styles.valueCard, { backgroundColor: '#f4ecf7' }]}>
-            <Text style={styles.valueEmoji}>💪</Text>
-            <Text style={styles.valueTitle}>Rutinas</Text>
-            <Text style={styles.valueText}>Progresión constante.</Text>
-          </View>
-        </View>
+
+            <View style={[styles.valueCard, { backgroundColor: '#e8f8f5' }]}>
+              <Image 
+                source={require('../assets/asistente-de-ai.png')} 
+                style={styles.valueIcon}   
+              />
+              <Text style={styles.valueTitle}>IA Avanzada</Text>
+              <Text style={styles.valueText}>Coach inteligente 24/7.</Text>
+            </View>
+
+            <View style={[styles.valueCard, { backgroundColor: '#fef5e7' }]}>
+              <Image 
+                source={require('../assets/plan-de-nutricion.png')} 
+                style={styles.valueIcon} 
+              />
+              <Text style={styles.valueTitle}>Nutrición</Text>
+              <Text style={styles.valueText}>Planes a tu medida.</Text>
+            </View>
+
+            <View style={[styles.valueCard, { backgroundColor: '#f4ecf7' }]}>
+              <Image 
+                source={require('../assets/rutina-diaria.png')} 
+                style={styles.valueIcon} 
+              />
+              <Text style={styles.valueTitle}>Rutinas</Text>
+              <Text style={styles.valueText}>Progresión constante.</Text>
+            </View>
+
+</View>
+
+
+
+
 
         {/* Sección: El Equipo (Dev) */}
         <Text style={styles.teamHeader}>El Equipo</Text>
@@ -78,10 +95,10 @@ export default function AboutUs({ navigation }) {
           </Text>
           
           <View style={styles.socialRow}>
-            <TouchableOpacity style={styles.socialBtn} onPress={() => openLink('https://github.com')}>
+            <TouchableOpacity style={styles.socialBtn} onPress={() => openLink('https://github.com/reniquen')}>
               <Text style={styles.socialText}>GitHub</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.socialBtn, styles.socialBtnAlt]} onPress={() => openLink('https://linkedin.com')}>
+            <TouchableOpacity style={[styles.socialBtn, styles.socialBtnAlt]} onPress={() => openLink('https://www.linkedin.com/in/fita-company-051161398/')}>
               <Text style={styles.socialText}>LinkedIn</Text>
             </TouchableOpacity>
           </View>
@@ -294,4 +311,12 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
   },
+
+  valueIcon: {
+    width: 55,
+    height: 55,
+    marginBottom: 8,
+    resizeMode: 'contain',
+  },
+  
 });
