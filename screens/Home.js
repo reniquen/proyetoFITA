@@ -9,7 +9,7 @@ import { signOut } from 'firebase/auth';
 import AvatarCoach from './AvatarCoach';
 import LottieView from 'lottie-react-native';
 
-import StepCounter from './ContadorPasos';
+// (Quitamos StepCounter de aquí porque ya no se muestra incrustado)
 
 import { useUserData } from './UserDataContext'; 
 import { useSubscription } from './SubscriptionContext';
@@ -134,11 +134,6 @@ export default function Home({ navigation }) {
                         <AvatarCoach />
                         <Text style={styles.avatarTexto}>{dynamicTip}</Text>
                     </View>
-
-                    {/* ✅ 2. AQUÍ AGREGAMOS EL CONTADOR DE PASOS */}
-                    <View style={{ width: '100%', marginBottom: 20 }}>
-                        <StepCounter />
-                    </View>
                     {/* ----------------------------------------- */}
 
                     <Text style={styles.titulo}>Rutina de hoy ({diaActual}):</Text>
@@ -196,6 +191,7 @@ export default function Home({ navigation }) {
             {menuOpen && (
                 <View style={styles.fabOptionsContainer}>
                     
+                    {/* BOTÓN: QUIÉNES SOMOS */}
                     <View style={styles.fabOptionRow}>
                         <View style={styles.fabLabel}><Text style={styles.fabLabelText}>Quiénes Somos</Text></View>
                         <TouchableOpacity style={[styles.fabSmall, { backgroundColor: '#34495e' }]} onPress={() => navigation.navigate('AboutUs')}>
@@ -203,6 +199,7 @@ export default function Home({ navigation }) {
                         </TouchableOpacity>
                     </View>
 
+                    {/* BOTÓN: CERRAR SESIÓN */}
                     <View style={styles.fabOptionRow}>
                         <View style={styles.fabLabel}><Text style={styles.fabLabelText}>Cerrar Sesión</Text></View>
                         <TouchableOpacity style={[styles.fabSmall, { backgroundColor: '#e74c3c' }]} onPress={cerrarSesion}>
@@ -210,6 +207,7 @@ export default function Home({ navigation }) {
                         </TouchableOpacity>
                     </View>
 
+                    {/* BOTÓN: RECETAS */}
                     <View style={styles.fabOptionRow}>
                         <View style={styles.fabLabel}><Text style={styles.fabLabelText}>Recetas</Text></View>
                         <TouchableOpacity style={[styles.fabSmall, { backgroundColor: '#9b59b6' }]} onPress={() => navigation.navigate('CalendarRecipes')}>
@@ -217,6 +215,7 @@ export default function Home({ navigation }) {
                         </TouchableOpacity>
                     </View>
 
+                    {/* BOTÓN: SCANNER */}
                     <View style={styles.fabOptionRow}>
                         <View style={styles.fabLabel}><Text style={styles.fabLabelText}>Scanner</Text></View>
                         <TouchableOpacity style={[styles.fabSmall, { backgroundColor: '#f39c12' }]} onPress={() => navigation.navigate('Scanner')}>
@@ -224,6 +223,16 @@ export default function Home({ navigation }) {
                         </TouchableOpacity>
                     </View>
 
+                    {/* --- NUEVO BOTÓN: CONTADOR DE PASOS --- */}
+                    <View style={styles.fabOptionRow}>
+                        <View style={styles.fabLabel}><Text style={styles.fabLabelText}>Pasos y Calorías</Text></View>
+                        <TouchableOpacity style={[styles.fabSmall, { backgroundColor: '#27ae60' }]} onPress={() => navigation.navigate('ContadorPasos')}>
+                            <Text style={styles.fabIcon}>👣</Text>
+                        </TouchableOpacity>
+                    </View>
+                    {/* --------------------------------------- */}
+
+                    {/* BOTÓN: COACH IA */}
                     <View style={styles.fabOptionRow}>
                         <View style={styles.fabLabel}><Text style={styles.fabLabelText}>Coach IA</Text></View>
                         <TouchableOpacity style={[styles.fabSmall, { backgroundColor: '#3498db' }]} onPress={() => {
@@ -233,10 +242,7 @@ export default function Home({ navigation }) {
                                     "Necesitas una suscripción activa para acceder al Coach IA.",
                                     [
                                         { text: "Cancelar", style: "cancel" },
-                                        { 
-                                            text: "Suscribirme", 
-                                            onPress: () => navigation.navigate('Suscripcion') 
-                                        },
+                                        { text: "Suscribirme", onPress: () => navigation.navigate('Suscripcion') },
                                         {
                                             text: "🔓 ACTIVAR YA (DEV)",
                                             onPress: async () => {
@@ -255,6 +261,7 @@ export default function Home({ navigation }) {
                         </TouchableOpacity>
                     </View>
 
+                    {/* BOTÓN: AVATAR */}
                     <View style={styles.fabOptionRow}>
                         <View style={styles.fabLabel}><Text style={styles.fabLabelText}>Avatar</Text></View>
                         <TouchableOpacity style={[styles.fabSmall, { backgroundColor: '#1abc9c' }]} onPress={() => navigation.navigate('Avatar')}>
