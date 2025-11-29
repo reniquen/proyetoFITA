@@ -13,6 +13,9 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useUserData } from './UserDataContext';
 import { useSubscription } from './SubscriptionContext';
 
+// Portada fija para todos los videos (imagen que enviaste)
+const VIDEO_COVER = require('../assets/sentadilla.png');
+
 function getYouTubeId(url) {
   if (!url) return null;
   const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
@@ -35,7 +38,6 @@ const HOME_COLORS = {
   menuBg: '#2E473D',
   fabRed: '#D32F2F',
   verVideoBtn: '#5CB85C',
-  // NUEVO COLOR PARA LA CABECERA: Un tono ligeramente distinto para separarla
   headerBg: '#1F3A30',
 };
 
@@ -128,6 +130,14 @@ export default function Home({ navigation }) {
   };
 
   const renderAsset = (ejercicio) => {
+    // Si el ejercicio tiene video, mostramos la portada fija VIDEO_COVER
+    if (ejercicio.video) {
+      return (
+        <Image source={VIDEO_COVER} style={styles.mediaAsset} resizeMode="cover" />
+      );
+    }
+
+    // Si no tiene video, mostramos la imagen o Lottie si existe
     if (!ejercicio.imagen) {
       return (
         <View style={[styles.mediaAsset, { backgroundColor: HOME_COLORS.cardBgLighter, justifyContent: 'center', alignItems: 'center' }]}>
@@ -156,26 +166,19 @@ export default function Home({ navigation }) {
 
   return (
     <View style={styles.contenedorPrincipal}>
-      {/* Barra de estado con el color de la nueva cabecera para continuidad */}
-      <StatusBar backgroundColor={HOME_COLORS.headerBg} barStyle="light-content" /> 
-      
-      <SafeAreaView style={styles.safeAreaContent}> 
-        
-        {/* --- NUEVA BARRA SUPERIOR PROFESIONAL (Fuera del ScrollView) --- */}
+      <StatusBar backgroundColor={HOME_COLORS.headerBg} barStyle="light-content" />
+
+      <SafeAreaView style={styles.safeAreaContent}>
+
         <View style={styles.topHeaderBar}>
-          {/* Texto centrado */}
           <Text style={styles.welcomeText}>¡Bienvenido!</Text>
-          
-          {/* Botón del menú posicionado absolutamente a la derecha */}
           <TouchableOpacity style={styles.staticMenuButton} onPress={toggleMenu} activeOpacity={0.6}>
             <Icon name={menuOpen ? "close" : "menu"} size={28} color={HOME_COLORS.textDark} />
           </TouchableOpacity>
         </View>
-        {/* ------------------------------------------------------------- */}
 
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          
-          {/* HEADER & AVATAR (Coach Section) */}
+
           <View style={styles.coachSection}>
             <View style={styles.avatarContainer}>
               <AvatarCoach />
@@ -186,13 +189,12 @@ export default function Home({ navigation }) {
             </View>
           </View>
 
-          {/* RUTINA */}
           <View style={styles.sectionContainer}>
             <Text style={styles.sectionTitle}>Tu Rutina de Hoy</Text>
             <Text style={styles.sectionSubtitle}>{diaActualRutina.charAt(0).toUpperCase() + diaActualRutina.slice(1)}</Text>
-            
+
             {isLoadingData ? (
-              <ActivityIndicator size="large" color={HOME_COLORS.primary} style={{marginTop: 20}} />
+              <ActivityIndicator size="large" color={HOME_COLORS.primary} style={{ marginTop: 20 }} />
             ) : rutinaHoy.length > 0 ? (
               rutinaHoy.map((ejercicio, index) => (
                 <View key={index} style={styles.workoutCard}>
@@ -200,7 +202,7 @@ export default function Home({ navigation }) {
                     {renderAsset(ejercicio)}
                     {ejercicio.video && (
                       <View style={styles.playIconOverlay}>
-                         <Icon name="play-circle" size={24} color={HOME_COLORS.textDark} />
+                        <Icon name="play-circle" size={28} color={HOME_COLORS.textDark} />
                       </View>
                     )}
                   </TouchableOpacity>
@@ -210,7 +212,7 @@ export default function Home({ navigation }) {
                     {ejercicio.video && (
                       <TouchableOpacity style={styles.verVideoBtnCompact} onPress={() => openVideo(ejercicio.video)}>
                         <Text style={styles.verVideoTextCompact}>Ver video</Text>
-                        <Icon name="arrow-right" size={14} color={HOME_COLORS.textDark} style={{marginLeft: 4}}/>
+                        <Icon name="arrow-right" size={14} color={HOME_COLORS.textDark} style={{ marginLeft: 4 }} />
                       </TouchableOpacity>
                     )}
                   </View>
@@ -218,18 +220,17 @@ export default function Home({ navigation }) {
               ))
             ) : (
               <View style={styles.emptyStateContainer}>
-                 <Icon name="bed" size={40} color={HOME_COLORS.textLight} />
-                 <Text style={styles.emptyStateText}>Hoy es día de descanso. ¡Recupérate!</Text>
+                <Icon name="bed" size={40} color={HOME_COLORS.textLight} />
+                <Text style={styles.emptyStateText}>Hoy es día de descanso. ¡Recupérate!</Text>
               </View>
             )}
           </View>
 
-          {/* DIETA */}
           <View style={styles.sectionContainer}>
             <View style={styles.dietHeaderContainer}>
               <View>
-                 <Text style={styles.sectionTitle}>Plan de Alimentación</Text>
-                 <Text style={styles.sectionSubtitle}>{diaMostradoDieta.charAt(0).toUpperCase() + diaMostradoDieta.slice(1)}</Text>
+                <Text style={styles.sectionTitle}>Plan de Alimentación</Text>
+                <Text style={styles.sectionSubtitle}>{diaMostradoDieta.charAt(0).toUpperCase() + diaMostradoDieta.slice(1)}</Text>
               </View>
               <View style={styles.dietNavControls}>
                 <TouchableOpacity onPress={() => cambiarDietaDia(-1)} style={styles.navButton}>
@@ -242,30 +243,30 @@ export default function Home({ navigation }) {
             </View>
 
             {isLoadingData ? (
-              <ActivityIndicator size="small" color={HOME_COLORS.accent} style={{marginTop: 20}} />
+              <ActivityIndicator size="small" color={HOME_COLORS.accent} style={{ marginTop: 20 }} />
             ) : dietaHoy.length > 0 ? (
               <View style={styles.dietListContainer}>
                 {dietaHoy.map((comida, index) => (
                   <View key={index} style={styles.dietMealCard}>
                     <View style={styles.dietMealIcon}>
-                       <Icon name="food-apple" size={20} color={HOME_COLORS.primary} />
+                      <Icon name="food-apple" size={20} color={HOME_COLORS.primary} />
                     </View>
-                    <View style={{flex: 1}}>
+                    <View style={{ flex: 1 }}>
                       <Text style={styles.mealName}>{comida.nombre}</Text>
                       <Text style={styles.mealDescription}>{comida.comida}</Text>
                     </View>
                     <Text style={styles.mealCalories}>{comida.calorias} kcal</Text>
                   </View>
                 ))}
-                 <View style={styles.totalCaloriesContainer}>
-                    <Text style={styles.totalCaloriesLabel}>Total Diario:</Text>
-                    <Text style={styles.totalCaloriesValue}>{totalCalorias} kcal</Text>
+                <View style={styles.totalCaloriesContainer}>
+                  <Text style={styles.totalCaloriesLabel}>Total Diario:</Text>
+                  <Text style={styles.totalCaloriesValue}>{totalCalorias} kcal</Text>
                 </View>
               </View>
             ) : (
               <View style={styles.emptyStateContainer}>
-                 <Icon name="food-off" size={40} color={HOME_COLORS.textLight} />
-                 <Text style={styles.emptyStateText}>No hay dieta programada para este día.</Text>
+                <Icon name="food-off" size={40} color={HOME_COLORS.textLight} />
+                <Text style={styles.emptyStateText}>No hay dieta programada para este día.</Text>
               </View>
             )}
           </View>
@@ -273,8 +274,6 @@ export default function Home({ navigation }) {
           <View style={{ height: 120 }} />
         </ScrollView>
       </SafeAreaView>
-
-      {/* --- ELEMENTOS FIJOS --- */}
 
       {menuOpen && (
         <TouchableOpacity
@@ -284,15 +283,14 @@ export default function Home({ navigation }) {
         />
       )}
 
-      {/* MENÚ DESPLEGABLE (Posición ajustada para la nueva cabecera) */}
       {menuOpen && (
         <View style={styles.menuDropdown}>
           {renderMenuItem("👤", "Mi Avatar", () => navigation.navigate('Avatar'), HOME_COLORS.primary)}
           {renderMenuItem("📅", "Calendario", () => navigation.navigate('CalendarRecipes'), HOME_COLORS.secondary)}
           {renderMenuItem("📷", "Scanner", () => navigation.navigate('Scanner'), HOME_COLORS.accent)}
           {renderMenuItem("💬", "Coach IA", () => {
-             if (!isSubscribed) { Alert.alert("Suscripción Requerida", "Necesitas Premium para el Coach IA."); return; }
-             navigation.navigate('AvatarChat');
+            if (!isSubscribed) { Alert.alert("Suscripción Requerida", "Necesitas Premium para el Coach IA."); return; }
+            navigation.navigate('AvatarChat');
           }, '#1976D2')}
           <View style={styles.menuDivider} />
           {renderMenuItem("ℹ️", "Quiénes Somos", () => navigation.navigate('AboutUs'), '#607D8B')}
@@ -334,38 +332,36 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingTop: 20, // Padding superior normal ahora que la cabecera está fuera
+    paddingTop: 20,
     paddingBottom: 40,
   },
 
   // --- NUEVA BARRA SUPERIOR PROFESIONAL ---
   topHeaderBar: {
-    backgroundColor: HOME_COLORS.headerBg, // Color distintivo
+    backgroundColor: HOME_COLORS.headerBg,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center', // Centra el contenido horizontalmente (el texto)
+    justifyContent: 'center',
     paddingVertical: 15,
     paddingHorizontal: 20,
-    elevation: 4, // Sombra sutil para dar profundidad
+    elevation: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 2,
-    zIndex: 10, // Asegura que esté por encima del scroll
+    zIndex: 10,
   },
   welcomeText: {
-    fontSize: 24, // Tamaño de título
+    fontSize: 24,
     fontWeight: 'bold',
     color: HOME_COLORS.textDark,
     letterSpacing: 0.5,
     textAlign: 'center',
   },
-  // Botón del menú posicionado absolutamente DENTRO de la barra
   staticMenuButton: {
     position: 'absolute',
-    right: 20, // Anclado a la derecha
+    right: 20,
     padding: 8,
-    // backgroundColor eliminado para que se integre mejor en la nueva barra
   },
 
   // --- SECCIÓN DEL COACH ---
@@ -373,7 +369,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 35,
-    marginTop: 20, // Espacio entre la barra superior y el coach
+    marginTop: 20,
   },
   avatarContainer: { marginRight: 15 },
   greetingBubble: {
@@ -444,9 +440,8 @@ const styles = StyleSheet.create({
   },
   menuDropdown: {
     position: 'absolute',
-    // Ajustado: Altura aproximada de la barra (60-70) + un pequeño margen
     top: 70,
-    right: 10, // Un poco más a la derecha para alinearse con el botón
+    right: 10,
     width: 220,
     backgroundColor: HOME_COLORS.menuBg,
     borderRadius: 16,
