@@ -14,7 +14,7 @@ import { useUserData } from './UserDataContext';
 import { useSubscription } from './SubscriptionContext';
 
 // Portada fija para todos los videos (imagen que enviaste)
-const VIDEO_COVER = require('../assets/sentadilla.png');
+const VIDEO_COVER = require('../assets/ejercicios/abductores.png');
 
 function getYouTubeId(url) {
   if (!url) return null;
