@@ -7,11 +7,15 @@ import YoutubePlayer from 'react-native-youtube-iframe';
 import { auth } from './firebaseConfig';
 import { signOut } from 'firebase/auth';
 import AvatarCoach from './AvatarCoach';
-import LottieView from 'lottie-react-native';
+// LottieView ya no es necesario si solo usamos imágenes estáticas y videos de YouTube
+// import LottieView from 'lottie-react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import { useUserData } from './UserDataContext';
 import { useSubscription } from './SubscriptionContext';
+// --- CORRECCIÓN AQUÍ ---
+// Importa tus ejercicios desde RoutineCatalog.js, que está en la misma carpeta.
+import { EXERCISES } from './RoutineCatalog'; 
 
 function getYouTubeId(url) {
   if (!url) return null;
@@ -141,28 +145,24 @@ export default function Home({ navigation }) {
       .catch(() => Alert.alert('Error', 'No se pudo cerrar sesión.'));
   };
 
+  // --- FUNCIÓN RENDER ASSET: SOLO IMAGEN ESTÁTICA ---
   const renderAsset = (ejercicio) => {
-    if (!ejercicio.imagen) {
-      return (
-        // Ajustado el fondo del placeholder para que no sea tan oscuro
-        <View style={[styles.mediaAsset, { backgroundColor: '#E0E0E0', justifyContent: 'center', alignItems: 'center' }]}>
-          <Text style={{ color: HOME_COLORS.textMedium, fontSize: 10 }}>Sin Media</Text>
-        </View>
-      );
-    }
-    const isLottie = typeof ejercicio.imagen === 'object' && ejercicio.imagen !== null;
-    if (isLottie) {
-      return <LottieView source={ejercicio.imagen} autoPlay loop style={styles.mediaAsset} />;
-    } else {
+    // Aquí siempre esperamos que 'ejercicio.imagen' sea la ruta a un PNG o JPG
+    if (ejercicio.imagen) {
       return <Image source={ejercicio.imagen} style={styles.mediaAsset} resizeMode="cover" />;
     }
+    // Placeholder si no hay imagen definida
+    return (
+      <View style={[styles.mediaAsset, { backgroundColor: '#E0E0E0', justifyContent: 'center', alignItems: 'center' }]}>
+        <Text style={{ color: HOME_COLORS.textMedium, fontSize: 10 }}>Sin Imagen</Text>
+      </View>
+    );
   };
 
   const toggleMenu = () => { setMenuOpen(!menuOpen); };
 
   const renderMenuItem = (icon, label, onPress, iconColor) => (
     <TouchableOpacity style={styles.menuItem} onPress={onPress}>
-      {/* Usamos el color de acento (amarillo) por defecto si no se especifica otro, para darle más vida al menú */}
       <View style={[styles.menuIconContainer, { backgroundColor: iconColor || HOME_COLORS.accent }]}>
         <Text style={styles.menuIconEmoji}>{icon}</Text>
       </View>
@@ -172,17 +172,12 @@ export default function Home({ navigation }) {
 
   return (
     <View style={styles.contenedorPrincipal}>
-      {/* Barra de estado clara porque la cabecera es verde oscura */}
       <StatusBar backgroundColor={HOME_COLORS.headerBg} barStyle="light-content" />
 
       <SafeAreaView style={styles.safeAreaContent}>
 
-        {/* --- BARRA SUPERIOR VERDE --- */}
         <View style={styles.topHeaderBar}>
-          {/* Texto blanco para contrastar con el fondo verde */}
           <Text style={styles.welcomeText}>¡Bienvenido!</Text>
-
-          {/* Icono del menú en blanco */}
           <TouchableOpacity style={styles.staticMenuButton} onPress={toggleMenu} activeOpacity={0.6}>
             <Icon name={menuOpen ? "close" : "menu"} size={28} color={HOME_COLORS.headerText} />
           </TouchableOpacity>
@@ -190,32 +185,28 @@ export default function Home({ navigation }) {
 
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
-          {/* HEADER & AVATAR (Coach Section) */}
           <View style={styles.coachSection}>
             <View style={styles.avatarContainer}>
               <AvatarCoach />
             </View>
-            {/* Burbuja de texto blanca */}
             <View style={styles.greetingBubble}>
               <Text style={styles.greetingText}>{dynamicTip}</Text>
               <View style={styles.bubbleTriangle} />
             </View>
           </View>
 
-          {/* RUTINA */}
           <View style={styles.sectionContainer}>
             <Text style={styles.sectionTitle}>Tu Rutina de Hoy</Text>
-            {/* Subtítulo en amarillo/mostaza para resaltar */}
             <Text style={styles.sectionSubtitle}>{diaActualRutina.charAt(0).toUpperCase() + diaActualRutina.slice(1)}</Text>
 
             {isLoadingData ? (
-              // Spinner amarillo
               <ActivityIndicator size="large" color={HOME_COLORS.accent} style={{marginTop: 20}} />
             ) : rutinaHoy.length > 0 ? (
               rutinaHoy.map((ejercicio, index) => (
                 <View key={index} style={styles.workoutCard}>
+                  {/* TouchableOpacity para abrir el video al presionar la imagen */}
                   <TouchableOpacity onPress={() => openVideo(ejercicio.video)} disabled={!ejercicio.video} activeOpacity={0.7}>
-                    {renderAsset(ejercicio)}
+                    {renderAsset(ejercicio)} {/* Renderiza la imagen estática */}
                     {ejercicio.video && (
                       <View style={styles.playIconOverlay}>
                          <Icon name="play-circle" size={30} color={HOME_COLORS.cardBg} style={{ opacity: 0.9 }} />
@@ -242,17 +233,14 @@ export default function Home({ navigation }) {
             )}
           </View>
 
-          {/* DIETA */}
           <View style={styles.sectionContainer}>
             <View style={styles.dietHeaderContainer}>
               <View>
                  <Text style={styles.sectionTitle}>Plan de Alimentación</Text>
-                 {/* Subtítulo en amarillo */}
                  <Text style={styles.sectionSubtitle}>{diaMostradoDieta.charAt(0).toUpperCase() + diaMostradoDieta.slice(1)}</Text>
               </View>
               <View style={styles.dietNavControls}>
                 <TouchableOpacity onPress={() => cambiarDietaDia(-1)} style={styles.navButton}>
-                  {/* Flechas en verde */}
                   <Icon name="chevron-left" size={28} color={HOME_COLORS.primary} />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => cambiarDietaDia(1)} style={styles.navButton}>
@@ -268,20 +256,17 @@ export default function Home({ navigation }) {
                 {dietaHoy.map((comida, index) => (
                   <View key={index} style={styles.dietMealCard}>
                     <View style={styles.dietMealIcon}>
-                       {/* Icono de comida en verde */}
                        <Icon name="food-apple" size={20} color={HOME_COLORS.primary} />
                     </View>
                     <View style={{flex: 1}}>
                       <Text style={styles.mealName}>{comida.nombre}</Text>
                       <Text style={styles.mealDescription}>{comida.comida}</Text>
                     </View>
-                    {/* Calorías individuales en amarillo */}
                     <Text style={styles.mealCalories}>{comida.calorias} kcal</Text>
                   </View>
                 ))}
                  <View style={styles.totalCaloriesContainer}>
                     <Text style={styles.totalCaloriesLabel}>Total Diario:</Text>
-                    {/* Calorías totales en amarillo grande */}
                     <Text style={styles.totalCaloriesValue}>{totalCalorias} kcal</Text>
                 </View>
               </View>
@@ -309,7 +294,6 @@ export default function Home({ navigation }) {
         <View style={styles.menuDropdown}>
           {renderMenuItem("👤", "Mi Avatar", () => navigation.navigate('Avatar'), HOME_COLORS.primary)}
           {renderMenuItem("📅", "Recetas", () => navigation.navigate('CalendarRecipes'), HOME_COLORS.secondary)}
-          {/* Scanner usa el amarillo de acento */}
           {renderMenuItem("📷", "Scanner", () => navigation.navigate('Scanner'), HOME_COLORS.accent)}
           {renderMenuItem("💬", "Coach IA", () => {
              if (!isSubscribed) { Alert.alert("Suscripción Requerida", "Necesitas Premium para el Coach IA."); return; }

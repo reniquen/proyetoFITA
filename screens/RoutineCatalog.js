@@ -1,6 +1,3 @@
-// ====================================================================
-// 1. CATÁLOGO MAESTRO DE EJERCICIOS
-// ====================================================================
 export const EXERCISES = {
   // --- EJERCICIOS DE GIMNASIO (EXISTENTES) ---
   sentadillas: {
@@ -14,25 +11,25 @@ export const EXERCISES = {
     id: 'prensa',
     nombre: "Prensa de Pierna",
     video: "https://www.youtube.com/watch?v=MTfwemR8QMQ",
-    imagen: require('../assets/prensa.png'),
+    imagen: require('../assets/sentadilla.png'),
   },
   press_militar: {
     id: 'press_militar',
     nombre: "Press Militar",
     video: "https://www.youtube.com/watch?v=waeCyaAQRn8",
-    imagen: require('../assets/pressmilitar.png'),
+    imagen: require('../assets/sentadilla.png'),
   },
   dominadas: {
     id: 'dominadas',
     nombre: "Dominadas",
     video: "https://www.youtube.com/watch?v=fJ1Sq208UVA",
-    imagen: require('../assets/dominadas.png'),
+    imagen: require('../assets/sentadilla.png'),
   },
   press_banca: {
     id: 'press_banca',
     nombre: "Press de Banca",
     video: "https://www.youtube.com/watch?v=GeLq8cMODLc",
-    imagen: require('../assets/pressbanca.png'),
+    imagen: require('../assets/sentadilla.png'),
   },
 
   // --- EJERCICIOS EN CASA (ANTERIORES) ---
@@ -40,49 +37,49 @@ export const EXERCISES = {
     id: 'flexiones',
     nombre: "Flexiones de Brazo",
     video: "https://www.youtube.com/watch?v=IODxDxX7oi4",
-    imagen: require('../assets/ejercicios/flexiones.gif'),
+    imagen: require('../assets/sentadilla.png'),
   },
   zancadas: {
     id: 'zancadas',
     nombre: "Zancadas Alternas",
     video: "https://www.youtube.com/watch?v=uqvt79Uh4o4",
-    imagen: require('../assets/ejercicios/zancada.gif'),
+    imagen: require('../assets/sentadilla.png'),
   },
   fondos_silla: {
     id: 'fondos_silla',
     nombre: "Fondos de Tríceps en Silla",
     video: "https://www.youtube.com/watch?v=0326dy_-CzM",
-    imagen: require('../assets/ejercicios/fondo_silla.gif'),
+    imagen: require('../assets/sentadilla.png'),
   },
   plancha: {
     id: 'plancha',
     nombre: "Plancha Abdominal",
     video: "https://www.youtube.com/watch?v=ASdvN_XEl_c",
-    imagen: require('../assets/plancha.png'),
+    imagen: require('../assets/sentadilla.png'),
   },
   puente_gluteo: {
     id: 'puente_gluteo',
     nombre: "Puente de Glúteos",
     video: "https://www.youtube.com/watch?v=8bbE64NuDTU",
-    imagen: require('../assets/ejercicios/puente_gluteo.gif'),
+    imagen: require('../assets/sentadilla.png'),
   },
   jumping_jacks: {
     id: 'jumping_jacks',
     nombre: "Jumping Jacks",
     video: "https://www.youtube.com/watch?v=2W4ZNSwoW_4",
-    imagen: require('../assets/ejercicios/jumping_jacks.gif'),
+    imagen: require('../assets/sentadilla.png'),
   },
   escaladores: {
     id: 'escaladores',
     nombre: "Escaladores (Mountain Climbers)",
     video: "https://www.youtube.com/watch?v=Ehcq3j7o8HA",
-    imagen: require('../assets/ejercicios/escaladores.gif'),
+    imagen: require('../assets/sentadilla.png'),
   },
   burpees: {
     id: 'burpees',
     nombre: "Burpees",
     video: "https://www.youtube.com/watch?v=IYusabTdFEo",
-    imagen: require('../assets/burpees.png'),
+    imagen: require('../assets/sentadilla.png'),
   },
 
   // --- 🔥 10 NUEVOS EJERCICIOS EN CASA (ESTRUCTURA UNIFICADA) ---
@@ -90,61 +87,61 @@ export const EXERCISES = {
     id: 'sentadilla_bulgara',
     nombre: "Sentadilla Búlgara",
     video: "https://www.youtube.com/watch?v=Xfa3Ql_NwmE",
-    imagen: require('../assets/sentadillabulgara.png'),
+    imagen: require('../assets/sentadilla.png'),
   },
   remo_casero: {
     id: 'remo_casero',
     nombre: "Remo Unilateral",
     video: "https://www.youtube.com/watch?v=ue8MXKXdOVw",
-    imagen: require('../assets/ejercicios/remo_casero.gif'),
+    imagen: require('../assets/sentadilla.png'),
   },
   superman: {
     id: 'superman',
     nombre: "Superman (Lumbares)",
     video: "https://www.youtube.com/watch?v=z6PJMT2y8GQ",
-    imagen: require('../assets/ejercicios/superman.gif'),
+    imagen: require('../assets/sentadilla.png'),
   },
   plancha_lateral: {
     id: 'plancha_lateral',
     nombre: "Plancha Lateral",
     video: "https://www.youtube.com/watch?v=_rdfjFSFKMY",
-    imagen: require('../assets/ejercicios/plancha_lateral.gif'),
+    imagen: require('../assets/sentadilla.png'),
   },
   crunch_abdominal: {
     id: 'crunch_abdominal',
     nombre: "Crunch Abdominal",
     video: "https://www.youtube.com/watch?v=Xyd_fa5zoEU",
-    imagen: require('../assets/ejercicios/crunch_abdominales.gif'),
+    imagen: require('../assets/sentadilla.png'),
   },
   sentadilla_isometrica: {
     id: 'sentadilla_isometrica',
     nombre: "Sentadilla Isométrica",
     video: "https://www.youtube.com/watch?v=-cdph8hv0O0",
-    imagen: require('../assets/ejercicios/sentadillas_isometricas.gif'),
+    imagen: require('../assets/sentadilla.png'),
   },
   elevacion_talones: {
     id: 'elevacion_talones',
     nombre: "Elevación de Talones",
     video: "https://www.youtube.com/watch?v=3UWi44yN-wM",
-    imagen: require('../assets/ejercicios/elevacion_talon.gif'),
+    imagen: require('../assets/sentadilla.png'),
   },
   curl_biceps_casero: {
     id: 'curl_biceps_casero',
     nombre: "Curl de Bíceps Casero",
     video: "https://www.youtube.com/watch?v=kwG2ipFRgfo",
-    imagen: require('../assets/ejercicios/curls_biceps.gif'),
+    imagen: require('../assets/sentadilla.png'),
   },
   tijeras: {
     id: 'tijeras',
     nombre: "Tijeras (Flutter Kicks)",
     video: "https://www.youtube.com/watch?v=ANVdMDaYRts",
-    imagen: require('../assets/ejercicios/tijeras.gif'),
+    imagen: require('../assets/sentadilla.png'),
   },
   rodillas_al_pecho: {
     id: 'rodillas_al_pecho',
     nombre: "Rodillas al Pecho",
     video: "https://www.youtube.com/watch?v=dgCRY7L52mE",
-    imagen: require('../assets/ejercicios/rodillas_pecho.gif'),
+    imagen: require('../assets/sentadilla.png'),
   },
 
   // --- OTROS ---
