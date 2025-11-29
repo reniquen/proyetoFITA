@@ -1,379 +1,161 @@
 import {
-  Text,
-  StyleSheet,
-  View,
-  Image,
-  TouchableOpacity,
-  ScrollView,
-  Modal,
-  SafeAreaView,
-  Alert,
-  Dimensions,
+  Text, StyleSheet, View, Image, TouchableOpacity, ScrollView, Modal,
+  SafeAreaView, Alert, Dimensions, ActivityIndicator, StatusBar, Platform, BackHandler
 } from 'react-native';
-import React, { useState, useCallback } from 'react';
-// NUEVO: Importar el reproductor de YouTube
+import { useFocusEffect } from '@react-navigation/native';
+import React, { useState, useCallback, useEffect } from 'react';
 import YoutubePlayer from 'react-native-youtube-iframe';
 import { auth } from './firebaseConfig';
 import { signOut } from 'firebase/auth';
 import AvatarCoach from './AvatarCoach';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-// NUEVO: Función para extraer el ID del video de cualquier URL de YouTube
+import { useUserData } from './UserDataContext';
+import { useSubscription } from './SubscriptionContext';
+import { EXERCISES } from './RoutineCatalog';
+
 function getYouTubeId(url) {
   if (!url) return null;
-  // Expresión regular para encontrar el ID en varios formatos de URL
   const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
   const match = url.match(regExp);
-
-  if (match && match[2].length === 11) {
-    return match[2];
-  } else {
-    console.error("No se pudo extraer el ID de la URL:", url);
-    return null;
-  }
+  return (match && match[2].length === 11) ? match[2] : null;
 }
 
+// --- PALETA "VIBRANT FITA" ---
+const HOME_COLORS = {
+  background: '#F2F5ED', // Crema verdoso cálido
+  headerBg: '#4CAF50',
+  headerText: '#FFFFFF',
+  primary: '#4CAF50', 
+  secondary: '#8BC34A',
+  accent: '#FFC107',
+  accentSoft: '#FFF8E1',
+
+  // NUEVO: Fondo para la tarjeta contenedora del coach.
+  // Un verde menta muy pálido y profesional.
+  coachMasterCardBg: '#F1F8E9',
+  coachCardBorder: '#C8E6C9', // Borde sutil para esa tarjeta
+
+  superCardHeaderBg: '#4CAF50',
+  superCardBodyBg: '#F9FBF7',
+  innerCardBg: '#FFFFFF',
+
+  textDark: '#263238',
+  textMedium: '#546E7A',
+  textLight: '#B0BEC5',
+  textInverse: '#FFFFFF',
+
+  coachBubbleBorder: '#FFC107',
+
+  shadowColor: '#263238',
+  menuBg: '#FFFFFF',
+  fabRed: '#E53935',
+};
+
 export default function Home({ navigation }) {
-  // --- Estados para el Modal y el Video ---
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedVideoId, setSelectedVideoId] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [dynamicTip, setDynamicTip] = useState("¡Vamos a entrenar!");
 
-  // --- Funciones del Modal ---
+  const [dietaDiaIndex, setDietaDiaIndex] = useState(new Date().getDay());
+  const diasSemana = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
+
+  const { rutinas, dietas, isLoadingData } = useUserData();
+  const { isSubscribed, activateSubscription } = useSubscription();
+
+  useEffect(() => { setDynamicTip(getDynamicTip()); }, []);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const handleBackPress = () => {
+        if (menuOpen) {
+          setMenuOpen(false);
+          return true;
+        }
+        Alert.alert(
+          "Cerrar Sesión",
+          "¿Estás seguro de que quieres salir de la aplicación?",
+          [
+            { text: "Cancelar", onPress: () => null, style: "cancel" },
+            { text: "Sí, Salir", onPress: () => cerrarSesion() }
+          ],
+          { cancelable: false }
+        );
+        return true;
+      };
+      const backHandler = BackHandler.addEventListener('hardwareBackPress', handleBackPress);
+      return () => backHandler.remove();
+    }, [menuOpen])
+  );
+
+  const cambiarDietaDia = (delta) => {
+    setDietaDiaIndex((prevIndex) => {
+      let newIndex = prevIndex + delta;
+      if (newIndex < 0) newIndex = diasSemana.length - 1;
+      else if (newIndex >= diasSemana.length) newIndex = 0;
+      return newIndex;
+    });
+  };
+
+  const getDynamicTip = () => {
+    const hour = new Date().getHours();
+    const morningTips = [
+      "¡Buen día! Un desayuno alto en proteína es clave.",
+      "Recuerda calentar bien antes de tu rutina de hoy.",
+      "La consistencia gana a la intensidad. ¡Vamos por ello!",
+      "¡A empezar el día con energía!",
+      "No olvides hidratarte. El agua es tu combustible."
+    ];
+    const afternoonTips = [
+      "¡Buenas tardes! ¿Listo/a para la rutina?",
+      "Mantén la hidratación durante la tarde.",
+      "Un snack saludable te dará energía para el entreno.",
+      "¡Vamos a entrenar! Termina el día con fuerza.",
+      "Cuida tu postura, marca la diferencia."
+    ];
+    const eveningTips = [
+      "¡Buenas noches! ¿Cumpliste tu objetivo hoy?",
+      "Una cena ligera ayuda a la recuperación muscular.",
+      "Estira 10 minutos antes de dormir. Tu cuerpo lo agradecerá.",
+      "El descanso es parte fundamental del progreso.",
+      "Planifica tu día de mañana para asegurar el éxito."
+    ];
+    let tipsList;
+    if (hour < 12) tipsList = morningTips;
+    else if (hour < 19) tipsList = afternoonTips;
+    else tipsList = eveningTips;
+    return tipsList[Math.floor(Math.random() * tipsList.length)];
+  };
+
   const openVideo = (videoUrl) => {
     const videoId = getYouTubeId(videoUrl);
     if (videoId) {
       setSelectedVideoId(videoId);
-      setIsPlaying(true); // Iniciar reproducción
+      setIsPlaying(true);
       setModalVisible(true);
     } else {
-      Alert.alert("Video no válido", "No se pudo encontrar el ID del video de YouTube.");
+      Alert.alert("Aviso", "Este ejercicio no tiene video disponible.");
     }
   };
 
   const closeVideo = () => {
-    setIsPlaying(false); // Detener reproducción
+    setIsPlaying(false);
     setModalVisible(false);
     setSelectedVideoId(null);
   };
 
-  // NUEVO: Callback para el reproductor
   const onStateChange = useCallback((state) => {
-    if (state === "ended") {
-      closeVideo();
-    }
+    if (state === "ended") closeVideo();
   }, []);
 
-  // --- Datos de Rutinas (sin cambios) ---
-  const rutinas = {
-    plan1: {
-      lunes: [
-        {
-          nombre: "Burpees",
-          repeticiones: "4 series de 10 repeticiones",
-          imagen: require('../assets/burpees.png'),
-          video: "https://www.youtube.com/watch?v=IYusabTdFEo&ab_channel=VideoBodytech",
-        },
-        {
-          nombre: "Mountain climbers",
-          repeticiones: "4 series de 12 repeticiones",
-          imagen: require('../assets/mountainclimbers.png'),
-          video: "https://www.youtube.com/watch?v=cnyTQDSE884&ab_channel=Well%2BGood",
-        },
-        {
-          nombre: "Saltar la cuerda",
-          repeticiones: "1 serie de 15 minutos",
-          imagen: require('../assets/saltocuerda.png'),
-          video: "https://www.youtube.com/watch?v=rpS3MQgxdA0&ab_channel=Adri%C3%A1nFit",
-        },
-      ],
-      martes: [
-        {
-          nombre: "Sentadillas",
-          repeticiones: "4 series de 20 repeticiones",
-          imagen: require('../assets/sentadillalibre.png'),
-          video: "https://www.youtube.com/watch?v=VRKdOsad3HQ&ab_channel=Bestcycling",
-        },
-        {
-          nombre: "Plancha",
-          repeticiones: "3 series de 1 minuto",
-          imagen: require('../assets/plancha.png'),
-          video: "https://www.youtube.com/watch?v=d0atctiI7Vw&ab_channel=DeportesUncomo",
-        },
-        {
-          nombre: "Saltar la cuerda",
-          repeticiones: "1 serie de 15 minutos",
-          imagen: require('../assets/saltocuerda.png'),
-          video: "https://www.youtube.com/watch?v=rpS3MQgxdA0&ab_channel=Adri%C3%A1nFit",
-        },
-      ],
-      miércoles: [
-        {
-          nombre: "Rodillas altas",
-          repeticiones: "4 series de 1 minuto",
-          imagen: require('../assets/rodillasaltas.png'),
-          video: "https://www.youtube.com/watch?v=5sW0T86MwvY&ab_channel=KranosCalistenia",
-        },
-        {
-          nombre: "Burpees",
-          repeticiones: "3 series de 10 repeticiones",
-          imagen: require('../assets/burpees.png'),
-          video: "https://www.youtube.com/watch?v=IYusabTdFEo&ab_channel=VideoBodytech",
-        },
-        {
-          nombre: "Saltar la cuerda",
-          repeticiones: "1 serie de 15 minutos",
-          imagen: require('../assets/saltocuerda.png'),
-          video: "https://www.youtube.com/watch?v=rpS3MQgxdA0&ab_channel=Adri%C3%A1nFit",
-        },
-      ],
-      jueves: [
-        {
-          nombre: "Movilidad",
-          repeticiones: "15 minutos",
-          imagen: require('../assets/movilidad.png'),
-          video: "https://www.youtube.com/watch?v=DdpO0m15nto&ab_channel=JeremyEthierenEspa%C3%B1ol",
-        },
-        {
-          nombre: "Saltar la cuerda",
-          repeticiones: "1 serie de 15 minutos",
-          imagen: require('../assets/saltocuerda.png'),
-          video: "https://www.youtube.com/watch?v=rpS3MQgxdA0&ab_channel=Adri%C3%A1nFit",
-        },
-      ],
-      viernes: [
-        {
-          nombre: "Burpees",
-          repeticiones: "3 series de 10 repeticiones",
-          imagen: require('../assets/burpees.png'),
-          video: "https://www.youtube.com/watch?v=IYusabTdFEo&ab_channel=VideoBodytech",
-        },
-        {
-          nombre: "Mountain climbers",
-          repeticiones: "4 series de 12 repeticiones",
-          imagen: require('../assets/mountainclimbers.png'),
-          video: "https://www.youtube.com/watch?v=cnyTQDSE884&ab_channel=Well%2BGood",
-        },
-        {
-          nombre: "Saltar la cuerda",
-          repeticiones: "1 serie de 15 minutos",
-          imagen: require('../assets/saltocuerda.png'),
-          video: "https://www.youtube.com/watch?v=rpS3MQgxdA0&ab_channel=Adri%C3%A1nFit",
-        },
-      ],
-    },
-    plan2: {
-      lunes: [
-        {
-          nombre: "Burpees",
-          repeticiones: "3 series de 10 repeticiones",
-          imagen: require('../assets/burpees.png'),
-          video: "https://www.youtube.com/watch?v=IYusabTdFEo&ab_channel=VideoBodytech",
-        },
-        {
-          nombre: "Mountain climbers",
-          repeticiones: "4 series de 12 repeticiones",
-          imagen: require('../assets/mountainclimbers.png'),
-          video: "https://www.youtube.com/watch?v=cnyTQDSE884&ab_channel=Well%2BGood",
-        },
-        {
-          nombre: "Saltar la cuerda",
-          repeticiones: "1 serie de 15 minutos",
-          imagen: require('../assets/saltocuerda.png'),
-          video: "https://www.youtube.com/watch?v=rpS3MQgxdA0&ab_channel=Adri%C3%A1nFit",
-        },
-      ],
-      martes: [
-        {
-          nombre: "Sentadillas",
-          repeticiones: "4 series de 20 repeticiones",
-          imagen: require('../assets/sentadillalibre.png'),
-          video: "https://www.youtube.com/watch?v=VRKdOsad3HQ&ab_channel=Bestcycling",
-        },
-        {
-          nombre: "Plancha",
-          repeticiones: "3 series de 1 minuto",
-          imagen: require('../assets/elevacioneslaterales.png'),
-          video: "https://www.youtube.com/watch?v=d0atctiI7Vw&ab_channel=DeportesUncomo",
-        },
-        {
-          nombre: "Saltar la cuerda",
-          repeticiones: "1 serie de 15 minutos",
-          imagen: require('../assets/saltocuerda.png'),
-          video: "https://www.youtube.com/watch?v=rpS3MQgxdA0&ab_channel=Adri%C3%A1nFit",
-        },
-      ],
-      miércoles: [
-        {
-          nombre: "Rodillas altas",
-          repeticiones: "4 series de 1 minuto",
-          imagen: require('../assets/dominadas.png'),
-          video: "https://www.youtube.com/watch?v=5sW0T86MwvY&ab_channel=KranosCalistenia",
-        },
-        {
-          nombre: "Burpees",
-          repeticiones: "3 series de 10 repeticiones",
-          imagen: require('../assets/burpees.png'),
-          video: "https://www.youtube.com/watch?v=IYusabTdFEo&ab_channel=VideoBodytech",
-        },
-        {
-          nombre: "Saltar la cuerda",
-          repeticiones: "1 serie de 15 minutos",
-          imagen: require('../assets/saltocuerda.png'),
-          video: "https://www.youtube.com/watch?v=rpS3MQgxdA0&ab_channel=Adri%C3%A1nFit",
-        },
-      ],
-      jueves: [
-        {
-          nombre: "Movilidad",
-          repeticiones: "15 minutos",
-          imagen: require('../assets/movilidad.png'),
-          video: "https://www.youtube.com/watch?v=DdpO0m15nto&ab_channel=JeremyEthierenEspa%C3%B1ol",
-        },
-        {
-          nombre: "Saltar la cuerda",
-          repeticiones: "1 serie de 15 minutos",
-          imagen: require('../assets/saltocuerda.png'),
-          video: "https://www.youtube.com/watch?v=rpS3MQgxdA0&ab_channel=Adri%C3%A1nFit",
-        },
-      ],
-      viernes: [
-        {
-          nombre: "Burpees",
-          repeticiones: "3 series de 10 repeticiones",
-          imagen: require('../assets/burpees.png'),
-          video: "https://www.youtube.com/watch?v=IYusabTdFEo&ab_channel=VideoBodytech",
-        },
-        {
-          nombre: "Mountain climbers",
-          repeticiones: "4 series de 12 repeticiones",
-          imagen: require('../assets/mountainclimbers.png'),
-          video: "https://www.youtube.com/watch?v=cnyTQDSE884&ab_channel=Well%2BGood",
-        },
-        {
-          nombre: "Saltar la cuerda",
-          repeticiones: "1 serie de 15 minutos",
-          imagen: require('../assets/saltocuerda.png'),
-          video: "https://www.youtube.com/watch?v=rpS3MQgxdA0&ab_channel=Adri%C3%A1nFit",
-        },
-      ],
-    },
-    plan3: {
-      lunes: [
-        {
-          nombre: "Sentadillas con barra",
-          repeticiones: "4 series de 10 repeticiones",
-          imagen: require('../assets/sentadilla.png'),
-          video: "https://www.youtube.com/watch?v=dsCuiccYNGs&ab_channel=JulienLEPRETRE",
-        },
-        {
-          nombre: "Prensa de pierna",
-          repeticiones: "4 series de 12 repeticiones",
-          imagen: require('../assets/prensa.png'),
-          video: "https://www.youtube.com/watch?v=MTfwemR8QMQ&ab_channel=CARLOSOnlineCoach",
-        },
-        {
-          nombre: "Hack Squat",
-          repeticiones: "4 series de 8 a 12 repeticiones",
-          imagen: require('../assets/hack.png'),
-          video: "https://www.youtube.com/watch?v=0tn5K9NlCfo&ab_channel=Bodybuilding.com",
-        },
-      ],
-      martes: [
-        {
-          nombre: "Press militar",
-          repeticiones: "4 series de 8 repeticiones",
-          imagen: require('../assets/pressmilitar.png'),
-          video: "https://www.youtube.com/watch?v=waeCyaAQRn8&ab_channel=LIVESTRONG.COM",
-        },
-        {
-          nombre: "Elevaciones laterales en polea",
-          repeticiones: "3 series de 15 repeticiones",
-          imagen: require('../assets/elevacioneslaterales.png'),
-          video: "https://www.youtube.com/watch?v=gjUrYfNU1-M&ab_channel=Zonapablo",
-        },
-        {
-          nombre: "Elevaciones posteriores",
-          repeticiones: "3 series de 15 repeticiones",
-          imagen: require('../assets/posterior.png'),
-          video: "https://www.youtube.com/watch?v=pGg9p4cSJ2E&ab_channel=IbrahimNino",
-        },
-      ],
-      miércoles: [
-        {
-          nombre: "Dominadas",
-          repeticiones: "4 series al fallo",
-          imagen: require('../assets/dominadas.png'),
-          video: "https://www.youtube.com/watch?v=fJ1Sq208UVA&ab_channel=BUFFAcademyAPP",
-        },
-        {
-          nombre: "Remo con barra",
-          repeticiones: "4 series de 12 repeticiones",
-          imagen: require('../assets/remo.png'),
-          video: "https://www.youtube.com/watch?v=3uiWjik2yEQ&ab_channel=TecnicasGymtopz",
-        },
-        {
-          nombre: "Pull Over",
-          repeticiones: "4 series de 10 repeticiones",
-          imagen: require('../assets/pullover.png'),
-          video: "https://www.youtube.com/watch?v=9YQ1YXKko8s&ab_channel=ManuelEscalera",
-        },
-      ],
-      jueves: [
-        {
-          nombre: "Sentadilla búlgara",
-          repeticiones: "4 series de 12 repeticiones",
-          imagen: require('../assets/sentadillabulgara.png'),
-          video: "https://www.youtube.com/watch?v=7zBnXPL5cck&ab_channel=TecnicasGymtopz",
-        },
-        {
-          nombre: "Peso muerto rumano",
-          repeticiones: "4 series de 8 a 12 repeticiones",
-          imagen: require('../assets/pesom.png'),
-          video: "https://www.youtube.com/watch?v=EZ0iPia9kPM&ab_channel=KarenZ%C3%A1rate",
-        },
-        {
-          nombre: "Abductores",
-          repeticiones: "4 series de 10 repeticiones",
-          imagen: require('../assets/abductores.png'),
-          video: "https://www.youtube.com/watch?v=fItDiXXZyZo&ab_channel=FitKamp",
-        },
-      ],
-      viernes: [
-        {
-          nombre: "Press de banca",
-          repeticiones: "4 series de 8 repeticiones",
-          imagen: require('../assets/pressbanca.png'),
-          video: "https://www.youtube.com/watch?v=GeLq8cMODLc&ab_channel=TecnicasGymtopz",
-        },
-        {
-          nombre: "Press inclinado con mancuernas",
-          repeticiones: "4 series de 8 a 12 repeticiones",
-          imagen: require('../assets/pressinclinado.png'),
-          video: "https://www.youtube.com/watch?v=9fy0A5xWsgk&ab_channel=DrV%C3%ADctorL%C3%B3pez",
-        },
-        {
-          nombre: "Cruce de poleas",
-          repeticiones: "4 series de 12 repeticiones",
-          imagen: require('../assets/crucepoleas.png'),
-          video: "https://www.youtube.com/watch?v=gFoMzh-5H-8&ab_channel=CULTURADEGYM",
-        },
-      ],
-    },
-  };
+  const diaActualRutina = diasSemana[new Date().getDay()];
+  const rutinaHoy = rutinas[diaActualRutina] || [];
 
-  const planActual = rutinas.plan3;
-
-  const diasSemana = [
-    "domingo",
-    "lunes",
-    "martes",
-    "miércoles",
-    "jueves",
-    "viernes",
-    "sábado",
-  ];
-  const diaActual = diasSemana[new Date().getDay()];
-  const rutinaHoy = planActual[diaActual] || [];
+  const diaMostradoDieta = diasSemana[dietaDiaIndex];
+  const dietaHoy = (dietas && dietas[diaMostradoDieta]) ? dietas[diaMostradoDieta] : [];
+  const totalCalorias = dietaHoy.reduce((total, comida) => total + (comida.calorias || 0), 0);
 
   const cerrarSesion = () => {
     signOut(auth)
@@ -381,226 +163,346 @@ export default function Home({ navigation }) {
       .catch(() => Alert.alert('Error', 'No se pudo cerrar sesión.'));
   };
 
+  const renderAsset = (ejercicio) => {
+    if (ejercicio.imagen) {
+      return <Image source={ejercicio.imagen} style={styles.mediaAsset} resizeMode="cover" />;
+    }
+    return (
+      <View style={[styles.mediaAsset, { backgroundColor: '#E0E0E0', justifyContent: 'center', alignItems: 'center' }]}>
+        <Text style={{ color: HOME_COLORS.textMedium, fontSize: 10 }}>Sin Imagen</Text>
+      </View>
+    );
+  };
+
+  const toggleMenu = () => { setMenuOpen(!menuOpen); };
+
+  const renderMenuItem = (icon, label, onPress, iconColor) => (
+    <TouchableOpacity style={styles.menuItem} onPress={onPress}>
+      <View style={[styles.menuIconContainer, { backgroundColor: iconColor || HOME_COLORS.accent }]}>
+        <Text style={styles.menuIconEmoji}>{icon}</Text>
+      </View>
+      <Text style={styles.menuLabelText}>{label}</Text>
+    </TouchableOpacity>
+  );
+
   return (
-    <SafeAreaView style={styles.contenedorScroll}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.padre}>
-          <View style={styles.avatarContainer}>
-            <AvatarCoach />
-            <Text style={styles.avatarTexto}>¡Hola! Hoy te motivaré en tu rutina 💪</Text>
-          </View>
+    <View style={styles.contenedorPrincipal}>
+      <StatusBar backgroundColor={HOME_COLORS.headerBg} barStyle="light-content" />
 
-          <Text style={styles.titulo}>Hoy {diaActual} te toca la siguiente rutina, ¡CON TODO!:</Text>
-          {rutinaHoy.length > 0 ? (
-            rutinaHoy.map((ejercicio, index) => (
-              <View key={index} style={styles.tarjeta}>
-                <TouchableOpacity onPress={() => openVideo(ejercicio.video)}>
-                  <Image source={ejercicio.imagen} style={styles.imagen} />
-                </TouchableOpacity>
-                <View style={styles.textoContainer}>
-                  <Text style={styles.nombre}>{ejercicio.nombre}</Text>
-                  <Text style={styles.repeticiones}>{ejercicio.repeticiones}</Text>
-                </View>
-              </View>
-            ))
-          ) : (
-            <Text style={styles.noRutina}>Hoy te toca descanso.</Text>
-          )}
-          <TouchableOpacity
-            style={styles.boton}
-            onPress={() => navigation.navigate('Comidas')}
-          >
-            <Text style={styles.botonTexto}>Ver dieta de hoy</Text>
-          </TouchableOpacity>
+      <SafeAreaView style={styles.safeAreaContent}>
 
-          <TouchableOpacity
-            style={styles.boton}
-            onPress={() => navigation.navigate('Avatar')}
-          >
-            <Text style={styles.botonTexto}>Ver Avatar</Text>
-          </TouchableOpacity>
-          
-          {/* --- NUEVO BOTÓN PARA CHAT --- */}
-          <TouchableOpacity
-            style={styles.boton}
-            onPress={() => navigation.navigate('AvatarChat')} // Asegúrate que 'AvatarChat' sea el nombre en tu Stack Navigator
-          >
-            <Text style={styles.botonTexto}>Chatear con Avatar</Text>
-          </TouchableOpacity>
-          {/* --- FIN DEL NUEVO BOTÓN --- */}
-          
-
-          <TouchableOpacity style={[styles.boton, { backgroundColor: '#f27474', marginTop: 15 }]} onPress={cerrarSesion}>
-            <Text style={[styles.botonTexto, { color: 'white' }]}>Cerrar Sesión</Text>
+        <View style={styles.topHeaderBar}>
+          <Text style={styles.welcomeText}>¡Bienvenido!</Text>
+          <TouchableOpacity style={styles.staticMenuButton} onPress={toggleMenu} activeOpacity={0.6}>
+            <Icon name={menuOpen ? "close" : "menu"} size={28} color={HOME_COLORS.headerText} />
           </TouchableOpacity>
         </View>
-      </ScrollView>
 
-      {/* --- NUEVO MODAL MEJORADO --- */}
-      <Modal
-        animationType="fade" // 'fade' es más sutil
-        transparent={true}    // Fondo transparente
-        visible={modalVisible}
-        onRequestClose={closeVideo}
-      >
-        {/* Capa de fondo oscura y clickeable para cerrar */}
-        <TouchableOpacity 
-          style={styles.modalBackdrop} 
-          activeOpacity={1} 
-          onPress={closeVideo} // Cierra al tocar el fondo
-        >
-          <View style={styles.modalContent}>
-            {/* Contenedor del video (para evitar que se cierre al tocarlo) */}
-            <TouchableOpacity activeOpacity={1}>
-              {selectedVideoId && (
-                <YoutubePlayer
-                  height={(Dimensions.get('window').width * 0.9) * (9 / 16)} // Calcula la altura 16:9
-                  width={Dimensions.get('window').width * 0.9} // 90% del ancho
-                  play={isPlaying}
-                  videoId={selectedVideoId}
-                  onChangeState={onStateChange}
-                  // onError para capturar errores (como el 153)
-                  onError={e => {
-                    console.error("Error del reproductor de YouTube:", e);
-                    Alert.alert(
-                      "Error al reproducir", 
-                      "El propietario de este video ha restringido su reproducción."
-                    );
-                    closeVideo();
-                  }}
-                />
-              )}
-            </TouchableOpacity>
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+
+          {/* --- NUEVA TARJETA MAESTRA DEL COACH --- */}
+          {/* Esta tarjeta envuelve todo el bloque del coach para darle peso visual */}
+          <View style={styles.coachMasterCard}>
+              {/* El contenido interno sigue siendo el mismo que antes */}
+              <View style={styles.coachSectionContainerInner}>
+                <View style={styles.avatarWrapper}>
+                  <AvatarCoach />
+                </View>
+                <View style={styles.speechBubbleWrapper}>
+                    <View style={styles.speechBubbleTailTop} />
+                    <View style={styles.speechBubbleBodyCentered}>
+                        <Text style={styles.greetingTextCentered}>“{dynamicTip}”</Text>
+                    </View>
+                </View>
+              </View>
+          </View>
+          {/* --------------------------------------- */}
+
+          {/* === SÚPER TARJETA: RUTINA DE HOY === */}
+          <View style={styles.superCardContainer}>
+            <View style={styles.superCardHeader}>
+                <Icon name="dumbbell" size={24} color={HOME_COLORS.textInverse} style={{marginRight: 10}}/>
+                <Text style={styles.superCardTitle}>Tu Rutina de Hoy</Text>
+            </View>
             
+            <View style={styles.superCardContent}>
+                <View style={styles.subtitleWrapperCentered}>
+                    <Text style={styles.sectionSubtitle}>{diaActualRutina.charAt(0).toUpperCase() + diaActualRutina.slice(1)}</Text>
+                    <View style={styles.subtitleUnderlineCentered} />
+                </View>
+
+                {isLoadingData ? (
+                <ActivityIndicator size="large" color={HOME_COLORS.accent} style={{marginTop: 20}} />
+                ) : rutinaHoy.length > 0 ? (
+                rutinaHoy.map((ejercicio, index) => (
+                    <View key={index} style={styles.workoutCardInner}>
+                    <View style={styles.cardAccentBar} />
+                    <TouchableOpacity onPress={() => openVideo(ejercicio.video)} disabled={!ejercicio.video} activeOpacity={0.9} style={styles.mediaContainer}>
+                        {renderAsset(ejercicio)}
+                        {ejercicio.video && (
+                        <View style={styles.playIconOverlay}>
+                            <Icon name="play-circle" size={32} color={HOME_COLORS.accent} style={{ opacity: 1 }} />
+                        </View>
+                        )}
+                    </TouchableOpacity>
+                    <View style={styles.workoutTextContainer}>
+                        <Text style={styles.workoutName}>{ejercicio.nombre}</Text>
+                        <Text style={styles.workoutReps}>{ejercicio.repeticiones}</Text>
+                        {ejercicio.video && (
+                        <TouchableOpacity style={styles.verVideoBtnCompact} onPress={() => openVideo(ejercicio.video)}>
+                            <Text style={styles.verVideoTextCompact}>Ver video</Text>
+                            <Icon name="arrow-right" size={12} color={HOME_COLORS.innerCardBg} style={{marginLeft: 4}}/>
+                        </TouchableOpacity>
+                        )}
+                    </View>
+                    </View>
+                ))
+                ) : (
+                <View style={styles.emptyStateContainer}>
+                    <Icon name="bed" size={40} color={HOME_COLORS.accent} style={{opacity: 0.8}} />
+                    <Text style={styles.emptyStateText}>Hoy es día de descanso. ¡Recupérate!</Text>
+                </View>
+                )}
+            </View>
+          </View>
+
+          {/* === SÚPER TARJETA: PLAN DE ALIMENTACIÓN === */}
+          <View style={styles.superCardContainer}>
+            <View style={styles.superCardHeaderDiet}>
+                <TouchableOpacity onPress={() => cambiarDietaDia(-1)} style={styles.navButtonHeader}>
+                  <Icon name="chevron-left" size={32} color={HOME_COLORS.textInverse} />
+                </TouchableOpacity>
+                
+                <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                    <Icon name="food-apple" size={24} color={HOME_COLORS.textInverse} style={{marginRight: 10}}/>
+                    <Text style={styles.superCardTitle}>Plan de Alimentación</Text>
+                </View>
+
+                <TouchableOpacity onPress={() => cambiarDietaDia(1)} style={styles.navButtonHeader}>
+                  <Icon name="chevron-right" size={32} color={HOME_COLORS.textInverse} />
+                </TouchableOpacity>
+            </View>
+
+            <View style={styles.superCardContent}>
+                <View style={styles.subtitleWrapperCentered}>
+                    <Text style={styles.sectionSubtitle}>{diaMostradoDieta.charAt(0).toUpperCase() + diaMostradoDieta.slice(1)}</Text>
+                    <View style={styles.subtitleUnderlineCentered} />
+                </View>
+
+                {isLoadingData ? (
+                <ActivityIndicator size="small" color={HOME_COLORS.accent} style={{marginTop: 20}} />
+                ) : dietaHoy.length > 0 ? (
+                <>
+                    <View style={styles.dietListContainer}>
+                    {dietaHoy.map((comida, index) => (
+                        <View key={index} style={styles.dietMealCardInner}>
+                        <View style={styles.dietMealIcon}>
+                            <Icon name="silverware-fork-knife" size={18} color={HOME_COLORS.innerCardBg} />
+                        </View>
+                        <View style={{flex: 1}}>
+                            <Text style={styles.mealName}>{comida.nombre}</Text>
+                            <Text style={styles.mealDescription}>{comida.comida}</Text>
+                        </View>
+                        <View style={styles.caloriesBadge}>
+                            <Text style={styles.mealCalories}>{comida.calorias} kcal</Text>
+                        </View>
+                        </View>
+                    ))}
+                    </View>
+
+                    <View style={styles.totalCaloriesHighlightCardInner}>
+                        <View style={styles.totalCaloriesIconBubble}>
+                        <Icon name="fire" size={24} color={HOME_COLORS.accent} />
+                        </View>
+                        <View style={{flex: 1}}>
+                        <Text style={styles.totalCaloriesLabelLight}>Total Diario Objetivo</Text>
+                        </View>
+                        <Text style={styles.totalCaloriesValueLight}>{totalCalorias} kcal</Text>
+                    </View>
+                </>
+                ) : (
+                <View style={styles.emptyStateContainer}>
+                    <Icon name="food-off" size={40} color={HOME_COLORS.accent} style={{opacity: 0.8}} />
+                    <Text style={styles.emptyStateText}>No hay dieta programada para este día.</Text>
+                </View>
+                )}
+             </View>
+          </View>
+
+          <View style={{ height: 50 }} /> 
+
+        </ScrollView>
+      </SafeAreaView>
+
+      {menuOpen && (
+        <TouchableOpacity
+          style={styles.overlay}
+          activeOpacity={1}
+          onPress={() => setMenuOpen(false)}
+        />
+      )}
+
+      {menuOpen && (
+        <View style={styles.menuDropdown}>
+          {renderMenuItem("👤", "Mi Avatar", () => navigation.navigate('Avatar'), HOME_COLORS.primary)}
+          {renderMenuItem("📅", "Recetas", () => navigation.navigate('CalendarRecipes'), HOME_COLORS.secondary)}
+          {renderMenuItem("📷", "Scanner", () => navigation.navigate('Scanner'), HOME_COLORS.accent)}
+          {renderMenuItem("💬", "Coach IA", () => {
+             if (!isSubscribed) { Alert.alert("Suscripción Requerida", "Necesitas Premium para el Coach IA."); return; }
+             navigation.navigate('AvatarChat');
+          }, '#42A5F5')}
+          <View style={styles.menuDivider} />
+          {renderMenuItem("ℹ️", "Quiénes Somos", () => navigation.navigate('AboutUs'), '#90A4AE')}
+          {renderMenuItem("🚪", "Cerrar Sesión", cerrarSesion, HOME_COLORS.fabRed)}
+        </View>
+      )}
+
+      <Modal animationType="fade" transparent={true} visible={modalVisible} onRequestClose={closeVideo}>
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalContent}>
+            {selectedVideoId && (
+              <YoutubePlayer
+                height={200}
+                width={Dimensions.get('window').width * 0.85}
+                play={isPlaying}
+                videoId={selectedVideoId}
+                onChangeState={onStateChange}
+              />
+            )}
             <TouchableOpacity style={styles.closeButton} onPress={closeVideo}>
-              <Text style={styles.closeButtonText}>Cerrar</Text>
+              <Text style={styles.closeButtonText}>Cerrar Video</Text>
             </TouchableOpacity>
           </View>
-        </TouchableOpacity>
+        </View>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 }
 
-// --- ESTILOS ACTUALIZADOS ---
 const styles = StyleSheet.create({
-  contenedorScroll: {
-    flex: 1,
-    backgroundColor: '#58d68d',
+  contenedorPrincipal: { flex: 1, backgroundColor: HOME_COLORS.background, position: 'relative' },
+  safeAreaContent: { flex: 1 },
+  scrollContent: { paddingHorizontal: 16, paddingTop: 20, paddingBottom: 20 },
+
+  // --- BARRA SUPERIOR ---
+  topHeaderBar: {
+    backgroundColor: HOME_COLORS.headerBg, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    paddingVertical: 15, paddingHorizontal: 20, elevation: 8, shadowColor: HOME_COLORS.shadowColor,
+    shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, zIndex: 10,
   },
-  scrollContent: {
-    padding: 20,
-  },
-  padre: {
-    alignItems: 'center',
-    paddingBottom: 20, // Espacio extra al final
-  },
-  titulo: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  tarjeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fad7a0',
-    borderRadius: 10,
-    padding: 10,
-    marginVertical: 10,
-    width: '95%',
-    shadowColor: '#000',
+  welcomeText: { fontSize: 24, fontWeight: 'bold', color: HOME_COLORS.headerText, letterSpacing: 0.5, textAlign: 'center' },
+  staticMenuButton: { position: 'absolute', right: 20, padding: 8, backgroundColor: 'rgba(255,255,255,0.25)', borderRadius: 8 },
+
+  // --- NUEVA TARJETA MAESTRA DEL COACH (CONTENEDOR PRINCIPAL) ---
+  coachMasterCard: {
+    backgroundColor: HOME_COLORS.coachMasterCardBg, // Color menta pálido
+    borderRadius: 24,
+    paddingVertical: 25, // Un poco de aire arriba y abajo
+    paddingHorizontal: 15,
+    marginBottom: 35, marginTop: 25,
+    // Borde sutil y sombra suave para un look profesional
+    borderWidth: 1,
+    borderColor: HOME_COLORS.coachCardBorder,
+    elevation: 3,
+    shadowColor: HOME_COLORS.shadowColor,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  imagen: {
-    width: 100,
-    height: 100,
-    borderRadius: 10,
-    marginRight: 15,
-  },
-  textoContainer: {
-    flex: 1,
-  },
-  nombre: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 5,
-  },
-  repeticiones: {
-    fontSize: 16,
-    color: '#333',
-  },
-  noRutina: {
-    fontSize: 16,
-    fontStyle: 'italic',
-    color: '#666',
-    textAlign: 'center',
-    marginTop: 20,
-  },
-  boton: {
-    backgroundColor: '#82e0aa',
-    borderRadius: 50,
-    paddingVertical: 20,
-    width: '100%',
-    marginTop: 20,
-    shadowOpacity: 1,
+    shadowOpacity: 0.1,
     shadowRadius: 5,
-    elevation: 5,
-    alignContent: 'center',
   },
-  botonTexto: {
-    textAlign: 'center',
-    color: 'Black',
-    fontWeight: 'bold',
-  },
-  avatarContainer: {
-    backgroundColor: '#fff3e0',
-    padding: 20,
-    borderRadius: 20,
+  // Contenedor interno para alinear los elementos como antes
+  coachSectionContainerInner: {
+    flexDirection: 'column',
     alignItems: 'center',
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 8,
   },
-  avatarTexto: {
-    marginTop: 10,
-    fontSize: 16,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    color: '#34495e',
+  avatarWrapper: {
+      marginBottom: 10,
   },
   
-  // --- NUEVOS ESTILOS DE MODAL ---
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)', // Fondo oscuro semitransparente
-    justifyContent: 'center',
-    alignItems: 'center',
+  // --- ESTILOS DEL BOCADILLO (IGUAL QUE ANTES) ---
+  speechBubbleWrapper: { flexDirection: 'column', alignItems: 'center', width: '95%' },
+  speechBubbleBodyCentered: {
+      backgroundColor: HOME_COLORS.innerCardBg, padding: 18, borderRadius: 22,
+      borderWidth: 2, borderColor: HOME_COLORS.coachBubbleBorder,
+      alignItems: 'center', elevation: 4, shadowColor: HOME_COLORS.shadowColor, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.15, shadowRadius: 5,
   },
-  modalContent: {
-    width: '90%',
-    backgroundColor: 'white', // Contenedor blanco para el video y botón
-    borderRadius: 10,
-    padding: 10,
-    alignItems: 'center',
+  speechBubbleTailTop: {
+      width: 0, height: 0, backgroundColor: 'transparent', borderStyle: 'solid',
+      borderLeftWidth: 12, borderRightWidth: 12, borderBottomWidth: 18,
+      borderLeftColor: 'transparent', borderRightColor: 'transparent', borderBottomColor: HOME_COLORS.coachBubbleBorder,
+      marginBottom: -3, zIndex: 1,
   },
-  // 'webView' ya no se usa, el estilo del player se da en el componente
-  closeButton: {
-    backgroundColor: '#82e0aa', // Un color más amigable
-    paddingVertical: 10,
-    paddingHorizontal: 30,
-    borderRadius: 20,
-    marginTop: 15,
+  greetingTextCentered: { color: HOME_COLORS.textDark, fontSize: 17, lineHeight: 24, fontStyle: 'italic', fontWeight: '600', textAlign: 'center' },
+
+  // --- SÚPER TARJETAS ---
+  superCardContainer: {
+    backgroundColor: HOME_COLORS.superCardBodyBg, borderRadius: 24, marginBottom: 35, overflow: 'hidden',
+    elevation: 8, shadowColor: HOME_COLORS.shadowColor, shadowOffset: { width: 0, height: 5 }, shadowOpacity: 0.2, shadowRadius: 10,
   },
-  closeButtonText: {
-    color: 'black',
-    fontSize: 16,
-    fontWeight: 'bold',
+  superCardHeader: {
+      flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+      backgroundColor: HOME_COLORS.superCardHeaderBg, paddingVertical: 18, paddingHorizontal: 20,
   },
+  superCardHeaderDiet: {
+      flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+      backgroundColor: HOME_COLORS.superCardHeaderBg, paddingVertical: 15, paddingHorizontal: 15,
+  },
+  superCardTitle: { fontSize: 20, fontWeight: '900', color: HOME_COLORS.textInverse, letterSpacing: 0.5 },
+  superCardContent: { padding: 20 },
+  navButtonHeader: { padding: 4 },
+
+  // --- Subtítulos Centrados ---
+  subtitleWrapperCentered: { flexDirection: 'column', alignItems: 'center', marginBottom: 20 },
+  sectionSubtitle: { fontSize: 16, color: HOME_COLORS.accent, fontWeight: '700', textTransform: 'capitalize' },
+  subtitleUnderlineCentered: { height: 3, width: 50, backgroundColor: HOME_COLORS.accent, marginTop: 5, borderRadius: 2 },
+
+  // --- TARJETAS INTERNAS (RUTINA) ---
+  workoutCardInner: {
+    flexDirection: 'row', backgroundColor: HOME_COLORS.innerCardBg, borderRadius: 16, marginBottom: 12, alignItems: 'center', overflow: 'hidden',
+    elevation: 2, shadowColor: HOME_COLORS.shadowColor, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 3, borderWidth: 1, borderColor: 'rgba(0,0,0,0.05)'
+  },
+  cardAccentBar: { width: 6, height: '100%', backgroundColor: HOME_COLORS.primary },
+  mediaContainer: { paddingVertical: 10, paddingLeft: 10 },
+  mediaAsset: { width: 80, height: 80, borderRadius: 12, marginRight: 15, backgroundColor: '#f0f0f0' },
+  playIconOverlay: { position: 'absolute', top: 10, left: 10, right: 15, bottom: 10, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.3)', borderRadius: 12 },
+  workoutTextContainer: { flex: 1, justifyContent: 'center', paddingVertical: 10, paddingRight: 10 },
+  workoutName: { fontSize: 16, fontWeight: '700', color: HOME_COLORS.textDark, marginBottom: 4 },
+  workoutReps: { fontSize: 13, color: HOME_COLORS.textMedium, marginBottom: 8 },
+  verVideoBtnCompact: { flexDirection: 'row', alignItems: 'center', backgroundColor: HOME_COLORS.primary, paddingVertical: 6, paddingHorizontal: 12, borderRadius: 20, alignSelf: 'flex-start' },
+  verVideoTextCompact: { fontSize: 11, color: HOME_COLORS.innerCardBg, fontWeight: 'bold' },
+
+  // --- TARJETAS INTERNAS (DIETA) ---
+  dietListContainer: { marginTop: 5 },
+  dietMealCardInner: {
+    flexDirection: 'row', alignItems: 'center', backgroundColor: HOME_COLORS.innerCardBg, borderRadius: 14, padding: 12, marginBottom: 10,
+    elevation: 2, shadowColor: HOME_COLORS.shadowColor, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 3, borderWidth: 1, borderColor: 'rgba(0,0,0,0.05)'
+  },
+  dietMealIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: HOME_COLORS.primary, justifyContent: 'center', alignItems: 'center', marginRight: 12 },
+  mealName: { fontSize: 15, fontWeight: '700', color: HOME_COLORS.textDark },
+  mealDescription: { fontSize: 12, color: HOME_COLORS.textMedium, marginTop: 2 },
+  caloriesBadge: { backgroundColor: HOME_COLORS.accentSoft, paddingVertical: 4, paddingHorizontal: 8, borderRadius: 10, borderWidth: 1, borderColor: HOME_COLORS.accent },
+  mealCalories: { fontSize: 13, fontWeight: '700', color: HOME_COLORS.textDark },
+
+  // --- TARJETA DESTACADA TOTAL CALORÍAS (INTERNA) ---
+  totalCaloriesHighlightCardInner: {
+      flexDirection: 'row', alignItems: 'center', backgroundColor: HOME_COLORS.primary, borderRadius: 18, padding: 18, marginTop: 15,
+      elevation: 4, shadowColor: HOME_COLORS.shadowColor, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 5,
+  },
+  totalCaloriesIconBubble: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.2)', justifyContent: 'center', alignItems: 'center', marginRight: 15 },
+  totalCaloriesLabelLight: { fontSize: 15, color: HOME_COLORS.innerCardBg, fontWeight: '600', opacity: 0.9 },
+  totalCaloriesValueLight: { fontSize: 22, fontWeight: '800', color: HOME_COLORS.accent },
+
+  // --- ESTADOS VACÍOS, MODAL, MENÚ ---
+  emptyStateContainer: { alignItems: 'center', justifyContent: 'center', padding: 30, backgroundColor: HOME_COLORS.innerCardBg, borderRadius: 20, marginTop: 5, borderWidth: 2, borderColor: '#E0E0E0', borderStyle: 'dashed' },
+  emptyStateText: { color: HOME_COLORS.textMedium, fontSize: 15, marginTop: 10, textAlign: 'center', fontWeight: '500' },
+  modalBackdrop: { flex: 1, backgroundColor: 'rgba(38, 50, 56, 0.85)', justifyContent: 'center', alignItems: 'center' },
+  modalContent: { backgroundColor: HOME_COLORS.innerCardBg, padding: 15, borderRadius: 20, alignItems: 'center', elevation: 10 },
+  closeButton: { marginTop: 20, padding: 12, backgroundColor: HOME_COLORS.fabRed, borderRadius: 12, width: '100%', alignItems: 'center', elevation: 4 },
+  closeButtonText: { color: HOME_COLORS.innerCardBg, fontWeight: 'bold', fontSize: 16 },
+  overlay: { position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(38, 50, 56, 0.5)', zIndex: 15 },
+  menuDropdown: { position: 'absolute', top: 70, right: 10, width: 230, backgroundColor: HOME_COLORS.menuBg, borderRadius: 18, paddingVertical: 10, elevation: 12, shadowColor: HOME_COLORS.shadowColor, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.2, shadowRadius: 10, zIndex: 25 },
+  menuItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 16 },
+  menuIconContainer: { width: 34, height: 34, borderRadius: 17, justifyContent: 'center', alignItems: 'center', marginRight: 14, elevation: 1 },
+  menuIconEmoji: { fontSize: 18, color: HOME_COLORS.textDark },
+  menuLabelText: { fontSize: 15, fontWeight: '600', color: HOME_COLORS.textDark },
+  menuDivider: { height: 1, backgroundColor: 'rgba(0,0,0,0.08)', marginVertical: 5, marginHorizontal: 16 },
 });

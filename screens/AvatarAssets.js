@@ -1,26 +1,12 @@
-// screens/avatarAssets.js
-// --- ¡DEBES CREAR ESTAS IMÁGENES EN assets/avatar/! ---
-// He usado nombres de ejemplo. Si no tienes las imágenes, la app fallará.
-// Te recomiendo empezar creando estas 6 imágenes:
-
-export const AVATAR_ASSETS = {
-  cabeza: {
-    normal: require('../assets/avatar/cabeza.webp'),
-    feliz: require('../assets/avatar/cabeza_feliz.png'),
-  },
-  torso: {
-    normal: require('../assets/avatar/cabeza_feliz.png'),
-    musculoso: require('../assets/avatar/cabeza_feliz.png'),
-    flaco: require('../assets/avatar/cabeza_feliz.png'),
-  },
-  piernas: {
-    normal: require('../assets/avatar/cabeza_feliz.png'),
-    musculosas: require('../assets/avatar/cabeza_feliz.png'),
-    flacas: require('../assets/avatar/cabeza_feliz.png'),
-  },
+export const LOTTIE_ASSETS = {
+  avatar1: require('../assets/lotties/Happy user.json'),
+  avatar2: require('../assets/lotties/person1.json'),
+  avatar3: require('../assets/lotties/avatar 1.json'),
+  avatar4: require('../assets/lotties/Woman Avatar.json'),
+  avatar5: require('../assets/lotties/Female Avatar.json'),
+  
+  
 };
 
-// Obtenemos las "llaves" de cada categoría para los selectores
-export const cabezaOpciones = Object.keys(AVATAR_ASSETS.cabeza);
-export const torsoOpciones = Object.keys(AVATAR_ASSETS.torso);
-export const piernasOpciones = Object.keys(AVATAR_ASSETS.piernas);
+
+export const avatarOpciones = ['avatar1', 'avatar2','avatar3', 'avatar4', 'avatar5']; 

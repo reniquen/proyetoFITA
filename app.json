@@ -4,11 +4,11 @@
     "slug": "fitA",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/avatar/iconof.jpg",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/fita.jpg.png",
+      "image": "./assets/avatar/image.png",
       "resizeMode": "contain",
       "backgroundColor": "#fad7a0"
     },
@@ -17,7 +17,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/avatar/iconof.jpg",
         "backgroundColor": "#ffffff"
       },
       "package": "com.reniquen.fitA"
@@ -29,6 +29,9 @@
       "eas": {
         "projectId": "2476645f-a0c6-41a8-8187-a89dbc6029d9"
       }
-    }
+    },
+    "plugins": [
+      "expo-barcode-scanner"
+    ]
   }
 }
