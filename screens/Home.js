@@ -20,23 +20,37 @@ function getYouTubeId(url) {
   return (match && match[2].length === 11) ? match[2] : null;
 }
 
-// --- PALETA DE COLORES FITA OSCURA ---
+// --- NUEVA PALETA: FITA LUMINOSA Y CÁLIDA ---
 const HOME_COLORS = {
-  background: '#1A332B',
+  // Fondo general claro y cálido (casi blanco con un toque crema/gris)
+  background: '#F5F7F2',
+
+  // Cabecera Verde Sólida para identidad de marca
+  headerBg: '#5CB85C',
+  headerText: '#FFFFFF', // Texto blanco para que resalte en la cabecera verde
+
+  // Verdes de la marca
   primary: '#5CB85C',
   secondary: '#8BC34A',
-  accent: '#EBA83A',
-  textDark: '#FFFFFF',
-  textMedium: '#CCCCCC',
-  textLight: '#A0A0A0',
-  cardBg: '#253A32',
-  cardBgLighter: '#2E473D',
-  shadowColor: 'rgba(0, 0, 0, 0.3)',
-  menuBg: '#2E473D',
-  fabRed: '#D32F2F',
+
+  // AMARILLO/MOSTAZA POTENCIADO (Más soleado y vibrante)
+  accent: '#FBC02D', // Amarillo oro
+
+  // Textos oscuros para fondo claro
+  textDark: '#2D3E32',   // Verde bosque muy oscuro para títulos principales
+  textMedium: '#5D6D64', // Gris verdoso medio para descripciones
+  textLight: '#9EA7A3',  // Gris claro para detalles sutiles
+
+  // Tarjetas blancas y limpias
+  cardBg: '#FFFFFF',
+  cardBgLighter: '#FAFAFA', // Casi blanco para sub-elementos
+  shadowColor: 'rgba(0, 0, 0, 0.1)', // Sombra suave
+
+  menuBg: '#FFFFFF', // Menú blanco
+
+  // Colores FAB (Ajustados para vibrar más)
+  fabRed: '#E53935',
   verVideoBtn: '#5CB85C',
-  // NUEVO COLOR PARA LA CABECERA: Un tono ligeramente distinto para separarla
-  headerBg: '#1F3A30',
 };
 
 export default function Home({ navigation }) {
@@ -130,8 +144,9 @@ export default function Home({ navigation }) {
   const renderAsset = (ejercicio) => {
     if (!ejercicio.imagen) {
       return (
-        <View style={[styles.mediaAsset, { backgroundColor: HOME_COLORS.cardBgLighter, justifyContent: 'center', alignItems: 'center' }]}>
-          <Text style={{ color: HOME_COLORS.textLight, fontSize: 10 }}>Sin Media</Text>
+        // Ajustado el fondo del placeholder para que no sea tan oscuro
+        <View style={[styles.mediaAsset, { backgroundColor: '#E0E0E0', justifyContent: 'center', alignItems: 'center' }]}>
+          <Text style={{ color: HOME_COLORS.textMedium, fontSize: 10 }}>Sin Media</Text>
         </View>
       );
     }
@@ -147,7 +162,8 @@ export default function Home({ navigation }) {
 
   const renderMenuItem = (icon, label, onPress, iconColor) => (
     <TouchableOpacity style={styles.menuItem} onPress={onPress}>
-      <View style={[styles.menuIconContainer, { backgroundColor: iconColor || HOME_COLORS.primary }]}>
+      {/* Usamos el color de acento (amarillo) por defecto si no se especifica otro, para darle más vida al menú */}
+      <View style={[styles.menuIconContainer, { backgroundColor: iconColor || HOME_COLORS.accent }]}>
         <Text style={styles.menuIconEmoji}>{icon}</Text>
       </View>
       <Text style={styles.menuLabelText}>{label}</Text>
@@ -156,30 +172,30 @@ export default function Home({ navigation }) {
 
   return (
     <View style={styles.contenedorPrincipal}>
-      {/* Barra de estado con el color de la nueva cabecera para continuidad */}
-      <StatusBar backgroundColor={HOME_COLORS.headerBg} barStyle="light-content" /> 
-      
-      <SafeAreaView style={styles.safeAreaContent}> 
-        
-        {/* --- NUEVA BARRA SUPERIOR PROFESIONAL (Fuera del ScrollView) --- */}
+      {/* Barra de estado clara porque la cabecera es verde oscura */}
+      <StatusBar backgroundColor={HOME_COLORS.headerBg} barStyle="light-content" />
+
+      <SafeAreaView style={styles.safeAreaContent}>
+
+        {/* --- BARRA SUPERIOR VERDE --- */}
         <View style={styles.topHeaderBar}>
-          {/* Texto centrado */}
+          {/* Texto blanco para contrastar con el fondo verde */}
           <Text style={styles.welcomeText}>¡Bienvenido!</Text>
-          
-          {/* Botón del menú posicionado absolutamente a la derecha */}
+
+          {/* Icono del menú en blanco */}
           <TouchableOpacity style={styles.staticMenuButton} onPress={toggleMenu} activeOpacity={0.6}>
-            <Icon name={menuOpen ? "close" : "menu"} size={28} color={HOME_COLORS.textDark} />
+            <Icon name={menuOpen ? "close" : "menu"} size={28} color={HOME_COLORS.headerText} />
           </TouchableOpacity>
         </View>
-        {/* ------------------------------------------------------------- */}
 
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          
+
           {/* HEADER & AVATAR (Coach Section) */}
           <View style={styles.coachSection}>
             <View style={styles.avatarContainer}>
               <AvatarCoach />
             </View>
+            {/* Burbuja de texto blanca */}
             <View style={styles.greetingBubble}>
               <Text style={styles.greetingText}>{dynamicTip}</Text>
               <View style={styles.bubbleTriangle} />
@@ -189,10 +205,12 @@ export default function Home({ navigation }) {
           {/* RUTINA */}
           <View style={styles.sectionContainer}>
             <Text style={styles.sectionTitle}>Tu Rutina de Hoy</Text>
+            {/* Subtítulo en amarillo/mostaza para resaltar */}
             <Text style={styles.sectionSubtitle}>{diaActualRutina.charAt(0).toUpperCase() + diaActualRutina.slice(1)}</Text>
-            
+
             {isLoadingData ? (
-              <ActivityIndicator size="large" color={HOME_COLORS.primary} style={{marginTop: 20}} />
+              // Spinner amarillo
+              <ActivityIndicator size="large" color={HOME_COLORS.accent} style={{marginTop: 20}} />
             ) : rutinaHoy.length > 0 ? (
               rutinaHoy.map((ejercicio, index) => (
                 <View key={index} style={styles.workoutCard}>
@@ -200,7 +218,7 @@ export default function Home({ navigation }) {
                     {renderAsset(ejercicio)}
                     {ejercicio.video && (
                       <View style={styles.playIconOverlay}>
-                         <Icon name="play-circle" size={24} color={HOME_COLORS.textDark} />
+                         <Icon name="play-circle" size={30} color={HOME_COLORS.cardBg} style={{ opacity: 0.9 }} />
                       </View>
                     )}
                   </TouchableOpacity>
@@ -210,7 +228,7 @@ export default function Home({ navigation }) {
                     {ejercicio.video && (
                       <TouchableOpacity style={styles.verVideoBtnCompact} onPress={() => openVideo(ejercicio.video)}>
                         <Text style={styles.verVideoTextCompact}>Ver video</Text>
-                        <Icon name="arrow-right" size={14} color={HOME_COLORS.textDark} style={{marginLeft: 4}}/>
+                        <Icon name="arrow-right" size={14} color={HOME_COLORS.cardBg} style={{marginLeft: 4}}/>
                       </TouchableOpacity>
                     )}
                   </View>
@@ -218,7 +236,7 @@ export default function Home({ navigation }) {
               ))
             ) : (
               <View style={styles.emptyStateContainer}>
-                 <Icon name="bed" size={40} color={HOME_COLORS.textLight} />
+                 <Icon name="bed" size={40} color={HOME_COLORS.accent} style={{opacity: 0.7}} />
                  <Text style={styles.emptyStateText}>Hoy es día de descanso. ¡Recupérate!</Text>
               </View>
             )}
@@ -229,10 +247,12 @@ export default function Home({ navigation }) {
             <View style={styles.dietHeaderContainer}>
               <View>
                  <Text style={styles.sectionTitle}>Plan de Alimentación</Text>
+                 {/* Subtítulo en amarillo */}
                  <Text style={styles.sectionSubtitle}>{diaMostradoDieta.charAt(0).toUpperCase() + diaMostradoDieta.slice(1)}</Text>
               </View>
               <View style={styles.dietNavControls}>
                 <TouchableOpacity onPress={() => cambiarDietaDia(-1)} style={styles.navButton}>
+                  {/* Flechas en verde */}
                   <Icon name="chevron-left" size={28} color={HOME_COLORS.primary} />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => cambiarDietaDia(1)} style={styles.navButton}>
@@ -248,23 +268,26 @@ export default function Home({ navigation }) {
                 {dietaHoy.map((comida, index) => (
                   <View key={index} style={styles.dietMealCard}>
                     <View style={styles.dietMealIcon}>
+                       {/* Icono de comida en verde */}
                        <Icon name="food-apple" size={20} color={HOME_COLORS.primary} />
                     </View>
                     <View style={{flex: 1}}>
                       <Text style={styles.mealName}>{comida.nombre}</Text>
                       <Text style={styles.mealDescription}>{comida.comida}</Text>
                     </View>
+                    {/* Calorías individuales en amarillo */}
                     <Text style={styles.mealCalories}>{comida.calorias} kcal</Text>
                   </View>
                 ))}
                  <View style={styles.totalCaloriesContainer}>
                     <Text style={styles.totalCaloriesLabel}>Total Diario:</Text>
+                    {/* Calorías totales en amarillo grande */}
                     <Text style={styles.totalCaloriesValue}>{totalCalorias} kcal</Text>
                 </View>
               </View>
             ) : (
               <View style={styles.emptyStateContainer}>
-                 <Icon name="food-off" size={40} color={HOME_COLORS.textLight} />
+                 <Icon name="food-off" size={40} color={HOME_COLORS.accent} style={{opacity: 0.7}} />
                  <Text style={styles.emptyStateText}>No hay dieta programada para este día.</Text>
               </View>
             )}
@@ -274,8 +297,6 @@ export default function Home({ navigation }) {
         </ScrollView>
       </SafeAreaView>
 
-      {/* --- ELEMENTOS FIJOS --- */}
-
       {menuOpen && (
         <TouchableOpacity
           style={styles.overlay}
@@ -284,18 +305,18 @@ export default function Home({ navigation }) {
         />
       )}
 
-      {/* MENÚ DESPLEGABLE (Posición ajustada para la nueva cabecera) */}
       {menuOpen && (
         <View style={styles.menuDropdown}>
           {renderMenuItem("👤", "Mi Avatar", () => navigation.navigate('Avatar'), HOME_COLORS.primary)}
-          {renderMenuItem("📅", "Calendario", () => navigation.navigate('CalendarRecipes'), HOME_COLORS.secondary)}
+          {renderMenuItem("📅", "Recetas", () => navigation.navigate('CalendarRecipes'), HOME_COLORS.secondary)}
+          {/* Scanner usa el amarillo de acento */}
           {renderMenuItem("📷", "Scanner", () => navigation.navigate('Scanner'), HOME_COLORS.accent)}
           {renderMenuItem("💬", "Coach IA", () => {
              if (!isSubscribed) { Alert.alert("Suscripción Requerida", "Necesitas Premium para el Coach IA."); return; }
              navigation.navigate('AvatarChat');
-          }, '#1976D2')}
+          }, '#42A5F5')}
           <View style={styles.menuDivider} />
-          {renderMenuItem("ℹ️", "Quiénes Somos", () => navigation.navigate('AboutUs'), '#607D8B')}
+          {renderMenuItem("ℹ️", "Quiénes Somos", () => navigation.navigate('AboutUs'), '#90A4AE')}
           {renderMenuItem("🚪", "Cerrar Sesión", cerrarSesion, HOME_COLORS.fabRed)}
         </View>
       )}
@@ -323,10 +344,9 @@ export default function Home({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  // --- ESTRUCTURA PRINCIPAL ---
   contenedorPrincipal: {
     flex: 1,
-    backgroundColor: HOME_COLORS.background,
+    backgroundColor: HOME_COLORS.background, // Fondo claro
     position: 'relative',
   },
   safeAreaContent: {
@@ -334,38 +354,39 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingTop: 20, // Padding superior normal ahora que la cabecera está fuera
+    paddingTop: 20,
     paddingBottom: 40,
   },
 
-  // --- NUEVA BARRA SUPERIOR PROFESIONAL ---
+  // --- BARRA SUPERIOR VERDE ---
   topHeaderBar: {
-    backgroundColor: HOME_COLORS.headerBg, // Color distintivo
+    backgroundColor: HOME_COLORS.headerBg,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center', // Centra el contenido horizontalmente (el texto)
+    justifyContent: 'center',
     paddingVertical: 15,
     paddingHorizontal: 20,
-    elevation: 4, // Sombra sutil para dar profundidad
+    elevation: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
-    zIndex: 10, // Asegura que esté por encima del scroll
+    shadowOpacity: 0.1, // Sombra más suave
+    shadowRadius: 4,
+    zIndex: 10,
   },
   welcomeText: {
-    fontSize: 24, // Tamaño de título
+    fontSize: 24,
     fontWeight: 'bold',
-    color: HOME_COLORS.textDark,
+    color: HOME_COLORS.headerText, // Texto blanco
     letterSpacing: 0.5,
     textAlign: 'center',
   },
-  // Botón del menú posicionado absolutamente DENTRO de la barra
   staticMenuButton: {
     position: 'absolute',
-    right: 20, // Anclado a la derecha
+    right: 20,
     padding: 8,
-    // backgroundColor eliminado para que se integre mejor en la nueva barra
+    // Fondo ligeramente transparente para el botón sobre el verde
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 8,
   },
 
   // --- SECCIÓN DEL COACH ---
@@ -373,89 +394,93 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 35,
-    marginTop: 20, // Espacio entre la barra superior y el coach
+    marginTop: 20,
   },
   avatarContainer: { marginRight: 15 },
   greetingBubble: {
     flex: 1,
-    backgroundColor: HOME_COLORS.cardBg,
+    backgroundColor: HOME_COLORS.cardBg, // Burbuja blanca
     padding: 16,
     borderRadius: 18,
     borderBottomLeftRadius: 4,
-    elevation: 2,
+    elevation: 1, // Sombra muy sutil
     shadowColor: HOME_COLORS.shadowColor,
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.1,
     shadowRadius: 2,
   },
   greetingText: { color: HOME_COLORS.textDark, fontSize: 15, lineHeight: 20, fontStyle: 'italic' },
   bubbleTriangle: {
     position: 'absolute', bottom: -8, left: 0, width: 0, height: 0,
     borderStyle: 'solid', borderTopWidth: 8, borderRightWidth: 10, borderBottomWidth: 0, borderLeftWidth: 0,
+    // Triángulo blanco para coincidir con la burbuja
     borderTopColor: HOME_COLORS.cardBg, borderRightColor: 'transparent', borderBottomColor: 'transparent', borderLeftColor: 'transparent',
   },
 
   // --- SECCIONES GENERALES ---
   sectionContainer: { marginBottom: 35 },
   sectionTitle: { fontSize: 22, fontWeight: '800', color: HOME_COLORS.textDark, marginBottom: 2, letterSpacing: 0.5 },
-  sectionSubtitle: { fontSize: 14, color: HOME_COLORS.primary, fontWeight: '600', marginBottom: 15, textTransform: 'capitalize' },
+  // Subtítulos en amarillo/mostaza
+  sectionSubtitle: { fontSize: 14, color: HOME_COLORS.accent, fontWeight: '700', marginBottom: 15, textTransform: 'capitalize' },
 
-  // --- TARJETAS DE RUTINA ---
+  // --- TARJETAS DE RUTINA (Blancas) ---
   workoutCard: {
     flexDirection: 'row', backgroundColor: HOME_COLORS.cardBg, borderRadius: 16, padding: 12, marginBottom: 12, alignItems: 'center',
-    elevation: 3, shadowColor: HOME_COLORS.shadowColor, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.15, shadowRadius: 4,
+    elevation: 2, shadowColor: HOME_COLORS.shadowColor, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 4,
+    borderWidth: 1, borderColor: '#F0F0F0', // Borde sutil para definición
   },
   mediaAsset: { width: 80, height: 80, borderRadius: 12, marginRight: 15 },
-  playIconOverlay: { position: 'absolute', top: 0, left: 0, right: 15, bottom: 0, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.2)', borderRadius: 12 },
+  playIconOverlay: { position: 'absolute', top: 0, left: 0, right: 15, bottom: 0, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.3)', borderRadius: 12 },
   workoutTextContainer: { flex: 1, justifyContent: 'center' },
   workoutName: { fontSize: 16, fontWeight: '700', color: HOME_COLORS.textDark, marginBottom: 4 },
   workoutReps: { fontSize: 14, color: HOME_COLORS.textMedium, marginBottom: 8 },
+  // Botón Ver Video (Verde con texto blanco)
   verVideoBtnCompact: { flexDirection: 'row', alignItems: 'center', backgroundColor: HOME_COLORS.verVideoBtn, paddingVertical: 6, paddingHorizontal: 12, borderRadius: 20, alignSelf: 'flex-start' },
-  verVideoTextCompact: { fontSize: 12, color: HOME_COLORS.textDark, fontWeight: 'bold' },
+  verVideoTextCompact: { fontSize: 12, color: HOME_COLORS.cardBg, fontWeight: 'bold' }, // Texto blanco
 
-  // --- DIETA ---
+  // --- DIETA (Contenedor Blanco) ---
   dietHeaderContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 5 },
-  dietNavControls: { flexDirection: 'row', backgroundColor: HOME_COLORS.cardBg, borderRadius: 25, padding: 4 },
+  dietNavControls: { flexDirection: 'row', backgroundColor: HOME_COLORS.cardBg, borderRadius: 25, padding: 4, borderWidth: 1, borderColor: '#F0F0F0' },
   navButton: { padding: 6 },
-  dietListContainer: { backgroundColor: HOME_COLORS.cardBg, borderRadius: 18, padding: 15, marginTop: 10 },
+  dietListContainer: { backgroundColor: HOME_COLORS.cardBg, borderRadius: 18, padding: 15, marginTop: 10, elevation: 2, shadowColor: HOME_COLORS.shadowColor, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 4 },
   dietMealCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: HOME_COLORS.cardBgLighter, borderRadius: 12, padding: 12, marginBottom: 10 },
   dietMealIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(92, 184, 92, 0.15)', justifyContent: 'center', alignItems: 'center', marginRight: 12 },
   mealName: { fontSize: 15, fontWeight: '700', color: HOME_COLORS.textDark },
   mealDescription: { fontSize: 13, color: HOME_COLORS.textMedium, marginTop: 2 },
+  // Calorías en amarillo
   mealCalories: { fontSize: 14, fontWeight: '700', color: HOME_COLORS.accent },
-  totalCaloriesContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 15, paddingTop: 15, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.1)' },
+  totalCaloriesContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 15, paddingTop: 15, borderTopWidth: 1, borderTopColor: '#EEEEEE' },
   totalCaloriesLabel: { fontSize: 16, color: HOME_COLORS.textMedium },
   totalCaloriesValue: { fontSize: 20, fontWeight: '800', color: HOME_COLORS.accent },
 
   // --- ESTADOS VACÍOS ---
-  emptyStateContainer: { alignItems: 'center', justifyContent: 'center', padding: 30, backgroundColor: HOME_COLORS.cardBg, borderRadius: 16, marginTop: 10, borderStyle: 'dashed', borderWidth: 1, borderColor: HOME_COLORS.textLight },
-  emptyStateText: { color: HOME_COLORS.textMedium, fontSize: 15, marginTop: 10, textAlign: 'center' },
+  emptyStateContainer: { alignItems: 'center', justifyContent: 'center', padding: 30, backgroundColor: HOME_COLORS.cardBg, borderRadius: 16, marginTop: 10, borderStyle: 'dashed', borderWidth: 2, borderColor: '#E0E0E0' },
+  emptyStateText: { color: HOME_COLORS.textLight, fontSize: 15, marginTop: 10, textAlign: 'center', fontWeight: '500' },
 
   // --- MODAL ---
-  modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.85)', justifyContent: 'center', alignItems: 'center' },
+  modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'center', alignItems: 'center' },
   modalContent: { backgroundColor: HOME_COLORS.cardBg, padding: 15, borderRadius: 20, alignItems: 'center', elevation: 10 },
   closeButton: { marginTop: 20, padding: 12, backgroundColor: HOME_COLORS.fabRed, borderRadius: 12, width: '100%', alignItems: 'center' },
-  closeButtonText: { color: HOME_COLORS.textDark, fontWeight: 'bold', fontSize: 16 },
+  closeButtonText: { color: HOME_COLORS.cardBg, fontWeight: 'bold', fontSize: 16 },
 
-  // --- MENÚ DESPLEGABLE ---
+  // --- MENÚ DESPLEGABLE (Blanco) ---
   overlay: {
     position: 'absolute', top: 0, bottom: 0, left: 0, right: 0,
-    backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 15,
+    backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 15,
   },
   menuDropdown: {
     position: 'absolute',
-    // Ajustado: Altura aproximada de la barra (60-70) + un pequeño margen
     top: 70,
-    right: 10, // Un poco más a la derecha para alinearse con el botón
+    right: 10,
     width: 220,
-    backgroundColor: HOME_COLORS.menuBg,
+    backgroundColor: HOME_COLORS.menuBg, // Menú blanco
     borderRadius: 16,
     paddingVertical: 10,
     elevation: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
     zIndex: 25,
   },
   menuItem: {
@@ -470,15 +495,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center', alignItems: 'center',
     marginRight: 12,
   },
-  menuIconEmoji: { fontSize: 18 },
+  menuIconEmoji: { fontSize: 18, color: HOME_COLORS.cardBg }, // Iconos blancos sobre fondo de color
   menuLabelText: {
     fontSize: 15,
     fontWeight: '600',
-    color: HOME_COLORS.textDark,
+    color: HOME_COLORS.textDark, // Texto oscuro
   },
   menuDivider: {
     height: 1,
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: '#EEEEEE', // Divisor claro
     marginVertical: 5,
     marginHorizontal: 16,
   },

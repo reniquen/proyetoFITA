@@ -7,32 +7,32 @@ export const EXERCISES = {
     id: 'sentadillas',
     nombre: "Sentadillas",
     video: "https://www.youtube.com/watch?v=dsCuiccYNGs",
-    imagen: require('../assets/ejercicios/sentadillas.gif'), 
+    imagen: require('../assets/sentadilla.png'), 
     animacion: null, 
   },
   prensa: {
     id: 'prensa',
     nombre: "Prensa de Pierna",
     video: "https://www.youtube.com/watch?v=MTfwemR8QMQ",
-    imagen: require('../assets/ejercicios/prensa.gif'),
+    imagen: require('../assets/prensa.png'),
   },
   press_militar: {
     id: 'press_militar',
     nombre: "Press Militar",
     video: "https://www.youtube.com/watch?v=waeCyaAQRn8",
-    imagen: require('../assets/ejercicios/press_militar.gif'),
+    imagen: require('../assets/pressmilitar.png'),
   },
   dominadas: {
     id: 'dominadas',
     nombre: "Dominadas",
     video: "https://www.youtube.com/watch?v=fJ1Sq208UVA",
-    imagen: require('../assets/ejercicios/dominadas.gif'),
+    imagen: require('../assets/dominadas.png'),
   },
   press_banca: {
     id: 'press_banca',
     nombre: "Press de Banca",
     video: "https://www.youtube.com/watch?v=GeLq8cMODLc",
-    imagen: require('../assets/ejercicios/press_banca.gif'),
+    imagen: require('../assets/pressbanca.png'),
   },
 
   // --- EJERCICIOS EN CASA (ANTERIORES) ---
@@ -58,7 +58,7 @@ export const EXERCISES = {
     id: 'plancha',
     nombre: "Plancha Abdominal",
     video: "https://www.youtube.com/watch?v=ASdvN_XEl_c",
-    imagen: require('../assets/ejercicios/plancha.gif'),
+    imagen: require('../assets/plancha.png'),
   },
   puente_gluteo: {
     id: 'puente_gluteo',
@@ -82,7 +82,7 @@ export const EXERCISES = {
     id: 'burpees',
     nombre: "Burpees",
     video: "https://www.youtube.com/watch?v=IYusabTdFEo",
-    imagen: require('../assets/ejercicios/burpees.gif'),
+    imagen: require('../assets/burpees.png'),
   },
 
   // --- 🔥 10 NUEVOS EJERCICIOS EN CASA (ESTRUCTURA UNIFICADA) ---
@@ -90,7 +90,7 @@ export const EXERCISES = {
     id: 'sentadilla_bulgara',
     nombre: "Sentadilla Búlgara",
     video: "https://www.youtube.com/watch?v=Xfa3Ql_NwmE",
-    imagen: require('../assets/ejercicios/sentadillas_bulgaras.gif'),
+    imagen: require('../assets/sentadillabulgara.png'),
   },
   remo_casero: {
     id: 'remo_casero',
