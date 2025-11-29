@@ -24,7 +24,7 @@ export default function AboutUs({ navigation }) {
         <View style={styles.header}>
           <View style={styles.logoContainer}>
             {/* Si tienes el logo, úsalo. Si no, usa este texto estilizado */}
-             <Image source={require('../assets/logofita.png')} style={styles.logoImage} resizeMode="contain" />
+             <Image source={require('../assets/ejercicios/logofita.png')} style={styles.logoImage} resizeMode="contain" />
           </View>
           <Text style={styles.appName}>FITA</Text>
           <Text style={styles.appTagline}>Fitness Intelligent Training Assistant</Text>

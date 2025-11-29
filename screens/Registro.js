@@ -37,7 +37,7 @@ export default function Registro({ navigation, route }) {
   return (
     <ScrollView style={styles.contenedorScroll} contentContainerStyle={styles.scrollContent}>
       <View style={styles.padre}>
-        <Image source={require('../assets/logofita.png')} style={styles.fita} />
+        <Image source={require('../assets/ejercicios/logofita.png')} style={styles.fita} />
         <View style={styles.tarjeta}>
           <View style={styles.cajaTexto}>
             <TextInput

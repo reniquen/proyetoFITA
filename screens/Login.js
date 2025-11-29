@@ -118,7 +118,7 @@ export default function Login({ navigation }) {
 
           {/* Tu logo original */}
           <View style={styles.logoContainer}>
-             <Image source={require('../assets/logofita.png')} style={styles.fita} />
+             <Image source={require('../assets/ejercicios/logofita.png')} style={styles.fita} />
           </View>
 
           <View style={styles.card}>
