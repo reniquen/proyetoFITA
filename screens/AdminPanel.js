@@ -11,15 +11,34 @@ import {
   TouchableOpacity,
   Modal,
   SafeAreaView,
-  // IMPORTANTE: Importar Switch para el botón de Premium
   Switch,
+  BackHandler,
+  Platform,
+  StatusBar,
 } from 'react-native';
-// Importamos db, auth y las funciones directas de Firestore
 import { db, auth } from './firebaseConfig';
 import { signOut } from 'firebase/auth';
-// Usamos onSnapshot para tiempo real en lugar de getDocs
 import { collection, doc, updateDoc, deleteDoc, onSnapshot } from 'firebase/firestore';
 import { debounce } from 'lodash';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+// Asegúrate de importar useFocusEffect de @react-navigation/native
+import { useFocusEffect } from '@react-navigation/native';
+
+// --- PALETA DE COLORES DEL DISEÑO (Mantenida) ---
+const COLORS = {
+  mediumGreen: '#4CAF50',
+  lightGreenBg: '#E8F5E9', // Fondo principal
+  cardBg: '#C8E6C9', // Fondo tarjetas
+  yellowStripe: '#FBC02D',
+  redButton: '#D32F2F',
+  textDark: '#263238',
+  textLight: '#546E7A',
+  white: '#FFFFFF',
+  grayBadge: '#90A4AE',
+  searchBorder: '#A5D6A7',
+  inputBg: '#F5F5F5',
+  inputBorder: '#E0E0E0',
+};
 
 export default function AdminPanel({ navigation }) {
   const [users, setUsers] = useState([]);
@@ -27,35 +46,28 @@ export default function AdminPanel({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [searchText, setSearchText] = useState('');
 
-  // Estados para el modal de edición
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [currentUserToEdit, setCurrentUserToEdit] = useState(null);
   const [editName, setEditName] = useState('');
   const [editPlan, setEditPlan] = useState('');
   const [displayEmail, setDisplayEmail] = useState('');
 
-  // --- NUEVOS ESTADOS PARA SUSCRIPCIÓN ---
   const [editIsPremium, setEditIsPremium] = useState(false);
   const [editSubscriptionDate, setEditSubscriptionDate] = useState('');
 
-  // --- Opciones de Plan (Botones) ---
   const planOptions = ['Plan 1', 'Plan 2', 'Plan 3'];
 
   // --- Suscripción en Tiempo Real ( onSnapshot ) ---
   useEffect(() => {
     setLoading(true);
-    // Creamos la referencia a la colección
     const q = collection(db, 'usuarios');
 
-    // Nos suscribimos a los cambios. Esto se ejecuta automáticamente
-    // cuando algo cambia en la base de datos (ej. un usuario paga)
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const fetchedUsers = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
       setUsers(fetchedUsers);
-      // Aplicamos el filtro actual a los nuevos datos
       filterData(searchText, fetchedUsers);
       setLoading(false);
     }, (error) => {
@@ -64,11 +76,59 @@ export default function AdminPanel({ navigation }) {
       setLoading(false);
     });
 
-    // Función de limpieza al desmontar el componente
     return () => unsubscribe();
-  }, []); // Se ejecuta una vez al montar
+  }, []);
 
-  // Función para filtrar localmente
+  // --- FUNCIÓN DE CIERRE DE SESIÓN (Movida hacia arriba para usarla en useFocusEffect) ---
+  const handleLogout = useCallback(async () => {
+    Alert.alert(
+      'Cerrar Sesión',
+      '¿Estás seguro de que deseas salir?',
+      [
+        { text: 'Cancelar', style: 'cancel', onPress: () => {} }, // No hacer nada al cancelar
+        {
+          text: 'Salir',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await signOut(auth);
+              // Usamos reset para limpiar la pila de navegación y evitar volver atrás
+              navigation.reset({
+                index: 0,
+                routes: [{ name: 'Login' }],
+              });
+            } catch (e) {
+              Alert.alert('Error', e.message);
+            }
+          },
+        },
+      ],
+      { cancelable: true } // Permitir cancelar tocando fuera de la alerta
+    );
+  }, [navigation]);
+
+  // --- MANEJO DEL BOTÓN DE RETROCESO (Usando useFocusEffect) ---
+  // useFocusEffect es mejor para manejar el botón de retroceso en pantallas específicas
+  useFocusEffect(
+    useCallback(() => {
+      const backAction = () => {
+        // Llamamos directamente a la alerta de confirmación de logout
+        handleLogout();
+        // IMPORTANTE: Devolver true para indicar que hemos manejado el evento
+        // y evitar que el sistema haga su acción por defecto (cerrar la app o volver atrás)
+        return true;
+      };
+
+      const backHandler = BackHandler.addEventListener(
+        'hardwareBackPress',
+        backAction
+      );
+
+      // Limpiamos el listener cuando la pantalla pierde el foco
+      return () => backHandler.remove();
+    }, [handleLogout]) // Dependencia de handleLogout
+  );
+
   const filterData = (text, usersData) => {
     if (text) {
       const newData = usersData.filter((user) => {
@@ -83,7 +143,6 @@ export default function AdminPanel({ navigation }) {
     }
   };
 
-  // Debounce para la búsqueda
   const debouncedSearch = useCallback(
     debounce((text) => {
        filterData(text, users);
@@ -96,30 +155,7 @@ export default function AdminPanel({ navigation }) {
     debouncedSearch(text);
   };
 
-  // --- Funciones de Acción ---
-
-  const handleLogout = () => {
-    Alert.alert(
-      'Cerrar Sesión',
-      '¿Estás seguro de que deseas salir?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Salir',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await signOut(auth);
-              navigation.replace('Login');
-            } catch (e) {
-              Alert.alert('Error', e.message);
-            }
-          },
-        },
-      ]
-    );
-  };
-
+  // ... (Resto de funciones: handleEditUser, saveEditedUser, confirmDeleteUser, deleteUser) ...
   const handleEditUser = (user) => {
     setCurrentUserToEdit(user);
     setEditName(user.nombre || '');
@@ -127,12 +163,7 @@ export default function AdminPanel({ navigation }) {
     setEditPlan(currentPlan);
     setDisplayEmail(user.email || '');
 
-    // --- CARGAR DATOS NUEVOS AL MODAL ---
-    // Si isPremium no existe, asumimos false (Freemium)
     setEditIsPremium(user.isPremium || false);
-    // Si hay fecha, la mostramos como string. Si no, cadena vacía.
-    // NOTA: En tu imagen la fecha es un string largo. Si en el futuro usas
-    // Timestamps de Firestore, habría que convertirlo aquí: user.fechaSuscripcion?.toDate().toString()
     setEditSubscriptionDate(user.fechaSuscripcion || '');
 
     setIsEditModalVisible(true);
@@ -145,22 +176,17 @@ export default function AdminPanel({ navigation }) {
     try {
       const userDocRef = doc(db, 'usuarios', currentUserToEdit.id);
 
-      // Preparamos los datos a actualizar
       const updates = {
         nombre: editName,
         plan: editPlan,
-        // Guardamos el estado del interruptor
         isPremium: editIsPremium,
-        // Lógica importante: Si ahora es Premium, guardamos la fecha que haya en el input.
-        // Si lo pasamos a Freemium (false), borramos la fecha (null) para mantener la consistencia.
         fechaSuscripcion: editIsPremium ? editSubscriptionDate : null,
       };
 
       await updateDoc(userDocRef, updates);
 
-      Alert.alert('Éxito', 'Usuario actualizado correctamente en la base de datos.');
+      Alert.alert('Éxito', 'Usuario actualizado correctamente.');
       setIsEditModalVisible(false);
-      // No hace falta llamar a fetchUsers() porque onSnapshot se actualiza solo
 
     } catch (e) {
       console.error('Error al guardar (Firestore directo):', e);
@@ -189,38 +215,39 @@ export default function AdminPanel({ navigation }) {
     try {
       await deleteDoc(doc(db, 'usuarios', user.id));
       Alert.alert('Éxito', 'Datos del usuario eliminados.');
-      // onSnapshot actualizará la lista automáticamente
     } catch (e) {
       console.error('Error al eliminar:', e);
       Alert.alert('Error', 'Falló la eliminación: ' + e.message);
     }
   };
 
-  // --- Renderizado ---
 
+  // --- Renderizado de la Tarjeta de Usuario ---
   const renderUserItem = ({ item }) => (
     <View style={styles.userCard}>
-      <Text style={styles.userName}>{item.nombre || 'Sin Nombre'}</Text>
-      <Text style={styles.userEmail}>{item.email || 'Sin Email'}</Text>
-      <Text style={styles.userPlan}>Plan: {item.plan || 'Ninguno'}</Text>
+      <View style={styles.cardStripe} />
+      <View style={styles.cardContent}>
+        <Text style={styles.userName}>Nombre Usuario: <Text style={styles.userNameBold}>{item.nombre || 'Sin Nombre'}</Text></Text>
+        <Text style={styles.userEmail}>Correo: {item.email || 'Sin Email'}</Text>
 
-      {/* --- NUEVO: Indicador visual en la tarjeta --- */}
-      <View style={styles.statusContainer}>
-        <Text style={[styles.statusText, item.isPremium ? styles.premiumText : styles.freemiumText]}>
-             {item.isPremium ? '⭐ Usuario Premium' : '👤 Usuario Freemium'}
-        </Text>
-      </View>
+        <View style={styles.planStatusContainer}>
+          <Text style={styles.userPlan}>Plan: {item.plan || 'Ninguno'}</Text>
+          {/* Insignia de Estado con EMOJIS anteriores */}
+          <View style={[styles.statusBadge, item.isPremium ? styles.premiumBadge : styles.freemiumBadge]}>
+            <Text style={styles.badgeTextBold}>
+              {item.isPremium ? '⭐ Usuario Premium' : '👤 Usuario Freemium'}
+            </Text>
+          </View>
+        </View>
 
-      <View style={styles.userActions}>
-        <TouchableOpacity style={styles.actionButton} onPress={() => handleEditUser(item)}>
-          <Text style={styles.actionButtonText}>Editar Datos</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.actionButton, styles.deleteButton]}
-          onPress={() => confirmDeleteUser(item)}
-        >
-          <Text style={styles.actionButtonText}>Borrar Datos</Text>
-        </TouchableOpacity>
+        <View style={styles.cardActions}>
+          <TouchableOpacity style={[styles.cardActionButton, styles.editButton]} onPress={() => handleEditUser(item)}>
+            <Text style={styles.cardActionText}>Editar Datos</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.cardActionButton, styles.deleteButton]} onPress={() => confirmDeleteUser(item)}>
+            <Text style={styles.cardActionText}>Borrar Datos</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
@@ -228,37 +255,52 @@ export default function AdminPanel({ navigation }) {
   if (loading && users.length === 0) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#3498db" />
+        <ActivityIndicator size="large" color={COLORS.mediumGreen} />
         <Text style={styles.loadingText}>Cargando...</Text>
       </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.headerTitle}>Menú de Administración</Text>
+    <View style={styles.mainContainer}>
+      <StatusBar backgroundColor={COLORS.lightGreenBg} barStyle="dark-content" />
+      
+      <SafeAreaView style={styles.safeArea}>
+        {/* --- TÍTULO SIMPLE --- */}
+        <Text style={styles.headerTitle}>Menú de Administración</Text>
 
-      <TextInput
-        style={styles.searchInput}
-        placeholder="🔍 Buscar por nombre o correo..."
-        value={searchText}
-        onChangeText={handleSearchChange}
-      />
+        {/* --- CONTENIDO PRINCIPAL --- */}
+        <View style={styles.contentContainer}>
+          <View style={styles.searchContainer}>
+            <Icon name="magnify" size={24} color="#9E9E9E" style={styles.searchIcon} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Buscar por nombre o correo..."
+              value={searchText}
+              onChangeText={handleSearchChange}
+              placeholderTextColor="#9E9E9E"
+            />
+          </View>
 
-      <FlatList
-        data={filteredUsers}
-        keyExtractor={(item) => item.id}
-        renderItem={renderUserItem}
-        contentContainerStyle={styles.listContent}
-        ListEmptyComponent={<Text style={styles.emptyList}>No se encontraron usuarios.</Text>}
-        style={styles.flatList}
-      />
+          <FlatList
+            data={filteredUsers}
+            keyExtractor={(item) => item.id}
+            renderItem={renderUserItem}
+            contentContainerStyle={styles.listContent}
+            ListEmptyComponent={<Text style={styles.emptyList}>No se encontraron usuarios.</Text>}
+            style={styles.flatList}
+          />
+        </View>
 
-      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-        <Text style={styles.logoutButtonText}>Cerrar sesión</Text>
-      </TouchableOpacity>
+        {/* --- BOTÓN DE CERRAR SESIÓN --- */}
+        <View style={styles.footerContainer}>
+          <TouchableOpacity style={styles.footerLogoutButton} onPress={handleLogout}>
+            <Text style={styles.footerLogoutText}>Cerrar sesión</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
 
-      {/* Modal de Edición */}
+      {/* --- Modal de Edición --- */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -267,17 +309,13 @@ export default function AdminPanel({ navigation }) {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            {/* Usamos ScrollView por si el modal se hace muy alto */}
-            <React.Fragment>
             <Text style={styles.modalTitle}>Editar Datos</Text>
-
             <Text style={styles.label}>Correo (Solo lectura):</Text>
              <TextInput
               style={[styles.modalInput, styles.readOnlyInput]}
               value={displayEmail}
               editable={false}
             />
-
             <Text style={styles.label}>Nombre:</Text>
             <TextInput
               style={styles.modalInput}
@@ -285,41 +323,32 @@ export default function AdminPanel({ navigation }) {
               value={editName}
               onChangeText={setEditName}
             />
-
-             {/* --- NUEVA SECCIÓN DE SUSCRIPCIÓN --- */}
             <Text style={styles.label}>Estado de Suscripción:</Text>
             <View style={styles.switchContainer}>
                 <Switch
-                    trackColor={{ false: "#767577", true: "#3498db" }}
-                    thumbColor={editIsPremium ? "#f4f3f4" : "#f4f3f4"}
+                    trackColor={{ false: "#BDBDBD", true: COLORS.mediumGreen }}
+                    thumbColor={editIsPremium ? COLORS.yellowStripe : "#F5F5F5"}
                     ios_backgroundColor="#3e3e3e"
-                    onValueChange={setEditIsPremium} // Al cambiar, actualiza el estado
-                    value={editIsPremium} // El valor actual (true/false)
+                    onValueChange={setEditIsPremium}
+                    value={editIsPremium}
                 />
                 <Text style={styles.switchLabel}>
                     {editIsPremium ? "⭐ Premium" : "👤 Freemium"}
                 </Text>
             </View>
-
-            {/* Solo mostramos el campo de fecha si es Premium */}
             {editIsPremium && (
                 <>
-                    <Text style={styles.label}>Fecha de Suscripción:</Text>
+                    <Text style={styles.label}>Fecha de Suscripción (Texto):</Text>
                     <TextInput
                         style={styles.modalInput}
                         placeholder="Ej: 2025-11-28T..."
                         value={editSubscriptionDate}
                         onChangeText={setEditSubscriptionDate}
-                        // Nota: Para producción, aquí sería mejor un DatePicker
                     />
-                    <Text style={styles.helperText}>
-                        * Si cambias a Freemium, esta fecha se borrará al guardar.
-                    </Text>
                 </>
             )}
-            {/* --- FIN NUEVA SECCIÓN --- */}
 
-
+            {/* --- SECCIÓN DE BOTONES DE PLAN RECUPERADA --- */}
             <Text style={styles.label}>Seleccionar Plan de Ejercicios:</Text>
             <View style={styles.planButtonsContainer}>
               {planOptions.map((plan, index) => (
@@ -342,149 +371,192 @@ export default function AdminPanel({ navigation }) {
                 </TouchableOpacity>
               ))}
             </View>
+            {/* ------------------------------------------- */}
 
             <View style={styles.modalButtons}>
               <TouchableOpacity style={styles.modalButton} onPress={() => setIsEditModalVisible(false)}>
                 <Text style={styles.modalButtonText}>Cancelar</Text>
               </TouchableOpacity>
               <TouchableOpacity style={[styles.modalButton, styles.modalSaveButton]} onPress={saveEditedUser}>
-                <Text style={styles.modalButtonText}>Guardar Cambios</Text>
+                <Text style={styles.modalButtonText}>Guardar</Text>
               </TouchableOpacity>
             </View>
-            </React.Fragment>
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  mainContainer: {
     flex: 1,
-    backgroundColor: '#ecf0f1',
-    padding: 15,
+    backgroundColor: COLORS.lightGreenBg,
   },
-  loadingContainer: {
+  safeArea: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#ecf0f1',
-  },
-  loadingText: {
-    marginTop: 10,
-    fontSize: 16,
-    color: '#34495e',
   },
   headerTitle: {
-    fontSize: 26,
+    fontSize: 28,
     fontWeight: 'bold',
-    color: '#2c3e50',
+    color: COLORS.textDark,
     textAlign: 'center',
+    marginTop: Platform.OS === 'android' ? StatusBar.currentHeight + 20 : 20,
     marginBottom: 20,
-    marginTop: 10,
+  },
+  contentContainer: {
+    flex: 1,
+    paddingHorizontal: 20,
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.white,
+    borderRadius: 15,
+    paddingHorizontal: 15,
+    height: 55,
+    borderWidth: 2,
+    borderColor: COLORS.searchBorder,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  searchIcon: {
+    marginRight: 10,
   },
   searchInput: {
-    backgroundColor: '#fff',
-    padding: 12,
-    borderRadius: 10,
-    marginBottom: 15,
-    borderWidth: 1,
-    borderColor: '#bdc3c7',
+    flex: 1,
     fontSize: 16,
+    color: COLORS.textDark,
   },
   flatList: {
     flex: 1,
   },
   listContent: {
-    paddingBottom: 10,
+    paddingBottom: 20,
+  },
+  emptyList: {
+    textAlign: 'center',
+    fontSize: 18,
+    color: COLORS.textLight,
+    marginTop: 50,
   },
   userCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 15,
-    marginBottom: 12,
+    flexDirection: 'row',
+    backgroundColor: COLORS.cardBg,
+    borderRadius: 15,
+    marginBottom: 15,
+    overflow: 'hidden',
+    elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
-    elevation: 3,
-    borderLeftWidth: 5,
-    borderLeftColor: '#3498db',
+  },
+  cardStripe: {
+    width: 12,
+    backgroundColor: COLORS.yellowStripe,
+  },
+  cardContent: {
+    flex: 1,
+    padding: 15,
   },
   userName: {
-    fontSize: 18,
+    fontSize: 16,
+    color: COLORS.textDark,
+    marginBottom: 4,
+  },
+  userNameBold: {
     fontWeight: 'bold',
-    color: '#2c3e50',
-    marginBottom: 5,
   },
   userEmail: {
-    fontSize: 15,
-    color: '#34495e',
-    marginBottom: 5,
+    fontSize: 14,
+    color: COLORS.textLight,
+    marginBottom: 12,
+  },
+  planStatusContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 15,
   },
   userPlan: {
-    fontSize: 14,
-    color: '#7f8c8d',
-    fontStyle: 'italic',
-    marginBottom: 5,
+    fontSize: 15,
+    color: COLORS.textDark,
+    fontWeight: '500',
   },
-  // --- ESTILOS NUEVOS PARA STATUS EN TARJETA ---
-  statusContainer: {
-    marginBottom: 10,
-  },
-  statusText: {
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  premiumText: {
-    color: '#27ae60', // Verde para premium
-  },
-  freemiumText: {
-    color: '#7f8c8d', // Gris para freemium
-  },
-  // --------------------------------------------
-  userActions: {
+  statusBadge: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
-    borderTopWidth: 1,
-    borderTopColor: '#eee',
-    paddingTop: 10,
-  },
-  actionButton: {
-    backgroundColor: '#3498db',
+    alignItems: 'center',
     paddingVertical: 8,
-    paddingHorizontal: 15,
-    borderRadius: 8,
-    marginLeft: 10,
+    paddingHorizontal: 12,
+    borderRadius: 20,
   },
-  deleteButton: {
-    backgroundColor: '#e74c3c',
+  premiumBadge: {
+    backgroundColor: COLORS.mediumGreen,
   },
-  actionButtonText: {
-    color: '#fff',
+  freemiumBadge: {
+    backgroundColor: COLORS.grayBadge,
+  },
+  badgeTextBold: {
+    color: COLORS.white,
+    fontSize: 13,
     fontWeight: 'bold',
-    fontSize: 12,
   },
-  emptyList: {
-    textAlign: 'center',
-    marginTop: 50,
-    fontSize: 18,
-    color: '#95a5a6',
+  cardActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
-  logoutButton: {
-    backgroundColor: '#c0392b',
-    padding: 15,
+  cardActionButton: {
+    flex: 0.48,
+    paddingVertical: 10,
     borderRadius: 10,
     alignItems: 'center',
-    marginTop: 10,
-    marginBottom: 10,
-    elevation: 4,
+    justifyContent: 'center',
   },
-  logoutButtonText: {
-    color: 'white',
+  editButton: {
+    backgroundColor: COLORS.mediumGreen,
+  },
+  deleteButton: {
+    backgroundColor: COLORS.redButton,
+  },
+  cardActionText: {
+    color: COLORS.white,
     fontWeight: 'bold',
+    fontSize: 14,
+  },
+  footerContainer: {
+    padding: 20,
+  },
+  footerLogoutButton: {
+    backgroundColor: COLORS.redButton,
+    paddingVertical: 15,
+    borderRadius: 15,
+    alignItems: 'center',
+    shadowColor: COLORS.redButton,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 5,
+  },
+  footerLogoutText: {
+    color: COLORS.white,
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: COLORS.lightGreenBg,
+  },
+  loadingText: {
+    marginTop: 10,
     fontSize: 16,
+    color: COLORS.textLight,
   },
   modalOverlay: {
     flex: 1,
@@ -493,57 +565,51 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.5)',
   },
   modalContent: {
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.white,
     borderRadius: 15,
-    padding: 20,
-    width: '90%', // Un poco más ancho
+    padding: 25,
+    width: '90%',
     elevation: 5,
   },
   modalTitle: {
     fontSize: 22,
     fontWeight: 'bold',
-    marginBottom: 15,
+    marginBottom: 20,
     textAlign: 'center',
-    color: '#2c3e50',
+    color: COLORS.textDark,
   },
   label: {
     fontWeight: 'bold',
-    marginBottom: 5,
-    color: '#34495e',
+    marginBottom: 8,
+    color: COLORS.textDark,
     marginTop: 10,
   },
   modalInput: {
-    backgroundColor: '#f8f8f8',
+    backgroundColor: COLORS.inputBg,
     borderWidth: 1,
-    borderColor: '#bdc3c7',
-    borderRadius: 8,
-    padding: 10,
+    borderColor: COLORS.inputBorder,
+    borderRadius: 10,
+    padding: 12,
     fontSize: 16,
+    color: COLORS.textDark,
   },
   readOnlyInput: {
-    backgroundColor: '#e9ecef',
-    color: '#7f8c8d',
+    backgroundColor: '#ECEFF1',
+    color: COLORS.textLight,
   },
-  // --- ESTILOS NUEVOS PARA EL SWITCH Y LA FECHA EN MODAL ---
   switchContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginBottom: 5,
-      paddingVertical: 5,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+    paddingVertical: 5,
   },
   switchLabel: {
       fontSize: 16,
       marginLeft: 10,
       fontWeight: '500',
-      color: '#333',
+      color: COLORS.textDark,
   },
-  helperText: {
-      fontSize: 12,
-      color: '#e74c3c',
-      marginTop: 2,
-      fontStyle: 'italic',
-  },
-  // -------------------------------------------------------
+  // --- ESTILOS RECUPERADOS PARA LOS BOTONES DEL PLAN ---
   planButtonsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -552,47 +618,48 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   planButton: {
-    backgroundColor: '#f0f0f0',
+    backgroundColor: COLORS.inputBg,
     paddingVertical: 10,
     paddingHorizontal: 10,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: COLORS.inputBorder,
     marginBottom: 10,
     width: '48%',
     alignItems: 'center',
   },
   selectedPlanButton: {
-    backgroundColor: '#3498db',
-    borderColor: '#3498db',
+    backgroundColor: COLORS.mediumGreen,
+    borderColor: COLORS.mediumGreen,
   },
   planButtonText: {
-    color: '#333',
+    color: COLORS.textDark,
     fontSize: 14,
     fontWeight: '500',
   },
   selectedPlanButtonText: {
-    color: '#fff',
+    color: COLORS.white,
     fontWeight: 'bold',
   },
+  // ---------------------------------------------------
   modalButtons: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     marginTop: 10,
   },
   modalButton: {
-    backgroundColor: '#95a5a6',
+    backgroundColor: COLORS.grayBadge,
     paddingVertical: 12,
-    paddingHorizontal: 20,
+    paddingHorizontal: 25,
     borderRadius: 10,
-    minWidth: 100,
+    minWidth: 110,
     alignItems: 'center',
   },
   modalSaveButton: {
-    backgroundColor: '#27ae60',
+    backgroundColor: COLORS.mediumGreen,
   },
   modalButtonText: {
-    color: '#fff',
+    color: COLORS.white,
     fontWeight: 'bold',
     fontSize: 16,
   },
