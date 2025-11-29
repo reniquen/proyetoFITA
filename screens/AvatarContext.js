@@ -1,4 +1,4 @@
-// screens/AvatarContext.js
+
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { View, Text, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -12,7 +12,7 @@ export const AvatarProvider = ({ children }) => {
   const [avatar, setAvatar] = useState(defaultAvatar);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Cargar avatar guardado
+
   useEffect(() => {
     const cargarAvatar = async () => {
       try {
@@ -32,7 +32,7 @@ export const AvatarProvider = ({ children }) => {
     cargarAvatar();
   }, []);
 
-  // Guardar avatar
+
   const guardarAvatar = async (nuevoAvatarString) => {
     try {
       await AsyncStorage.setItem(AVATAR_KEY, nuevoAvatarString);
@@ -43,7 +43,7 @@ export const AvatarProvider = ({ children }) => {
     }
   };
 
-  // Mientras carga, muestra un pequeño indicador visual
+
   if (isLoading) {
     return (
       <View
@@ -67,5 +67,5 @@ export const AvatarProvider = ({ children }) => {
   );
 };
 
-// Hook personalizado
+
 export const useAvatar = () => useContext(AvatarContext);

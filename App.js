@@ -4,11 +4,10 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import * as SplashScreen from "expo-splash-screen";
 
-// Providers globales
 import { AvatarProvider } from "./screens/AvatarContext";
 import { UserDataProvider, useUserData } from "./screens/UserDataContext";
+import { SubscriptionProvider } from "./screens/SubscriptionContext";
 
-// Pantallas
 import LoginScreen from "./screens/Login";
 import HomeScreen from "./screens/Home";
 import AvatarScreen from "./screens/Avatar";
@@ -18,6 +17,8 @@ import AdminPanelScreen from "./screens/AdminPanel";
 import RegistroScreen from "./screens/Registro";
 import ScannerScreen from "./screens/ScannerScreen";
 import CalendarRecipesScreen from "./screens/CalendarRecipesScreen";
+import SuscripcionScreen from "./screens/SuscripcionScreen";
+import AboutUsScreen from "./screens/AboutUs";
 
 SplashScreen.preventAutoHideAsync();
 const Stack = createNativeStackNavigator();
@@ -26,20 +27,15 @@ function AppNavigation() {
   const { isLoadingData } = useUserData();
 
   useEffect(() => {
-    // Oculta el Splash Screen solo cuando los datos hayan cargado
     if (!isLoadingData) {
       SplashScreen.hideAsync();
     }
   }, [isLoadingData]);
 
-  // No renderiza nada hasta que los datos estén listos
   if (isLoadingData) {
     return null;
   }
 
-  // ✅ CORRECCIÓN:
-  // Se eliminó el <NavigationContainer> que estaba aquí.
-  // Ahora solo retorna el Stack.Navigator, que es lo correcto.
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Login" component={LoginScreen} />
@@ -51,6 +47,8 @@ function AppNavigation() {
       <Stack.Screen name="Registro" component={RegistroScreen} />
       <Stack.Screen name="Scanner" component={ScannerScreen} />
       <Stack.Screen name="CalendarRecipes" component={CalendarRecipesScreen} />
+      <Stack.Screen name="Suscripcion" component={SuscripcionScreen} />
+      <Stack.Screen name="AboutUs" component={AboutUsScreen} />
     </Stack.Navigator>
   );
 }
@@ -59,13 +57,11 @@ export default function App() {
   return (
     <AvatarProvider>
       <UserDataProvider>
-        {/* ✅ CORRECCIÓN:
-            El <NavigationContainer> debe ir aquí, en el componente raíz,
-            envolviendo a toda tu navegación.
-        */}
-        <NavigationContainer>
-          <AppNavigation />
-        </NavigationContainer>
+        <SubscriptionProvider>
+          <NavigationContainer>
+            <AppNavigation />
+          </NavigationContainer>
+        </SubscriptionProvider>
       </UserDataProvider>
     </AvatarProvider>
   );
