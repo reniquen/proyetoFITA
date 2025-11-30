@@ -1,8 +1,8 @@
-// Inicializar Firestore y Auth
+
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// Función para guardar la información del usuario
+
 function saveUserInfo() {
     const nombre = document.getElementById('nombre').value;
     const altura = document.getElementById('altura').value;
@@ -16,17 +16,17 @@ function saveUserInfo() {
         return;
     }
 
-    // Verificar que el correo tenga el formato correcto
+    
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     if (!emailRegex.test(correo)) {
         alert("Por favor, ingresa un correo electrónico válido.");
         return;
     }
 
-    // Verificar que el usuario esté autenticado
+    
     auth.onAuthStateChanged((user) => {
         if (user) {
-            // Guardar la información en la colección "users" con el UID del usuario
+            
             db.collection("users").doc(user.uid).set({
                 nombre: nombre,
                 altura: altura,
@@ -35,7 +35,7 @@ function saveUserInfo() {
             })
             .then(() => {
                 alert("Información guardada exitosamente");
-                window.location.href = "./Home.js"; // Redirigir a otra pantalla si deseas
+                window.location.href = "./Home.js"; 
             })
             .catch((error) => {
                 console.error("Error al guardar la información: ", error);

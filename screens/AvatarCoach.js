@@ -1,36 +1,26 @@
-// screens/AvatarCoach.js
+
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useAvatar } from './AvatarContext';
 import { LOTTIE_ASSETS } from './AvatarAssets';
-import LottieView from 'lottie-react-native'; // <-- Importar Lottie
+import LottieView from 'lottie-react-native'; 
 
 export default function AvatarCoach() {
-  const { avatar, isLoading } = useAvatar(); // 'avatar' ahora es un string (ej: "normal")
+  const { avatar, isLoading } = useAvatar(); 
   const [consejo, setConsejo] = useState('');
 
-  const consejos = [
-    "¡No olvides hidratarte! 💧",
-    "Hoy es un gran día para darlo todo 💪",
-    "La constancia es más importante que la perfección 🔑",
-    "Recuerda estirar antes de entrenar 🧘",
-  ];
 
-  useEffect(() => {
-    const randomConsejo = consejos[Math.floor(Math.random() * consejos.length)];
-    setConsejo(randomConsejo);
-  }, []);
 
   if (isLoading || !avatar) {
-    return null; // No mostrar nada mientras carga
+    return null;
   }
 
   return (
     <View style={styles.container}>
-      {/* --- Vista previa Lottie --- */}
+      {}
       <View style={styles.avatarPreview}>
         <LottieView
-          source={LOTTIE_ASSETS[avatar]} // Carga la animación guardada
+          source={LOTTIE_ASSETS[avatar]} 
           autoPlay
           loop
           style={styles.lottieAvatar}
@@ -52,7 +42,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   avatarPreview: {
-    width: 150, // Tamaño ajustado para Lottie
+    width: 150, 
     height: 150,
     marginBottom: 10,
   },
