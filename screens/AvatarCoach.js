@@ -1,58 +1,60 @@
-
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React from 'react';
+import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { useAvatar } from './AvatarContext';
 import { LOTTIE_ASSETS } from './AvatarAssets';
-import LottieView from 'lottie-react-native'; 
+import LottieView from 'lottie-react-native';
 
 export default function AvatarCoach() {
-  const { avatar, isLoading } = useAvatar(); 
-  const [consejo, setConsejo] = useState('');
+  // Solo necesitamos el avatar y el estado de carga
+  const { avatar, isLoading } = useAvatar();
 
+  // Mostrar un indicador de carga sutil mientras se recupera el avatar
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="small" color="#4CAF50" />
+      </View>
+    );
+  }
 
-
-  if (isLoading || !avatar) {
+  // Si no hay avatar seleccionado aún, no renderizar nada
+  if (!avatar) {
     return null;
   }
 
   return (
-    <View style={styles.container}>
-      {}
-      <View style={styles.avatarPreview}>
-        <LottieView
-          source={LOTTIE_ASSETS[avatar]} 
-          autoPlay
-          loop
-          style={styles.lottieAvatar}
-        />
-      </View>
-      <Text style={styles.consejo}>{consejo}</Text>
+    // Contenedor limpio para la animación
+    <View style={styles.avatarContainer}>
+      <LottieView
+        source={LOTTIE_ASSETS[avatar]}
+        autoPlay
+        loop
+        style={styles.lottieAvatar}
+        resizeMode="cover" // Asegura que el lottie llene el contenedor
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    backgroundColor: '#fad7a0',
-    padding: 15,
-    borderRadius: 15,
+  // Contenedor limpio solo para dimensionar la animación
+  avatarContainer: {
+    // AUMENTADO EL TAMAÑO AQUÍ (de 130 a 170)
+    width: 170,
+    height: 170,
+    justifyContent: 'center',
     alignItems: 'center',
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  avatarPreview: {
-    width: 150, 
-    height: 150,
-    marginBottom: 10,
+    // Sin backgroundColor, sin shadow, sin padding extra.
   },
   lottieAvatar: {
     width: '100%',
     height: '100%',
   },
-  consejo: {
-    marginTop: 10,
-    fontSize: 16,
-    textAlign: 'center',
-  },
+  loadingContainer: {
+    // También aumentamos el contenedor de carga para que coincida
+    width: 170,
+    height: 170,
+    justifyContent: 'center',
+    alignItems: 'center',
+  }
 });
