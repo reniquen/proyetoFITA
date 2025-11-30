@@ -14,7 +14,9 @@ import { Ionicons } from '@expo/vector-icons';
 export default function AboutUs({ navigation }) {
   
   const openLink = (url) => {
-    Linking.openURL(url).catch(err => console.error("Couldn't load page", err));
+    if(url) {
+      Linking.openURL(url).catch(err => console.error("Couldn't load page", err));
+    }
   };
 
   return (
@@ -35,7 +37,7 @@ export default function AboutUs({ navigation }) {
         {/* Cabecera con Logo */}
         <View style={styles.logoSection}>
           <View style={styles.logoContainer}>
-            {/* Si tienes el logo, úsalo. Si no, usa este texto estilizado */}
+             {/* Asegúrate de que esta ruta a tu logo sea correcta */}
              <Image source={require('../assets/ejercicios/logofita.png')} style={styles.logoImage} resizeMode="contain" />
           </View>
           <Text style={styles.appName}>FITA</Text>
@@ -55,33 +57,24 @@ export default function AboutUs({ navigation }) {
 
         {/* Sección: ¿Qué nos hace únicos? */}
         <View style={styles.valuesContainer}>
-
             <View style={[styles.valueCard, { backgroundColor: '#e8f8f5' }]}>
-              <Image 
-                source={require('../assets/asistente-de-ai.png')} 
-                style={styles.valueIcon}   
-              />
+              <Image source={require('../assets/asistente-de-ai.png')} style={styles.valueIcon} />
               <Text style={styles.valueTitle}>IA Avanzada</Text>
               <Text style={styles.valueText}>Coach inteligente 24/7.</Text>
             </View>
 
             <View style={[styles.valueCard, { backgroundColor: '#fef5e7' }]}>
-              <Image 
-                source={require('../assets/plan-de-nutricion.png')} 
-                style={styles.valueIcon} 
-              />
+              <Image source={require('../assets/plan-de-nutricion.png')} style={styles.valueIcon} />
               <Text style={styles.valueTitle}>Nutrición</Text>
               <Text style={styles.valueText}>Planes a tu medida.</Text>
             </View>
 
             <View style={[styles.valueCard, { backgroundColor: '#f4ecf7' }]}>
-              <Image 
-                source={require('../assets/rutina-diaria.png')} 
-                style={styles.valueIcon} 
-              />
+              <Image source={require('../assets/rutina-diaria.png')} style={styles.valueIcon} />
               <Text style={styles.valueTitle}>Rutinas</Text>
               <Text style={styles.valueText}>Progresión constante.</Text>
             </View>
+        </View>
 
 </View>
 
@@ -106,14 +99,61 @@ export default function AboutUs({ navigation }) {
             que tú solo tengas que preocuparte por entrenar.
           </Text>
           
-          <View style={styles.socialRow}>
-            <TouchableOpacity style={styles.socialBtn} onPress={() => openLink('https://github.com/reniquen')}>
-              <Text style={styles.socialText}>GitHub</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.socialBtn, styles.socialBtnAlt]} onPress={() => openLink('https://www.linkedin.com/in/fita-company-051161398/')}>
-              <Text style={styles.socialText}>LinkedIn</Text>
-            </TouchableOpacity>
+          {/* --- GRID DE BOTONES SOCIALES (Sin librerías extra) --- */}
+          <View style={styles.socialGridContainer}>
+            
+            {/* Fila Superior */}
+            <View style={styles.socialRowGroup}>
+              {/* Botón 1: Instagram (Forma: Gota superior izquierda) */}
+              <TouchableOpacity style={[styles.socialCard, styles.cardInstagram]}
+              onPress={() => openLink('https://www.linkedin.com/in/fita-company-051161398/')}
+              activeOpacity={0.7}>
+                <Image 
+                  source={{ uri: 'https://img.icons8.com/ios-filled/50/ffffff/instagram-new.png' }}
+                  style={[styles.socialIcon, { tintColor: '#cc39a4' }]} 
+                />
+              </TouchableOpacity>
+
+              {/* Botón 2: LinkedIn (Forma: Gota superior derecha) */}
+              <TouchableOpacity 
+                style={[styles.socialCard, styles.cardLinkedIn]} 
+                onPress={() => openLink('https://www.linkedin.com/in/fita-company-051161398/')}
+                activeOpacity={0.7}
+              >
+                <Image 
+                  source={{ uri: 'https://img.icons8.com/ios-filled/50/ffffff/linkedin.png' }}
+                  style={[styles.socialIcon, { tintColor: '#0077b5' }]} 
+                />
+              </TouchableOpacity>
+            </View>
+            
+            {/* Fila Inferior */}
+            <View style={styles.socialRowGroup}>
+              {/* Botón 3: GitHub (Forma: Gota inferior izquierda) */}
+              <TouchableOpacity 
+                style={[styles.socialCard, styles.cardGithub]} 
+                onPress={() => openLink('https://github.com/reniquen')}
+                activeOpacity={0.7}
+              >
+                <Image 
+                  source={{ uri: 'https://img.icons8.com/ios-filled/50/ffffff/github.png' }}
+                  style={[styles.socialIcon, { tintColor: '#333' }]} 
+                />
+              </TouchableOpacity>
+
+              {/* Botón 4: Discord (Forma: Gota inferior derecha) */}
+              <TouchableOpacity style={[styles.socialCard, styles.cardDiscord]} 
+              onPress={() => openLink('https://discord.gg/kWHqmTdY')}
+              activeOpacity={0.7}>
+                <Image 
+                  source={{ uri: 'https://img.icons8.com/ios-filled/50/ffffff/discord-logo.png' }}
+                  style={[styles.socialIcon, { tintColor: '#8c9eff' }]} 
+                />
+              </TouchableOpacity>
+            </View>
+
           </View>
+
         </View>
 
         {/* Footer */}
@@ -203,10 +243,6 @@ const styles = StyleSheet.create({
     padding: 20,
     marginBottom: 20,
     elevation: 3,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    shadowOffset: { width: 0, height: 2 },
   },
   sectionTitle: {
     fontSize: 20,
@@ -233,21 +269,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     elevation: 2,
   },
-  valueEmoji: {
-    fontSize: 24,
-    marginBottom: 5,
-  },
   valueTitle: {
     fontSize: 12,
     fontWeight: 'bold',
     color: '#2c3e50',
     textAlign: 'center',
+    marginTop: 5,
   },
   valueText: {
     fontSize: 10,
     color: '#7f8c8d',
     textAlign: 'center',
     marginTop: 2,
+  },
+  valueIcon: {
+    width: 55,
+    height: 55,
+    marginBottom: 8,
+    resizeMode: 'contain',
   },
   teamHeader: {
     fontSize: 22,
@@ -301,24 +340,52 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     lineHeight: 20,
   },
-  socialRow: {
+  
+  // --- ESTILOS DEL GRID SOCIAL ---
+  socialGridContainer: {
+    flexDirection: 'column',
+    gap: 8, 
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  socialRowGroup: {
     flexDirection: 'row',
+    gap: 8, 
   },
-  socialBtn: {
-    backgroundColor: '#24292e', // Github color
-    paddingVertical: 8,
-    paddingHorizontal: 15,
-    borderRadius: 20,
-    marginRight: 10,
+  socialCard: {
+    width: 80,
+    height: 80,
+    backgroundColor: '#FF9C59',
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 3,
+    // Sombra para iOS
+    shadowColor: '#32325d',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    // Radio base para todas las esquinas
+    borderRadius: 6,
   },
-  socialBtnAlt: {
-    backgroundColor: '#0077b5', // LinkedIn color
+  socialIcon: {
+    width: 35,
+    height: 35,
+    resizeMode: 'contain'
   },
-  socialText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 12,
+  // Formas personalizadas usando border radius nativo
+  cardInstagram: {
+    borderTopLeftRadius: 40,
   },
+  cardLinkedIn: {
+    borderTopRightRadius: 40,
+  },
+  cardGithub: {
+    borderBottomLeftRadius: 40,
+  },
+  cardDiscord: {
+    borderBottomRightRadius: 40,
+  },
+
   footer: {
     alignItems: 'center',
     padding: 20,
@@ -342,12 +409,4 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
   },
-
-  valueIcon: {
-    width: 55,
-    height: 55,
-    marginBottom: 8,
-    resizeMode: 'contain',
-  },
-  
 });
