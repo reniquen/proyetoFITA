@@ -18,6 +18,8 @@ import RegistroScreen from "./screens/Registro";
 import ScannerScreen from "./screens/ScannerScreen";
 import CalendarRecipesScreen from "./screens/CalendarRecipesScreen";
 import SuscripcionScreen from "./screens/SuscripcionScreen";
+import AboutUsScreen from "./screens/AboutUs";
+import ContadorPasosScreen from "./screens/ContadorPasos";
 
 SplashScreen.preventAutoHideAsync();
 const Stack = createNativeStackNavigator();
@@ -47,6 +49,8 @@ function AppNavigation() {
       <Stack.Screen name="Scanner" component={ScannerScreen} />
       <Stack.Screen name="CalendarRecipes" component={CalendarRecipesScreen} />
       <Stack.Screen name="Suscripcion" component={SuscripcionScreen} />
+      <Stack.Screen name="AboutUs" component={AboutUsScreen} />
+      <Stack.Screen name="ContadorPasos" component={ContadorPasosScreen} /> 
     </Stack.Navigator>
   );
 }

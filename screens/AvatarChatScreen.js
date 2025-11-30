@@ -1,4 +1,4 @@
-// ./screens/AvatarChatScreen.js
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { View, StyleSheet, Text, SafeAreaView, ActivityIndicator, Alert, TouchableOpacity } from 'react-native';
 import { GiftedChat } from 'react-native-gifted-chat';
@@ -10,7 +10,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { PRESET_ROUTINES } from './RoutineCatalog';
 import { useSubscription } from './SubscriptionContext';
 
-const API_KEY = "AIzaSyC1pejgzyzB-aZlIvMxKl--PTUC7UKQ8xM";
+const API_KEY = "AIzaSyCEOCeMBan4derIYjkWza67EVxWvFIno1I";
 const genAI = new GoogleGenerativeAI(API_KEY);
 
 const model = genAI.getGenerativeModel({
@@ -143,7 +143,7 @@ RESPONDE SIEMPRE EN FORMATO JSON:
     }
   };
 
-  // loaders
+ 
   if (isLoadingAvatar || isLoadingData || loadingSubscription || !avatarBot) {
     return (
       <View style={styles.loading}>
@@ -152,7 +152,7 @@ RESPONDE SIEMPRE EN FORMATO JSON:
     );
   }
 
-  // bloqueo por suscripción
+ 
   if (!isSubscribed) {
     return (
       <SafeAreaView style={{ flex: 1, justifyContent: "center", alignItems: "center", padding: 20 }}>

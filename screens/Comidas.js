@@ -3,6 +3,7 @@ import { Text, StyleSheet, View, ScrollView } from 'react-native';
 import AvatarCoach from './AvatarCoach';
 
 
+
 export default function Comidas() {
     const dietas = {
         lunes: [
@@ -46,7 +47,7 @@ export default function Comidas() {
     const diaActual = diasSemana[new Date().getDay()];
     const dietaHoy = dietas[diaActual] || [];
 
-    // Calcular total calorías
+    
     const totalCalorias = dietaHoy.reduce((total, comida) => total + comida.calorias, 0);
 
     return (
