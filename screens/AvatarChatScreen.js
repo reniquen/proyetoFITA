@@ -23,7 +23,7 @@ import { CHILEAN_FOOD } from './ChileanFoodCatalog';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 // ⚠️ IMPORTANTE: Usa tu clave segura aquí
-const API_KEY = "AIzaSyAAafhpOoBcZ2voadkJMFOd86W4gM5tXHo";
+const API_KEY = "AIzaSyAfM3gdPuoig_PprpIcIVuWN_ORm9gV9O8";
 
 const genAI = new GoogleGenerativeAI(API_KEY);
 
