@@ -9,6 +9,7 @@ import {
   SafeAreaView, 
   Linking 
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function AboutUs({ navigation }) {
   
@@ -20,10 +21,21 @@ export default function AboutUs({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
+      
+      {/* --- HEADER ESTILO TIKTOK --- */}
+      <View style={styles.headerBar}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButtonHeader}>
+          <Ionicons name="arrow-back" size={28} color="black" />
+        </TouchableOpacity>
+        <Text style={styles.screenTitle}>Quiénes Somos</Text>
+        <View style={{ width: 28 }} />
+      </View>
+      {/* ----------------------------- */}
+
       <ScrollView contentContainerStyle={styles.scrollContent}>
         
         {/* Cabecera con Logo */}
-        <View style={styles.header}>
+        <View style={styles.logoSection}>
           <View style={styles.logoContainer}>
              {/* Asegúrate de que esta ruta a tu logo sea correcta */}
              <Image source={require('../assets/ejercicios/logofita.png')} style={styles.logoImage} resizeMode="contain" />
@@ -63,6 +75,12 @@ export default function AboutUs({ navigation }) {
               <Text style={styles.valueText}>Progresión constante.</Text>
             </View>
         </View>
+
+</View>
+
+
+
+
 
         {/* Sección: El Equipo */}
         <Text style={styles.teamHeader}>El Equipo</Text>
@@ -142,10 +160,6 @@ export default function AboutUs({ navigation }) {
         <View style={styles.footer}>
           <Text style={styles.footerText}>Versión 1.0.2</Text>
           <Text style={styles.footerText}>Hecho con 💚 en React Native</Text>
-          
-          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-            <Text style={styles.backButtonText}>Volver al Inicio</Text>
-          </TouchableOpacity>
         </View>
 
       </ScrollView>
@@ -156,18 +170,41 @@ export default function AboutUs({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#58d68d',
+    backgroundColor: '#fff', // Fondo blanco para cubrir la barra de estado
   },
-  scrollContent: {
-    paddingBottom: 40,
-  },
-  header: {
+  // --- HEADER ESTILO TIKTOK ---
+  headerBar: {
+    flexDirection: 'row',
+    width: '100%',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 40,
-    backgroundColor: '#fff',
+    paddingHorizontal: 20,
+    paddingBottom: 15,
+    paddingTop: 50, // Espacio superior para bajar la barra blanca
+    backgroundColor: '#fff', 
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
     elevation: 5,
+    zIndex: 10,
+  },
+  backButtonHeader: {
+    padding: 5,
+  },
+  screenTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'black',
+  },
+  // ----------------------------
+  
+  scrollContent: {
+    backgroundColor: '#58d68d', // El verde va en el contenido
+    paddingBottom: 40,
+    paddingTop: 20,
+    minHeight: '100%',
+  },
+  logoSection: {
+    alignItems: 'center',
     marginBottom: 20,
   },
   logoContainer: {
@@ -187,12 +224,15 @@ const styles = StyleSheet.create({
   appName: {
     fontSize: 28,
     fontWeight: '900',
-    color: '#2c3e50',
+    color: '#fff',
     letterSpacing: 1,
+    textShadowColor: 'rgba(0,0,0,0.2)',
+    textShadowOffset: {width: 1, height: 1},
+    textShadowRadius: 3,
   },
   appTagline: {
     fontSize: 14,
-    color: '#7f8c8d',
+    color: '#e8f8f5',
     marginTop: 5,
     fontStyle: 'italic',
   },
