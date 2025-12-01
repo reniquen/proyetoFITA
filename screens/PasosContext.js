@@ -23,6 +23,9 @@ export function StepProvider({ children }) {
   const [pasos, setPasos] = useState(0);
   const [segundos, setSegundos] = useState(0);
   const [historial, setHistorial] = useState([]);
+  
+  // 👇 NUEVO: Estado para guardar las calorías de las rutinas de Home
+  const [caloriasExtra, setCaloriasExtra] = useState(0);
 
   // Referencias internas
   const pasosRef = useRef(0);
@@ -43,6 +46,11 @@ export function StepProvider({ children }) {
   const obtenerHoraActual = () => {
     const fecha = new Date();
     return `${fecha.getHours()}:${fecha.getMinutes() < 10 ? '0' : ''}${fecha.getMinutes()}`;
+  };
+
+  // 👇 NUEVO: Función para sumar calorías desde Home.js
+  const agregarCaloriasExtra = (kcal) => {
+    setCaloriasExtra((prev) => prev + kcal);
   };
 
   // --- NOTIFICACIONES ---
@@ -147,7 +155,9 @@ export function StepProvider({ children }) {
       toggleCronometro,
       formatearTiempo,
       KCAL_POR_PASO,
-      METROS_POR_PASO
+      METROS_POR_PASO,
+      caloriasExtra,       // 👈 NUEVO: Exportamos el estado
+      agregarCaloriasExtra // 👈 NUEVO: Exportamos la función
     }}>
       {children}
     </StepContext.Provider>
