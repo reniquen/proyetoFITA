@@ -4,25 +4,43 @@
     "slug": "fitA",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/avatar/image.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "splash": {
-      "image": "./assets/fita.jpg.png",
+      "image": "./assets/avatar/image.png",
       "resizeMode": "contain",
       "backgroundColor": "#fad7a0"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSMotionUsageDescription": "Necesitamos acceso a tu movimiento para contar tus pasos."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.reniquen.fitA",
+      "permissions": [
+        "android.permission.ACTIVITY_RECOGNITION"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "2476645f-a0c6-41a8-8187-a89dbc6029d9"
+      }
+    },
+    "plugins": [
+      "expo-barcode-scanner",
+      "expo-sensors",
+      "expo-asset",
+      "expo-font"
+    ]
   }
 }

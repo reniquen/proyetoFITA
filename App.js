@@ -1,38 +1,68 @@
-
-
-// App.js
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { AvatarProvider } from './screens/AvatarContext.js'; // 1. Importar
-
-import Login from './screens/Login';
-import Registro from './screens/Registro';
-import Datos from './screens/Datos';
-import Planes from './screens/Planes';
+import { createStackNavigator } from '@react-navigation/stack';
+import { StatusBar } from 'react-native';
+import LoginScreen from './screens/Login'; 
 import Home from './screens/Home';
-import Comidas from './screens/Comidas';
-import AdminPanel from './screens/AdminPanel.js';
-import Avatar from './screens/Avatar.js';
+import AvatarChatScreen from './screens/AvatarChatScreen';
+import SuscripcionScreen from './screens/SuscripcionScreen';
+import TerminosCondicionesScreen from './screens/TerminosCondicionesScreen';
+import CalendarRecipesScreen from './screens/CalendarRecipesScreen'; 
+import ScannerScreen from './screens/ScannerScreen'; 
+import ContadorPasosScreen from './screens/ContadorPasos'; 
+import AboutUsScreen from './screens/AboutUs'; 
+import AvatarScreen from './screens/Avatar'; 
 
-const Stack = createNativeStackNavigator();
+// Contextos
+import { UserDataProvider } from './screens/UserDataContext';
+import { AvatarProvider } from './screens/AvatarContext';
+import { SubscriptionProvider } from './screens/SubscriptionContext';
+import { StepProvider } from './screens/PasosContext';
+
+const Stack = createStackNavigator();
 
 export default function App() {
   return (
-    // 2. Envolver la navegación con el Provider
-    <AvatarProvider>
-      <NavigationContainer>
-        <Stack.Navigator initialRouteName="Login">
-          <Stack.Screen name="Login" component={Login} options={{ title: 'Iniciar Sesión' }} />
-          <Stack.Screen name="Registro" component={Registro} options={{ title: 'Registro' }} />
-          <Stack.Screen name="Datos" component={Datos} options={{ title: 'Datos' }} />
-          <Stack.Screen name="Planes" component={Planes} options={{ title: 'Planes' }} />
-          <Stack.Screen name="Home" component={Home} options={{ title: 'Home' }} />
-          <Stack.Screen name="Comidas" component={Comidas} options={{ title: 'Comidas' }} />
-          <Stack.Screen name="AdminPanel" component={AdminPanel} />
-          <Stack.Screen name="Avatar" component={Avatar} options={{ title: 'Tu Avatar' }} />
-        </Stack.Navigator>
-      </NavigationContainer>
-    </AvatarProvider>
+    <SubscriptionProvider>
+      <AvatarProvider>
+        <UserDataProvider>
+          {/* 2. AGREGAMOS EL PROVEEDOR AQUÍ */}
+          <StepProvider>
+            
+            <NavigationContainer>
+              <StatusBar backgroundColor="#4CAF50" barStyle="light-content" />
+              <Stack.Navigator 
+                initialRouteName="Login"
+                screenOptions={{
+                  headerShown: false, 
+                  cardStyle: { backgroundColor: '#F2F5ED' }
+                }}
+              >
+                <Stack.Screen name="Login" component={LoginScreen} />
+                <Stack.Screen name="Home" component={Home} />
+                
+                {/* Pantallas del Chat y Avatar */}
+                <Stack.Screen name="AvatarChat" component={AvatarChatScreen} />
+                <Stack.Screen name="Avatar" component={AvatarScreen} />
+
+                {/* === NUEVAS PANTALLAS REGISTRADAS AQUÍ === */}
+                <Stack.Screen name="Suscripcion" component={SuscripcionScreen} />
+                <Stack.Screen name="TerminosCondiciones" component={TerminosCondicionesScreen} />
+                
+                {/* Otras funcionalidades */}
+                <Stack.Screen name="CalendarRecipes" component={CalendarRecipesScreen} />
+                <Stack.Screen name="Scanner" component={ScannerScreen} />
+                <Stack.Screen name="ContadorPasos" component={ContadorPasosScreen} />
+                <Stack.Screen name="AboutUs" component={AboutUsScreen} />
+
+              </Stack.Navigator>
+            </NavigationContainer>
+
+          </StepProvider>
+          {/* CIERRE DEL PROVEEDOR */}
+        </UserDataProvider>
+      </AvatarProvider>
+    </SubscriptionProvider>
   );
 }
+
