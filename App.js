@@ -12,19 +12,13 @@ import ScannerScreen from './screens/ScannerScreen';
 import ContadorPasosScreen from './screens/ContadorPasos'; 
 import AboutUsScreen from './screens/AboutUs'; 
 import AvatarScreen from './screens/Avatar'; 
-import Registro from './screens/Registro'
-
-
-// =========================================================
-// ✅ CORRECCIÓN 1: Importar el componente AdminPanel
-import AdminPanelScreen from './screens/AdminPanel'; // <-- **¡Asegúrate que la ruta es correcta!**
-// =========================================================
-
-// Contextos
+import AdminPanelScreen from './screens/AdminPanel'; 
+import DatosScreen from './screens/Datos'; 
 import { UserDataProvider } from './screens/UserDataContext';
 import { AvatarProvider } from './screens/AvatarContext';
 import { SubscriptionProvider } from './screens/SubscriptionContext';
 import { StepProvider } from './screens/PasosContext';
+import Registro from './screens/Registro';
 
 const Stack = createStackNavigator();
 
@@ -33,7 +27,6 @@ export default function App() {
     <SubscriptionProvider>
       <AvatarProvider>
         <UserDataProvider>
-          {/* 2. AGREGAMOS EL PROVEEDOR AQUÍ */}
           <StepProvider>
             
             <NavigationContainer>
@@ -45,34 +38,26 @@ export default function App() {
                   cardStyle: { backgroundColor: '#F2F5ED' }
                 }}
               >
-                <Stack.Screen name="Login" component={LoginScreen} />
+                                
+                <Stack.Screen name="Login" component={LoginScreen} />                
                 <Stack.Screen name="Home" component={Home} />
-                <Stack.Screen name="Registro" component={Registro} />
-                
-                {/* Pantallas del Chat y Avatar */}
+                <Stack.Screen name="Registro" component={Registro} />              
                 <Stack.Screen name="AvatarChat" component={AvatarChatScreen} />
-                <Stack.Screen name="Avatar" component={AvatarScreen} />
-
-                {/* === NUEVAS PANTALLAS REGISTRADAS AQUÍ === */}
+                <Stack.Screen name="Avatar" component={AvatarScreen} />               
                 <Stack.Screen name="Suscripcion" component={SuscripcionScreen} />
-                <Stack.Screen name="TerminosCondiciones" component={TerminosCondicionesScreen} />
-                
-                {/* Otras funcionalidades */}
+                <Stack.Screen name="TerminosCondiciones" component={TerminosCondicionesScreen} />                   
                 <Stack.Screen name="CalendarRecipes" component={CalendarRecipesScreen} />
                 <Stack.Screen name="Scanner" component={ScannerScreen} />
                 <Stack.Screen name="ContadorPasos" component={ContadorPasosScreen} />
-                <Stack.Screen name="AboutUs" component={AboutUsScreen} />
+                <Stack.Screen name="AboutUs" component={AboutUsScreen} />                
+                <Stack.Screen name="AdminPanel" component={AdminPanelScreen} />            
+                <Stack.Screen name="Datos" component={DatosScreen} />
                 
-                {/* ========================================================= */}
-                {/* ✅ CORRECCIÓN 2: Registrar la pantalla AdminPanel */}
-                <Stack.Screen name="AdminPanel" component={AdminPanelScreen} /> 
-                {/* ========================================================= */}
-
+                
               </Stack.Navigator>
             </NavigationContainer>
 
           </StepProvider>
-          {/* CIERRE DEL PROVEEDOR */}
         </UserDataProvider>
       </AvatarProvider>
     </SubscriptionProvider>

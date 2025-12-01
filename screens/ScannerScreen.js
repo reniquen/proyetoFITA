@@ -16,9 +16,9 @@ export default function ScannerScreen({ navigation }) {
     getBarCodeScannerPermissions();
   }, []);
 
-  // --- FUNCIÓN HELPER PARA CALIFICAR CALORÍAS ---
+  
   const analizarCalorias = (kcal) => {
-    // Estos rangos son aproximados para alimentos sólidos por 100g
+    
     if (kcal === 0) return "No disponible";
     if (kcal < 150) return "🟢 Buena (Baja densidad)";
     if (kcal < 350) return "🟡 Media (Moderada)";
@@ -28,8 +28,8 @@ export default function ScannerScreen({ navigation }) {
 
   // 2. Función que se llama al escanear un código
   const handleBarCodeScanned = async ({ type, data }) => {
-    setScanned(true); // Marca como escaneado
-    setIsLoading(true); // Muestra loading
+    setScanned(true); 
+    setIsLoading(true); 
 
     console.log(`Código escaneado (${type}): ${data}`);
 
@@ -39,22 +39,22 @@ export default function ScannerScreen({ navigation }) {
       const json = await response.json();
       setIsLoading(false); 
 
-      // 4. Revisar si la API encontró el producto
+      
       if (json.status === 1) {
         const product = json.product;
         const productName = product.product_name_es || product.product_name || "Nombre no encontrado";
         const nutriments = product.nutriments || {};
         
-        // Datos nutricionales por 100g
+        
         const protein = nutriments['proteins_100g'] || 0;
         const carbs = nutriments['carbohydrates_100g'] || 0;
         const fat = nutriments['fat_100g'] || 0;
         const energy = nutriments['energy-kcal_100g'] || 0;
 
-        // --- ANÁLISIS ---
+      
         const calificacionCalorias = analizarCalorias(energy);
 
-        // 5. Mostrar los resultados en una alerta formateada
+        
         Alert.alert(
           `🔍 ${productName}`,
           `\n📊 RESUMEN NUTRICIONAL (100g):\n` +
@@ -71,7 +71,7 @@ export default function ScannerScreen({ navigation }) {
           ]
         );
       } else {
-        // 4b. Producto no encontrado
+       
         Alert.alert(
           'Producto no encontrado',
           'Este código no está en la base de datos.',
@@ -79,7 +79,7 @@ export default function ScannerScreen({ navigation }) {
         );
       }
     } catch (error) {
-      // 4c. Error de red
+      
       setIsLoading(false);
       console.error(error);
       Alert.alert('Error de Red', 'Verifica tu conexión a internet.', [
@@ -88,7 +88,7 @@ export default function ScannerScreen({ navigation }) {
     }
   };
 
-  // 6. Mostrar estados de permiso
+  
   if (hasPermission === null) {
     return <Text style={styles.text}>Solicitando permiso de la cámara...</Text>;
   }
@@ -102,7 +102,6 @@ export default function ScannerScreen({ navigation }) {
     );
   }
 
-  // 7. Renderizado principal
   return (
     <View style={styles.container}>
       <BarCodeScanner
@@ -110,13 +109,13 @@ export default function ScannerScreen({ navigation }) {
         style={StyleSheet.absoluteFillObject}
       />
       
-      {/* Overlay Visual */}
+    
       <View style={styles.overlay}>
         <Text style={styles.overlayText}>Apunta al código de barras</Text>
         <View style={styles.scanBox} />
       </View>
 
-      {/* Indicador de carga */}
+     
       {isLoading && (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#FFFFFF" />
@@ -124,7 +123,7 @@ export default function ScannerScreen({ navigation }) {
         </View>
       )}
 
-      {/* Botón Cancelar */}
+    
       <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
         <Text style={styles.backButtonText}>Cancelar</Text>
       </TouchableOpacity>
@@ -132,7 +131,7 @@ export default function ScannerScreen({ navigation }) {
   );
 }
 
-// --- Estilos ---
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -172,7 +171,7 @@ const styles = StyleSheet.create({
     width: 250,
     height: 250,
     borderWidth: 2,
-    borderColor: '#4CAF50', // Verde neón
+    borderColor: '#4CAF50', 
     borderRadius: 20,
     backgroundColor: 'rgba(255,255,255,0.1)',
   },
@@ -193,7 +192,7 @@ const styles = StyleSheet.create({
   backButton: {
     position: 'absolute',
     bottom: 50,
-    backgroundColor: 'rgba(231, 76, 60, 0.9)', // Rojo suave
+    backgroundColor: 'rgba(231, 76, 60, 0.9)', 
     paddingVertical: 15,
     paddingHorizontal: 30,
     borderRadius: 25,

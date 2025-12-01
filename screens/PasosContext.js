@@ -7,8 +7,8 @@ const StepContext = createContext();
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
-    shouldShowAlert: true,  // Muestra la alerta visual
-    shouldPlaySound: false, // Sin sonido para no molestar
+    shouldShowAlert: true,  
+    shouldPlaySound: false, 
     shouldSetBadge: false,
   }),
 });
@@ -18,25 +18,25 @@ export function useStep() {
 }
 
 export function StepProvider({ children }) {
-  // --- ESTADOS GLOBALES ---
+  
   const [activo, setActivo] = useState(false);
   const [pasos, setPasos] = useState(0);
   const [segundos, setSegundos] = useState(0);
   const [historial, setHistorial] = useState([]);
   
-  // 👇 NUEVO: Estado para guardar las calorías de las rutinas de Home
+  
   const [caloriasExtra, setCaloriasExtra] = useState(0);
 
-  // Referencias internas
+  
   const pasosRef = useRef(0);
   const sensorListener = useRef(null);
 
-  // --- CONFIGURACIÓN ---
+  
   const NOTIFICATION_ID = 'fita-tracker';
   const KCAL_POR_PASO = 0.04;
   const METROS_POR_PASO = 0.76;
 
-  // --- HELPERS ---
+  
   const formatearTiempo = (totalSegundos) => {
     const minutos = Math.floor(totalSegundos / 60);
     const segs = totalSegundos % 60;
@@ -48,12 +48,12 @@ export function StepProvider({ children }) {
     return `${fecha.getHours()}:${fecha.getMinutes() < 10 ? '0' : ''}${fecha.getMinutes()}`;
   };
 
-  // 👇 NUEVO: Función para sumar calorías desde Home.js
+  
   const agregarCaloriasExtra = (kcal) => {
     setCaloriasExtra((prev) => prev + kcal);
   };
 
-  // --- NOTIFICACIONES ---
+ 
   const actualizarNotificacion = async (pasosActuales) => {
     const dist = ((pasosActuales * METROS_POR_PASO) / 1000).toFixed(2);
     
@@ -76,13 +76,13 @@ export function StepProvider({ children }) {
     await Notifications.dismissNotificationAsync(NOTIFICATION_ID);
   };
 
-  // --- CRONÓMETRO GLOBAL ---
+  
   useEffect(() => {
     let intervalo = null;
     if (activo) {
       intervalo = setInterval(() => {
         setSegundos((s) => s + 1);
-        // Actualizamos la notificación con el valor ACTUALIZADO
+        
         actualizarNotificacion(pasosRef.current);
       }, 1000);
     } else {
@@ -91,12 +91,12 @@ export function StepProvider({ children }) {
     return () => clearInterval(intervalo);
   }, [activo]);
 
-  // --- FUNCIONES DE CONTROL ---
+  
   const iniciarConteo = async () => {
     const disponible = await Pedometer.isAvailableAsync();
     if (!disponible) return Alert.alert("Error", "Sensor no disponible.");
 
-    // Pedimos permisos de nuevo por seguridad
+    
     const { status } = await Pedometer.requestPermissionsAsync();
     const notifStatus = await Notifications.requestPermissionsAsync();
 
@@ -156,8 +156,8 @@ export function StepProvider({ children }) {
       formatearTiempo,
       KCAL_POR_PASO,
       METROS_POR_PASO,
-      caloriasExtra,       // 👈 NUEVO: Exportamos el estado
-      agregarCaloriasExtra // 👈 NUEVO: Exportamos la función
+      caloriasExtra,       
+      agregarCaloriasExtra 
     }}>
       {children}
     </StepContext.Provider>

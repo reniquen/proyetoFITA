@@ -77,24 +77,23 @@ export default function WeatherCard() {
   if (weather[0].icon.includes('n') && descripcion.includes('cielo claro')) {
     descripcion = "noche despejada";
   }
-  // Capitalizar la primera letra (ej: "noche..." -> "Noche...")
+  
   descripcion = descripcion.charAt(0).toUpperCase() + descripcion.slice(1);
 
   return (
     <View style={styles.card}>
       <View style={styles.row}>
         
-        {/* Lado Izquierdo: Icono y Temp */}
+        
         <View style={styles.weatherInfo}>
-          {/* Círculo contenedor */}
+         
           <View style={styles.iconContainer}>
             <Image source={{ uri: iconUrl }} style={styles.iconImage} resizeMode="cover" />
           </View>
           
           <View>
             <Text style={styles.temp}>{Math.round(main.temp)}°</Text>
-            <Text style={styles.location}>📍 {name}</Text>
-            {/* Aquí está el texto del clima sutil */}
+            <Text style={styles.location}>📍 {name}</Text>            
             <Text style={styles.description}>{descripcion}</Text>
           </View>
         </View>
@@ -138,9 +137,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  // --- AJUSTES DE TAMAÑO ---
+  
   iconContainer: {
-    width: 46,       // Más pequeño (antes 50)
+    width: 46,       
     height: 46,
     backgroundColor: '#f0f3f4',
     borderRadius: 23, 
@@ -150,15 +149,15 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   iconImage: {
-    width: 65,       // Más grande (Zoom para llenar el círculo)
+    width: 65,      
     height: 65,      
   },
-  // -------------------------
+  
   temp: {
     fontSize: 26,
     fontWeight: 'bold',
     color: '#2c3e50',
-    lineHeight: 30, // Ajuste para que no se separe tanto de abajo
+    lineHeight: 30, 
   },
   location: {
     fontSize: 12,
@@ -166,8 +165,8 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   description: {
-    fontSize: 11, // Letra pequeña
-    color: '#95a5a6', // Gris suave (no molesto)
+    fontSize: 11, 
+    color: '#95a5a6', 
     marginTop: 2,
     fontStyle: 'italic',
   },
