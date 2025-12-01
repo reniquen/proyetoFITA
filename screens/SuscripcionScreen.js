@@ -20,7 +20,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 const PLAN_LINKS = {
   mensual: "https://mpago.la/172GX21",   // $5.000
   trimestral: "https://mpago.la/172GX21", // $12.000
-  anual: "https://mpago.la/1JEuUNy"        // $29.000
+  anual: "https://mpago.la/172GX21"        // $29.000
 };
 
 
