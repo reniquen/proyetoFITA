@@ -32,9 +32,8 @@ const HOME_COLORS = {
   accentSoft: '#FFF8E1',
 
   // NUEVO: Fondo para la tarjeta contenedora del coach.
-  // Un verde menta muy pálido y profesional.
   coachMasterCardBg: '#F1F8E9',
-  coachCardBorder: '#C8E6C9', // Borde sutil para esa tarjeta
+  coachCardBorder: '#C8E6C9',
 
   superCardHeaderBg: '#4CAF50',
   superCardBodyBg: '#F9FBF7',
@@ -50,6 +49,9 @@ const HOME_COLORS = {
   shadowColor: '#263238',
   menuBg: '#FFFFFF',
   fabRed: '#E53935',
+  
+  // Color para el botón de completar
+  successDark: '#2E7D32',
 };
 
 export default function Home({ navigation }) {
@@ -59,7 +61,12 @@ export default function Home({ navigation }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [dynamicTip, setDynamicTip] = useState("¡Vamos a entrenar!");
 
+  // --- ESTADOS PARA NAVEGACIÓN DE DÍAS ---
+  // Estado para el índice del día de la RUTINA (Nuevo)
+  const [rutinaDiaIndex, setRutinaDiaIndex] = useState(new Date().getDay());
+  // Estado para el índice del día de la DIETA (Existente)
   const [dietaDiaIndex, setDietaDiaIndex] = useState(new Date().getDay());
+  
   const diasSemana = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
 
   const { rutinas, dietas, isLoadingData } = useUserData();
@@ -90,6 +97,8 @@ export default function Home({ navigation }) {
     }, [menuOpen])
   );
 
+  // --- LÓGICA PARA CAMBIAR DÍAS (DIETA Y RUTINA) ---
+  
   const cambiarDietaDia = (delta) => {
     setDietaDiaIndex((prevIndex) => {
       let newIndex = prevIndex + delta;
@@ -97,6 +106,25 @@ export default function Home({ navigation }) {
       else if (newIndex >= diasSemana.length) newIndex = 0;
       return newIndex;
     });
+  };
+
+  // Nueva función para cambiar el día de la rutina
+  const cambiarRutinaDia = (delta) => {
+    setRutinaDiaIndex((prevIndex) => {
+      let newIndex = prevIndex + delta;
+      if (newIndex < 0) newIndex = diasSemana.length - 1;
+      else if (newIndex >= diasSemana.length) newIndex = 0;
+      return newIndex;
+    });
+  };
+
+  const confirmarRutinaCompletada = () => {
+    Alert.alert(
+      "¡Excelente trabajo! 💪",
+      `Has completado tu rutina del ${diasSemana[rutinaDiaIndex]}. ¡Sigue así!`,
+      [{ text: "¡Gracias!", onPress: () => console.log("Rutina completada") }]
+    );
+    // Aquí podrías agregar lógica para guardar este progreso en Firebase si lo deseas en el futuro
   };
 
   const getDynamicTip = () => {
@@ -150,8 +178,11 @@ export default function Home({ navigation }) {
     if (state === "ended") closeVideo();
   }, []);
 
-  const diaActualRutina = diasSemana[new Date().getDay()];
-  const rutinaHoy = rutinas[diaActualRutina] || [];
+  // --- VARIABLES DERIVADAS PARA MOSTRAR DATOS ---
+  
+  // Usamos rutinaDiaIndex en lugar de new Date().getDay()
+  const diaMostradoRutina = diasSemana[rutinaDiaIndex];
+  const rutinaMostrar = rutinas[diaMostradoRutina] || [];
 
   const diaMostradoDieta = diasSemana[dietaDiaIndex];
   const dietaHoy = (dietas && dietas[diaMostradoDieta]) ? dietas[diaMostradoDieta] : [];
@@ -200,10 +231,8 @@ export default function Home({ navigation }) {
 
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
-          {/* --- NUEVA TARJETA MAESTRA DEL COACH --- */}
-          {/* Esta tarjeta envuelve todo el bloque del coach para darle peso visual */}
+          {/* --- TARJETA MAESTRA DEL COACH --- */}
           <View style={styles.coachMasterCard}>
-              {/* El contenido interno sigue siendo el mismo que antes */}
               <View style={styles.coachSectionContainerInner}>
                 <View style={styles.avatarWrapper}>
                   <AvatarCoach />
@@ -216,47 +245,70 @@ export default function Home({ navigation }) {
                 </View>
               </View>
           </View>
-          {/* --------------------------------------- */}
-
-          {/* === SÚPER TARJETA: RUTINA DE HOY === */}
+          
+          {/* === SÚPER TARJETA: RUTINA DE EJERCICIOS (MODIFICADA) === */}
           <View style={styles.superCardContainer}>
-            <View style={styles.superCardHeader}>
-                <Icon name="dumbbell" size={24} color={HOME_COLORS.textInverse} style={{marginRight: 10}}/>
-                <Text style={styles.superCardTitle}>Tu Rutina de Hoy</Text>
+            {/* Header con Navegación (Flechas) */}
+            <View style={styles.superCardHeaderDiet}> 
+                <TouchableOpacity onPress={() => cambiarRutinaDia(-1)} style={styles.navButtonHeader}>
+                  <Icon name="chevron-left" size={32} color={HOME_COLORS.textInverse} />
+                </TouchableOpacity>
+                
+                <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                    <Icon name="dumbbell" size={24} color={HOME_COLORS.textInverse} style={{marginRight: 10}}/>
+                    <Text style={styles.superCardTitle}>Plan de Ejercicios</Text>
+                </View>
+
+                <TouchableOpacity onPress={() => cambiarRutinaDia(1)} style={styles.navButtonHeader}>
+                  <Icon name="chevron-right" size={32} color={HOME_COLORS.textInverse} />
+                </TouchableOpacity>
             </View>
             
             <View style={styles.superCardContent}>
+                {/* Título del día centrado */}
                 <View style={styles.subtitleWrapperCentered}>
-                    <Text style={styles.sectionSubtitle}>{diaActualRutina.charAt(0).toUpperCase() + diaActualRutina.slice(1)}</Text>
+                    <Text style={styles.sectionSubtitle}>{diaMostradoRutina.charAt(0).toUpperCase() + diaMostradoRutina.slice(1)}</Text>
                     <View style={styles.subtitleUnderlineCentered} />
                 </View>
 
                 {isLoadingData ? (
                 <ActivityIndicator size="large" color={HOME_COLORS.accent} style={{marginTop: 20}} />
-                ) : rutinaHoy.length > 0 ? (
-                rutinaHoy.map((ejercicio, index) => (
-                    <View key={index} style={styles.workoutCardInner}>
-                    <View style={styles.cardAccentBar} />
-                    <TouchableOpacity onPress={() => openVideo(ejercicio.video)} disabled={!ejercicio.video} activeOpacity={0.9} style={styles.mediaContainer}>
-                        {renderAsset(ejercicio)}
-                        {ejercicio.video && (
-                        <View style={styles.playIconOverlay}>
-                            <Icon name="play-circle" size={32} color={HOME_COLORS.accent} style={{ opacity: 1 }} />
-                        </View>
-                        )}
-                    </TouchableOpacity>
-                    <View style={styles.workoutTextContainer}>
-                        <Text style={styles.workoutName}>{ejercicio.nombre}</Text>
-                        <Text style={styles.workoutReps}>{ejercicio.repeticiones}</Text>
-                        {ejercicio.video && (
-                        <TouchableOpacity style={styles.verVideoBtnCompact} onPress={() => openVideo(ejercicio.video)}>
-                            <Text style={styles.verVideoTextCompact}>Ver video</Text>
-                            <Icon name="arrow-right" size={12} color={HOME_COLORS.innerCardBg} style={{marginLeft: 4}}/>
+                ) : rutinaMostrar.length > 0 ? (
+                <>
+                    {rutinaMostrar.map((ejercicio, index) => (
+                        <View key={index} style={styles.workoutCardInner}>
+                        <View style={styles.cardAccentBar} />
+                        <TouchableOpacity onPress={() => openVideo(ejercicio.video)} disabled={!ejercicio.video} activeOpacity={0.9} style={styles.mediaContainer}>
+                            {renderAsset(ejercicio)}
+                            {ejercicio.video && (
+                            <View style={styles.playIconOverlay}>
+                                <Icon name="play-circle" size={32} color={HOME_COLORS.accent} style={{ opacity: 1 }} />
+                            </View>
+                            )}
                         </TouchableOpacity>
-                        )}
-                    </View>
-                    </View>
-                ))
+                        <View style={styles.workoutTextContainer}>
+                            <Text style={styles.workoutName}>{ejercicio.nombre}</Text>
+                            <Text style={styles.workoutReps}>{ejercicio.repeticiones}</Text>
+                            {ejercicio.video && (
+                            <TouchableOpacity style={styles.verVideoBtnCompact} onPress={() => openVideo(ejercicio.video)}>
+                                <Text style={styles.verVideoTextCompact}>Ver video</Text>
+                                <Icon name="arrow-right" size={12} color={HOME_COLORS.innerCardBg} style={{marginLeft: 4}}/>
+                            </TouchableOpacity>
+                            )}
+                        </View>
+                        </View>
+                    ))}
+
+                    {/* === NUEVO BOTÓN: CONFIRMAR RUTINA COMPLETADA === */}
+                    <TouchableOpacity 
+                        style={styles.completeRoutineButton} 
+                        onPress={confirmarRutinaCompletada}
+                        activeOpacity={0.8}
+                    >
+                        <Icon name="check-circle" size={24} color={HOME_COLORS.textInverse} style={{marginRight: 8}} />
+                        <Text style={styles.completeRoutineText}>¡Rutina Completada!</Text>
+                    </TouchableOpacity>
+                </>
                 ) : (
                 <View style={styles.emptyStateContainer}>
                     <Icon name="bed" size={40} color={HOME_COLORS.accent} style={{opacity: 0.8}} />
@@ -345,9 +397,11 @@ export default function Home({ navigation }) {
       {menuOpen && (
         <View style={styles.menuDropdown}>
           {renderMenuItem("👤", "Mi Avatar", () => navigation.navigate('Avatar'), HOME_COLORS.primary)}
+          {renderMenuItem("💎", "Planes Premium", () => navigation.navigate('Suscripcion'), HOME_COLORS.accent)}
           {renderMenuItem("📅", "Recetas", () => navigation.navigate('CalendarRecipes'), HOME_COLORS.secondary)}
           {renderMenuItem("📷", "Scanner", () => navigation.navigate('Scanner'), HOME_COLORS.accent)}
           {renderMenuItem("$", "Contador", () => navigation.navigate('ContadorPasos'), HOME_COLORS.accent)}
+          {renderMenuItem("📜", "Términos y Condiciones", () => navigation.navigate('TerminosCondiciones'), HOME_COLORS.accent)}
           {renderMenuItem("💬", "Coach IA", () => {
              if (!isSubscribed) { Alert.alert("Suscripción Requerida", "Necesitas Premium para el Coach IA."); return; }
              navigation.navigate('AvatarChat');
@@ -439,6 +493,7 @@ const styles = StyleSheet.create({
     backgroundColor: HOME_COLORS.superCardBodyBg, borderRadius: 24, marginBottom: 35, overflow: 'hidden',
     elevation: 8, shadowColor: HOME_COLORS.shadowColor, shadowOffset: { width: 0, height: 5 }, shadowOpacity: 0.2, shadowRadius: 10,
   },
+  // Ya no se usa superCardHeader simple, ahora usamos superCardHeaderDiet para ambos para consistencia
   superCardHeader: {
       flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
       backgroundColor: HOME_COLORS.superCardHeaderBg, paddingVertical: 18, paddingHorizontal: 20,
@@ -470,6 +525,29 @@ const styles = StyleSheet.create({
   workoutReps: { fontSize: 13, color: HOME_COLORS.textMedium, marginBottom: 8 },
   verVideoBtnCompact: { flexDirection: 'row', alignItems: 'center', backgroundColor: HOME_COLORS.primary, paddingVertical: 6, paddingHorizontal: 12, borderRadius: 20, alignSelf: 'flex-start' },
   verVideoTextCompact: { fontSize: 11, color: HOME_COLORS.innerCardBg, fontWeight: 'bold' },
+
+  // --- ESTILOS DEL BOTÓN DE COMPLETAR RUTINA (NUEVO) ---
+  completeRoutineButton: {
+    flexDirection: 'row',
+    backgroundColor: HOME_COLORS.successDark,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 15,
+    elevation: 4,
+    shadowColor: HOME_COLORS.successDark,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+  },
+  completeRoutineText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+    letterSpacing: 0.5
+  },
 
   // --- TARJETAS INTERNAS (DIETA) ---
   dietListContainer: { marginTop: 5 },

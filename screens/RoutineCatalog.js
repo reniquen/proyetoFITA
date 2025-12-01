@@ -8,7 +8,7 @@ export const EXERCISES = {
     nombre: "Sentadillas",
     video: "https://www.youtube.com/watch?v=dsCuiccYNGs",
     imagen: require('../assets/ejercicios/sentadilla.png'), 
-    animacion: null, 
+     
   },
   prensa: {
     id: 'prensa',
