@@ -12,6 +12,8 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import { useUserData } from './UserDataContext';
 import { useSubscription } from './SubscriptionContext';
+// 👇 1. IMPORTAMOS EL CONTEXTO DE PASOS
+import { useStep } from './PasosContext';
 
 function getYouTubeId(url) {
   if (!url) return null;
@@ -98,6 +100,9 @@ export default function Home({ navigation }) {
 
   const { rutinas, dietas, isLoadingData } = useUserData();
   const { isSubscribed } = useSubscription();
+  
+  // 👇 2. OBTENEMOS DATOS DEL CONTEXTO DE PASOS
+  const { agregarCaloriasExtra, pasos, KCAL_POR_PASO, caloriasExtra } = useStep();
 
   // Sincronizar dieta local
   const diaMostradoDieta = diasSemana[dietaDiaIndex];
@@ -165,8 +170,62 @@ export default function Home({ navigation }) {
     });
   };
 
+  // ==================================================================
+  // 🔥 LÓGICA DE NAVEGACIÓN Y EXTRACCIÓN DE DATOS DE RUTINA 🔥
+  // ==================================================================
+  
+  // Usamos el índice del estado (rutinaDiaIndex) en lugar de new Date().getDay()
+  // para que las flechas funcionen correctamente.
+  const diaMostradoRutina = diasSemana[rutinaDiaIndex]; 
+  const datosRutinaDia = rutinas ? rutinas[diaMostradoRutina] : null;
+  const rutinaHoy = datosRutinaDia ? datosRutinaDia.ejercicios : [];
+  const enfoqueHoy = datosRutinaDia ? datosRutinaDia.enfoque : '';
+
+  // ==================================================================
+  // 🔥 FUNCIONALIDAD DEL BOTÓN CHECK (CALCULO DE CALORÍAS) 🔥
+  // ==================================================================
   const confirmarRutinaCompletada = () => {
-    Alert.alert("¡Excelente trabajo! 💪", `Has completado tu rutina del ${diasSemana[rutinaDiaIndex]}. ¡Sigue así!`);
+      // 1. Calculamos las calorías EXACTAS de la rutina que se está viendo
+      let kcalRutina = 0;
+      
+      if (rutinaHoy && rutinaHoy.length > 0) {
+          kcalRutina = rutinaHoy.reduce((total, ejercicio) => {
+              // Verificamos si existe la propiedad 'calorias' definida en el catálogo
+              if (ejercicio.calorias !== undefined) {
+                  return total + ejercicio.calorias;
+              }
+              return total; 
+          }, 0);
+      }
+      kcalRutina = Math.round(kcalRutina);
+
+      // 2. Calculamos las calorías de la caminata actual (en vivo desde el Contexto)
+      const kcalCaminata = parseFloat((pasos * KCAL_POR_PASO).toFixed(1)) || 0;
+      
+      // 3. Obtenemos lo que ya llevábamos acumulado (si se completaron otras rutinas hoy)
+      const kcalPrevias = parseFloat(caloriasExtra) || 0;
+
+      // 4. Gran Total = Caminata + Rutina Actual + Rutinas Previas
+      const granTotal = (kcalCaminata + kcalPrevias + kcalRutina).toFixed(1);
+
+      // 5. Enviamos SOLO las calorías nuevas al contexto para que se sumen
+      if (typeof agregarCaloriasExtra === 'function') {
+          if (kcalRutina > 0) {
+              agregarCaloriasExtra(kcalRutina);
+          }
+          
+          Alert.alert(
+              "¡Entrenamiento Finalizado! 🏆",
+              `Has completado la rutina del ${diaMostradoRutina.toUpperCase()}.\n\n` +
+              `🔥 Ejercicio: +${kcalRutina} kcal\n` +
+              `🚶 Caminata: ${kcalCaminata} kcal\n` +
+              `-------------------------\n` +
+              `⚡ TOTAL HOY: ${granTotal} kcal`,
+              [{ text: "¡Genial!", onPress: () => console.log("Rutina sumada") }]
+          );
+      } else {
+          Alert.alert("Error", "No se pudo conectar con el contador de pasos.");
+      }
   };
 
   const getDynamicTip = () => {
@@ -184,11 +243,6 @@ export default function Home({ navigation }) {
 
   const closeVideo = () => { setIsPlaying(false); setModalVisible(false); setSelectedVideoId(null); };
   const onStateChange = useCallback((state) => { if (state === "ended") closeVideo(); }, []);
-
-  const diaActualRutina = diasSemana[new Date().getDay()];
-  const datosRutinaDia = rutinas ? rutinas[diaActualRutina] : null;
-  const rutinaHoy = datosRutinaDia ? datosRutinaDia.ejercicios : [];
-  const enfoqueHoy = datosRutinaDia ? datosRutinaDia.enfoque : '';
   
   const totalCalorias = dietaLocal.reduce((total, comida) => total + (parseInt(comida.calorias) || 0), 0);
 
@@ -254,7 +308,8 @@ export default function Home({ navigation }) {
             
             <View style={styles.superCardContent}>
                 <View style={styles.subtitleWrapperCentered}>
-                    <Text style={styles.sectionSubtitle}>{diaActualRutina.toUpperCase()}</Text>
+                    {/* AQUÍ ESTABA EL ERROR: Ahora usamos diaMostradoRutina en vez de diaActualRutina */}
+                    <Text style={styles.sectionSubtitle}>{diaMostradoRutina.toUpperCase()}</Text>
                     {enfoqueHoy ? <Text style={styles.enfoqueText}>{enfoqueHoy}</Text> : null}
                     <View style={styles.subtitleUnderlineCentered} />
                 </View>
