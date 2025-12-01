@@ -401,13 +401,12 @@ export default function Home({ navigation }) {
           {renderMenuItem("📅", "Recetas", () => navigation.navigate('CalendarRecipes'), HOME_COLORS.secondary)}
           {renderMenuItem("📷", "Scanner", () => navigation.navigate('Scanner'), HOME_COLORS.accent)}
           {renderMenuItem("$", "Contador", () => navigation.navigate('ContadorPasos'), HOME_COLORS.accent)}
-          {renderMenuItem("📜", "Términos y Condiciones", () => navigation.navigate('TerminosCondiciones'), HOME_COLORS.accent)}
           {renderMenuItem("💬", "Coach IA", () => {
              if (!isSubscribed) { Alert.alert("Suscripción Requerida", "Necesitas Premium para el Coach IA."); return; }
              navigation.navigate('AvatarChat');
           }, '#42A5F5')}
           <View style={styles.menuDivider} />
-          {renderMenuItem("ℹ️", "Quiénes Somos", () => navigation.navigate('AboutUs'), '#90A4AE')}
+          {renderMenuItem("📜", "Términos y Condiciones", () => navigation.navigate('TerminosCondiciones'), HOME_COLORS.accent)}
           {renderMenuItem("🚪", "Cerrar Sesión", cerrarSesion, HOME_COLORS.fabRed)}
         </View>
       )}
