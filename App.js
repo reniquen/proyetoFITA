@@ -1,17 +1,19 @@
+// App.js
 import React, { useEffect } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-
 import * as SplashScreen from "expo-splash-screen";
+import { registerRootComponent } from 'expo';
 
+// Providers
 import { AvatarProvider } from "./screens/AvatarContext";
 import { UserDataProvider, useUserData } from "./screens/UserDataContext";
 import { SubscriptionProvider } from "./screens/SubscriptionContext";
 
+// Screens
 import LoginScreen from "./screens/Login";
 import HomeScreen from "./screens/Home";
 import AvatarScreen from "./screens/Avatar";
-import ComidasScreen from "./screens/Comidas";
 import AvatarChatScreen from "./screens/AvatarChatScreen";
 import AdminPanelScreen from "./screens/AdminPanel";
 import RegistroScreen from "./screens/Registro";
@@ -20,6 +22,7 @@ import CalendarRecipesScreen from "./screens/CalendarRecipesScreen";
 import SuscripcionScreen from "./screens/SuscripcionScreen";
 import AboutUsScreen from "./screens/AboutUs";
 import ContadorPasosScreen from "./screens/ContadorPasos";
+import DatosScreen from "./screens/Datos";
 
 SplashScreen.preventAutoHideAsync();
 const Stack = createNativeStackNavigator();
@@ -37,15 +40,16 @@ function AppNavigation() {
     return null;
   }
 
+  // AQUÍ ESTÁ LA CORRECCIÓN: El Stack.Navigator limpio sin espacios entre pantallas
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Home" component={HomeScreen} />
       <Stack.Screen name="Avatar" component={AvatarScreen} />
-      <Stack.Screen name="Comidas" component={ComidasScreen} />
       <Stack.Screen name="AvatarChat" component={AvatarChatScreen} />
       <Stack.Screen name="AdminPanel" component={AdminPanelScreen} />
       <Stack.Screen name="Registro" component={RegistroScreen} />
+      <Stack.Screen name="Datos" component={DatosScreen} />
       <Stack.Screen name="Scanner" component={ScannerScreen} />
       <Stack.Screen name="CalendarRecipes" component={CalendarRecipesScreen} />
       <Stack.Screen name="Suscripcion" component={SuscripcionScreen} />
@@ -68,3 +72,5 @@ export default function App() {
     </AvatarProvider>
   );
 }
+
+registerRootComponent(App);

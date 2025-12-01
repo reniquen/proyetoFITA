@@ -21,15 +21,15 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const { width, height } = Dimensions.get('window');
 
-// --- PALETA DE COLORES PROFESIONAL Y REFINADA ---
+// --- PALETA DE COLORES PROFESIONAL Y REFINADA (Última versión aprobada) ---
 const COLORS = {
   headerGreen: '#00A86B',
   backgroundCream: '#FFF5E1',
   primaryYellow: '#FFC107',
-  accentGreen: '#2E7D32',
+  accentGreen: '#2E7D32', // Verde oscuro para enlaces
   textDark: '#1C1C1C',
   textGray: '#757575',
-  buttonText: '#2D2D2D',
+  buttonText: '#2D2D2D', // Color texto botón amarillo
   white: '#FFFFFF',
   inputBg: '#FFFFFF',
 };
@@ -40,18 +40,100 @@ export default function Login({ navigation }) {
   const [loading, setLoading] = useState(false);
   const [secureTextEntry, setSecureTextEntry] = useState(true);
 
-  // --- Funciones de lógica (sin cambios) ---
-  const validarCorreo = (email) => { const re = /\S+@\S+\.\S+/; return re.test(email); };
-  const manejarErrorFirebase = (error) => { /* ... */ Alert.alert('Error', error.message); };
-  const iniciarSesion = async () => { /* ... */ if (!correo || !contrasena) return; setLoading(true); setTimeout(() => { setLoading(false); navigation.replace('Home'); }, 1500); };
-  const recuperarContrasena = async () => { /* ... */ Alert.alert('Info', 'Proceso de recuperación.'); };
-  // -------------------------------------------
+  // --- Funciones de lógica ---
+
+  const validarCorreo = (email) => {
+    const re = /\S+@\S+\.\S+/;
+    return re.test(email);
+  };
+
+  const manejarErrorFirebase = (error) => {
+    let mensaje = 'Ocurrió un error inesperado.';
+    switch (error.code) {
+      case 'auth/user-not-found':
+      case 'auth/wrong-password':
+      case 'auth/invalid-credential':
+        mensaje = 'Credenciales incorrectas. Verifica correo y contraseña.';
+        break;
+      case 'auth/invalid-email':
+        mensaje = 'El formato del correo electrónico no es válido.';
+        break;
+      case 'auth/too-many-requests':
+        mensaje = 'Demasiados intentos fallidos. Intenta más tarde.';
+        break;
+      case 'auth/network-request-failed':
+        mensaje = 'Error de conexión. Verifica tu internet.';
+        break;
+      default:
+        mensaje = error.message;
+        break;
+    }
+    Alert.alert('Error de Inicio de Sesión', mensaje);
+  };
+
+  // --- LÓGICA DE INICIO DE SESIÓN RESTAURADA ---
+  const iniciarSesion = async () => {
+    if (!correo || !contrasena) {
+      Alert.alert('Campos Incompletos', 'Por favor ingresa correo y contraseña.');
+      return;
+    }
+
+    if (!validarCorreo(correo)) {
+      Alert.alert('Correo Inválido', 'El formato del correo no es correcto.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // 1. Intentar login con Firebase
+      await signInWithEmailAndPassword(auth, correo, contrasena);
+
+      // --- AQUÍ ESTÁ TU LISTA DE ADMINS RESTAURADA ---
+      const correosAdmin = ["reniquen@hotmail.com", "jno@gmail.com", "root@fita.com"];
+
+      if (correosAdmin.includes(correo.toLowerCase().trim())) {
+        // Si es admin, va al panel
+        navigation.replace('AdminPanel');
+      } else {
+        // Si es usuario normal, va al Home
+        navigation.replace('Home');
+      }
+      // -----------------------------------------------
+
+    } catch (error) {
+      console.error('Error login:', error);
+      manejarErrorFirebase(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  // --------------------------------------------------
+
+  const recuperarContrasena = async () => {
+    if (!correo) {
+        Alert.alert('Atención', 'Ingresa tu correo electrónico para recibir el enlace de recuperación.');
+        return;
+    }
+    if (!validarCorreo(correo)) {
+        Alert.alert('Error', 'Ingresa un correo válido.');
+        return;
+    }
+    setLoading(true);
+    try {
+        await sendPasswordResetEmail(auth, correo);
+        Alert.alert('Correo Enviado', 'Revisa tu bandeja de entrada para restablecer tu contraseña.');
+    } catch (e) {
+        manejarErrorFirebase(e);
+    } finally {
+        setLoading(false);
+    }
+  };
 
   return (
     <View style={styles.mainContainer}>
       <StatusBar backgroundColor={COLORS.headerGreen} barStyle="light-content" />
 
-      {/* --- CABECERA VERDE CON LOGO MÁS GRANDE --- */}
+      {/* --- CABECERA VERDE CON LOGO GIGANTE --- */}
       <View style={styles.headerContainer}>
          <Image
             source={require('../assets/logofita.png')}
@@ -72,10 +154,10 @@ export default function Login({ navigation }) {
         >
           <View style={styles.card}>
             <View style={styles.titleContainer}>
-                <Text style={styles.title}>¡Hola de nuevo!</Text>
-                <Text style={styles.subtitle}>Ingresa a tu cuenta para continuar entrenando.</Text>
+                <Text style={styles.title}>¡Bienvenido a FITA!</Text>
+                <Text style={styles.subtitle}>Ingresa tu correo y contraseña.</Text>
             </View>
-            {/* ... (Inputs y botones sin cambios) ... */}
+
             <View style={styles.inputContainer}>
               <Icon name="email-outline" size={22} color={COLORS.textGray} style={styles.inputIcon} />
               <TextInput
@@ -141,10 +223,9 @@ const styles = StyleSheet.create({
       alignItems: 'center',
       paddingBottom: 20,
   },
-  // CAMBIO: Logo aumentado de tamaño
   fitaLogo: {
-    width: 260, // Antes 220
-    height: 260, // Antes 220
+    width: 260, // Logo grande (último ajuste visual)
+    height: 260,
   },
   keyboardView: {
       flex: 1,
@@ -170,10 +251,10 @@ const styles = StyleSheet.create({
   inputIcon: { marginRight: 15 },
   input: { flex: 1, fontSize: 16, color: COLORS.textDark, height: '100%' },
   eyeIcon: { padding: 15 },
-  
+
   forgotPasswordContainer: { alignSelf: 'flex-end', marginTop: 5, marginBottom: 30, marginRight: 10 },
   forgotPasswordText: { color: COLORS.accentGreen, fontSize: 15, fontWeight: '700' },
-  
+
   loginButton: {
     backgroundColor: COLORS.primaryYellow,
     borderRadius: 30,
@@ -193,7 +274,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
   },
-  
+
   linksContainer: { alignItems: 'center', marginBottom: 20 },
   linkText: { color: COLORS.textDark, fontSize: 15 },
   linkBold: { color: COLORS.accentGreen, fontWeight: 'bold' },
