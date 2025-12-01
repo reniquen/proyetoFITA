@@ -12,6 +12,9 @@ import ScannerScreen from './screens/ScannerScreen';
 import ContadorPasosScreen from './screens/ContadorPasos'; 
 import AboutUsScreen from './screens/AboutUs'; 
 import AvatarScreen from './screens/Avatar'; 
+import Registro from './screens/Registro'
+
+
 // =========================================================
 // ✅ CORRECCIÓN 1: Importar el componente AdminPanel
 import AdminPanelScreen from './screens/AdminPanel'; // <-- **¡Asegúrate que la ruta es correcta!**
@@ -44,6 +47,7 @@ export default function App() {
               >
                 <Stack.Screen name="Login" component={LoginScreen} />
                 <Stack.Screen name="Home" component={Home} />
+                <Stack.Screen name="Registro" component={Registro} />
                 
                 {/* Pantallas del Chat y Avatar */}
                 <Stack.Screen name="AvatarChat" component={AvatarChatScreen} />

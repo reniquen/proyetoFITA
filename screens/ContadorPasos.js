@@ -8,12 +8,17 @@ import { useStep } from './PasosContext'; // Cerebro
 
 export default function StepCounter() {
   const navigation = useNavigation();
+  
+  // 👇 1. Extraemos 'caloriasExtra' del contexto
   const { 
     activo, pasos, segundos, historial, toggleCronometro, formatearTiempo,
-    KCAL_POR_PASO, METROS_POR_PASO
+    KCAL_POR_PASO, METROS_POR_PASO, caloriasExtra 
   } = useStep();
 
-  const calorias = (pasos * KCAL_POR_PASO).toFixed(1);
+  // 👇 2. Calculamos el total: Calorías por pasos + Calorías extras (rutina)
+  const caloriasPasos = pasos * KCAL_POR_PASO;
+  const totalKcal = (caloriasPasos + (caloriasExtra || 0)).toFixed(1);
+  
   const distanciaKm = ((pasos * METROS_POR_PASO) / 1000).toFixed(2);
 
   // --- RENDERIZADO DE ITEMS DEL HISTORIAL ---
@@ -52,8 +57,9 @@ export default function StepCounter() {
         <View style={styles.statsRow}>
           <View style={[styles.statCard, styles.cardOrange]}>
             <Text style={styles.statIcon}>🔥</Text>
-            <Text style={[styles.statValue, { color: '#e67e22' }]}>{calorias}</Text>
-            <Text style={styles.statLabel}>Kcal</Text>
+            {/* 👇 3. Mostramos el TOTAL acumulado */}
+            <Text style={[styles.statValue, { color: '#e67e22' }]}>{totalKcal}</Text>
+            <Text style={styles.statLabel}>Kcal Totales</Text>
           </View>
           <View style={[styles.statCard, styles.cardBlue]}>
             <Text style={styles.statIcon}>📏</Text>
@@ -104,7 +110,7 @@ export default function StepCounter() {
         data={historial}
         renderItem={renderItem}
         keyExtractor={item => item.id}
-        ListHeaderComponent={renderHeader} // <--- Aquí metemos todo lo de arriba
+        ListHeaderComponent={renderHeader}
         contentContainerStyle={{ paddingBottom: 40, paddingHorizontal: 20 }}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
