@@ -1,30 +1,22 @@
-import React from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, FlatList } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { StyleSheet, Text, View, TouchableOpacity, Alert, FlatList, AppState } from 'react-native';
+import { Pedometer } from 'expo-sensors';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-
-// ✅ AQUÍ ESTABA EL ERROR: Ahora importamos desde el archivo correcto
-import { useStep } from './PasosContext'; 
+import WeatherCard from './WeatherCard'; // Tarjeta de Clima
+import { useStep } from './PasosContext'; // Cerebro
 
 export default function StepCounter() {
   const navigation = useNavigation();
-  
-  // Consumimos los datos del Contexto Global
   const { 
-    activo, 
-    pasos, 
-    segundos, 
-    historial, 
-    toggleCronometro, 
-    formatearTiempo,
-    KCAL_POR_PASO,
-    METROS_POR_PASO
+    activo, pasos, segundos, historial, toggleCronometro, formatearTiempo,
+    KCAL_POR_PASO, METROS_POR_PASO
   } = useStep();
 
-  
   const calorias = (pasos * KCAL_POR_PASO).toFixed(1);
   const distanciaKm = ((pasos * METROS_POR_PASO) / 1000).toFixed(2);
 
+  // --- RENDERIZADO DE ITEMS DEL HISTORIAL ---
   const renderItem = ({ item, index }) => (
     <View style={styles.historyRow}>
       <Text style={[styles.cell, styles.col1]}>{historial.length - index}</Text>
@@ -35,19 +27,15 @@ export default function StepCounter() {
     </View>
   );
 
-  return (
-    <View style={styles.mainContainer}>
-      
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={28} color="black" />
-        </TouchableOpacity>
-        <Text style={styles.screenTitle}>Entrenamiento</Text>
-        <View style={{ width: 28 }} />
+  // --- CABECERA DE LA LISTA (Todo lo que va arriba del historial) ---
+  const renderHeader = () => (
+    <View>
+      {/* Tarjeta de Clima */}
+      <View style={{ marginBottom: 15 }}>
+        <WeatherCard />
       </View>
 
-      {/* Sección Superior */}
+      {/* Sección Superior (Cronómetro y Círculo) */}
       <View style={styles.topSection}>
         <View style={styles.timerContainer}>
           <Text style={styles.timerText}>{formatearTiempo(segundos)}</Text>
@@ -80,31 +68,49 @@ export default function StepCounter() {
           activeOpacity={0.8}
         >
           <Text style={styles.buttonText}>
-            {activo ? "DETENER" : "INICIAR CAMINATA"}
+            {activo ? "DETENER SESIÓN" : "INICIAR CAMINATA"}
           </Text>
         </TouchableOpacity>
       </View>
 
-      {/* Sección Historial */}
-      <View style={styles.historyContainer}>
-        <Text style={styles.historyTitle}>Historial de Sesiones</Text>
-        <View style={styles.tableHeader}>
-          <Text style={[styles.headerCell, styles.col1]}>#</Text>
-          <Text style={[styles.headerCell, styles.col2]}>Hora</Text>
-          <Text style={[styles.headerCell, styles.col3]}>Pasos</Text>
-          <Text style={[styles.headerCell, styles.col4]}>Kcal</Text>
-          <Text style={[styles.headerCell, styles.col5]}>Tiempo</Text>
-        </View>
-        <FlatList
-          data={historial}
-          renderItem={renderItem}
-          keyExtractor={item => item.id}
-          contentContainerStyle={{ paddingBottom: 20 }}
-          ListEmptyComponent={
-            <Text style={styles.emptyText}>Sin actividad hoy.</Text>
-          }
-        />
+      {/* Título del Historial */}
+      <Text style={styles.historyTitle}>Historial de Sesiones</Text>
+      
+      {/* Encabezados de la Tabla */}
+      <View style={styles.tableHeader}>
+        <Text style={[styles.headerCell, styles.col1]}>#</Text>
+        <Text style={[styles.headerCell, styles.col2]}>Hora</Text>
+        <Text style={[styles.headerCell, styles.col3]}>Pasos</Text>
+        <Text style={[styles.headerCell, styles.col4]}>Kcal</Text>
+        <Text style={[styles.headerCell, styles.col5]}>Tiempo</Text>
       </View>
+    </View>
+  );
+
+  // --- VISTA PRINCIPAL ---
+  return (
+    <View style={styles.mainContainer}>
+      {/* Header Fijo (Flecha atrás) */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={28} color="black" />
+        </TouchableOpacity>
+        <Text style={styles.screenTitle}>Entrenamiento</Text>
+        <View style={{ width: 28 }} />
+      </View>
+
+      {/* LISTA GIGANTE QUE CONTIENE TODO */}
+      <FlatList
+        data={historial}
+        renderItem={renderItem}
+        keyExtractor={item => item.id}
+        ListHeaderComponent={renderHeader} // <--- Aquí metemos todo lo de arriba
+        contentContainerStyle={{ paddingBottom: 40, paddingHorizontal: 20 }}
+        showsVerticalScrollIndicator={false}
+        ListEmptyComponent={
+          <Text style={styles.emptyText}>No hay registros hoy.</Text>
+        }
+      />
     </View>
   );
 }
@@ -125,12 +131,13 @@ const styles = StyleSheet.create({
   backButton: { padding: 5 },
   screenTitle: { fontSize: 18, fontWeight: 'bold', color: 'black' },
   
+  // Estilos de la Sección Superior
   topSection: {
     alignItems: 'center',
-    paddingHorizontal: 20,
     paddingBottom: 20,
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
+    marginBottom: 20,
   },
   timerContainer: { marginBottom: 15 },
   timerText: { fontSize: 40, fontWeight: '300', color: '#34495e', fontVariant: ['tabular-nums'] },
@@ -164,21 +171,19 @@ const styles = StyleSheet.create({
   stopBtn: { backgroundColor: '#c0392b' },
   buttonText: { color: 'white', fontSize: 16, fontWeight: 'bold', letterSpacing: 1 },
 
-  historyContainer: {
-    flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 15,
-    backgroundColor: '#fff',
-  },
+  // Estilos del Historial
   historyTitle: { fontSize: 16, fontWeight: 'bold', color: '#2c3e50', marginBottom: 10 },
   tableHeader: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#ccc', paddingBottom: 8, marginBottom: 5 },
   headerCell: { fontWeight: 'bold', color: '#7f8c8d', fontSize: 12, textAlign: 'center' },
-  historyRow: { flexDirection: 'row', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' },
+  historyRow: { flexDirection: 'row', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#f0f0f0', backgroundColor: 'white', borderRadius: 8, marginBottom: 5, paddingHorizontal: 5 },
   cell: { fontSize: 13, color: '#34495e', textAlign: 'center' },
+  
+  // Columnas
   col1: { width: '10%' }, 
   col2: { width: '20%' }, 
   col3: { width: '20%' }, 
   col4: { width: '20%' }, 
   col5: { width: '30%' }, 
-  emptyText: { textAlign: 'center', color: '#aaa', marginTop: 20, fontStyle: 'italic' }
+  
+  emptyText: { textAlign: 'center', color: '#aaa', marginTop: 20, fontStyle: 'italic', marginBottom: 50 }
 });

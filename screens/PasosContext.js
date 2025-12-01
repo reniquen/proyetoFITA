@@ -5,7 +5,6 @@ import * as Notifications from 'expo-notifications';
 
 const StepContext = createContext();
 
-// 1. CONFIGURACIÓN OBLIGATORIA (Esto faltaba)
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,  // Muestra la alerta visual

@@ -2,8 +2,6 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { StatusBar } from 'react-native';
-
-// Importa tus pantallas
 import LoginScreen from './screens/Login'; 
 import Home from './screens/Home';
 import AvatarChatScreen from './screens/AvatarChatScreen';
