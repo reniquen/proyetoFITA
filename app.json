@@ -38,7 +38,9 @@
     },
     "plugins": [
       "expo-barcode-scanner",
-      "expo-sensors"
+      "expo-sensors",
+      "expo-asset",
+      "expo-font"
     ]
   }
 }
