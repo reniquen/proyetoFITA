@@ -1,14 +1,10 @@
-// ====================================================================
-// 1. CATÁLOGO MAESTRO DE EJERCICIOS
-// ====================================================================
 export const EXERCISES = {
-  // --- EJERCICIOS DE GIMNASIO (EXISTENTES) ---
+  // --- EJERCICIOS DE GIMNASIO ---
   sentadillas: {
     id: 'sentadillas',
     nombre: "Sentadillas",
     video: "https://www.youtube.com/watch?v=dsCuiccYNGs",
     imagen: require('../assets/ejercicios/sentadilla.png'), 
-    animacion: null, 
   },
   prensa: {
     id: 'prensa',
@@ -35,7 +31,7 @@ export const EXERCISES = {
     imagen: require('../assets/ejercicios/pressbanca.png'),
   },
 
-  // --- EJERCICIOS EN CASA (ANTERIORES) ---
+  // --- EJERCICIOS EN CASA ---
   flexiones: {
     id: 'flexiones',
     nombre: "Flexiones de Brazo",
@@ -84,8 +80,6 @@ export const EXERCISES = {
     video: "https://www.youtube.com/watch?v=IYusabTdFEo",
     imagen: require('../assets/ejercicios/burpees.png'),
   },
-
-  // --- 🔥 10 NUEVOS EJERCICIOS EN CASA (ESTRUCTURA UNIFICADA) ---
   sentadilla_bulgara: {
     id: 'sentadilla_bulgara',
     nombre: "Sentadilla Búlgara",
@@ -146,8 +140,6 @@ export const EXERCISES = {
     video: "https://www.youtube.com/watch?v=dgCRY7L52mE",
     imagen: require('../assets/ejercicios/rodillas_pecho.png'),
   },
-
-  // --- OTROS ---
   descanso: {
     id: 'descanso',
     nombre: "Descanso Activo",
@@ -156,70 +148,186 @@ export const EXERCISES = {
   },
 };
 
-// ====================================================================
-// 2. RUTINAS PREDEFINIDAS (PACKS)
-// ====================================================================
-export const PRESET_ROUTINES = {
-  // --- RUTINAS GYM (Las originales) ---
-  GYM_PIERNA_BASICO: [
-    { ...EXERCISES.sentadillas, repeticiones: "4 series de 12 reps" },
-    { ...EXERCISES.prensa, repeticiones: "4 series de 15 reps" },
-    { ...EXERCISES.zancadas, repeticiones: "3 series de 20 pasos" },
-  ],
-  GYM_TORSO: [
-    { ...EXERCISES.press_banca, repeticiones: "4 series de 10 reps" },
-    { ...EXERCISES.dominadas, repeticiones: "4 series al fallo" },
-    { ...EXERCISES.press_militar, repeticiones: "3 series de 12 reps" },
-  ],
 
-  // --- RUTINAS EN CASA ---
-  CASA_FULLBODY: [
-    { ...EXERCISES.sentadillas, repeticiones: "4 series de 15 reps" },
-    { ...EXERCISES.flexiones, repeticiones: "4 series de 10-12 reps" },
-    { ...EXERCISES.zancadas, repeticiones: "3 series de 12 por pierna" },
-    { ...EXERCISES.fondos_silla, repeticiones: "3 series de 10 reps" },
-    { ...EXERCISES.plancha, repeticiones: "3 series de 30-60 segundos" },
-  ],
-  CASA_PIERNA_GLUTEO: [
-    { ...EXERCISES.sentadilla_bulgara, repeticiones: "4 series de 10 por pierna" },
-    { ...EXERCISES.zancadas, repeticiones: "4 series de 12 por pierna" },
-    { ...EXERCISES.puente_gluteo, repeticiones: "4 series de 20 reps (aprieta arriba)" },
-    { ...EXERCISES.elevacion_talones, repeticiones: "4 series de 20 reps" },
-  ],
-  CASA_ABS_CORE: [
-    { ...EXERCISES.crunch_abdominal, repeticiones: "4 series de 15 reps" },
-    { ...EXERCISES.tijeras, repeticiones: "4 series de 30 segundos" },
-    { ...EXERCISES.plancha_lateral, repeticiones: "3 series de 30 seg por lado" },
-    { ...EXERCISES.superman, repeticiones: "3 series de 12 reps" },
-  ],
-  CASA_TOTAL_ADVANCED: [
-    { ...EXERCISES.rodillas_al_pecho, repeticiones: "1 minuto (Calentamiento)" },
-    { ...EXERCISES.remo_casero, repeticiones: "4 series de 12 por brazo" },
-    { ...EXERCISES.sentadilla_bulgara, repeticiones: "4 series de 10 por pierna" },
-    { ...EXERCISES.curl_biceps_casero, repeticiones: "3 series de 15 reps" },
-    { ...EXERCISES.sentadilla_isometrica, repeticiones: "3 series de 45 segundos" },
-    { ...EXERCISES.burpees, repeticiones: "3 series al fallo" },
-  ],
-  CARDIO_QUEMA: [
-    { ...EXERCISES.burpees, repeticiones: "4 rondas de 1 min" },
-    { ...EXERCISES.jumping_jacks, repeticiones: "4 rondas de 1 min" },
-    { ...EXERCISES.rodillas_al_pecho, repeticiones: "4 rondas de 45 seg" },
-    { ...EXERCISES.descanso, repeticiones: "Caminar 30 min" },
-  ],
-  DESCANSO_TOTAL: [
-     { ...EXERCISES.descanso, repeticiones: "Día libre de recuperación o Yoga suave" },
-  ]
-};
 
-// ====================================================================
-// 3. RUTINA INICIAL DEL USUARIO (Mezcla Equilibrada)
-// ====================================================================
-export const DEFAULT_WEEKLY_ROUTINE = {
-  lunes: PRESET_ROUTINES.CASA_TOTAL_ADVANCED,
-  martes: PRESET_ROUTINES.CASA_ABS_CORE,
-  miércoles: PRESET_ROUTINES.GYM_PIERNA_BASICO,
-  jueves: PRESET_ROUTINES.CASA_PIERNA_GLUTEO,
-  viernes: PRESET_ROUTINES.GYM_TORSO,
-  sábado: PRESET_ROUTINES.CARDIO_QUEMA,
-  domingo: PRESET_ROUTINES.DESCANSO_TOTAL,
+export const RUTINAS_MAESTRAS = {
+
+
+  'Plan 1': {
+    lunes: {
+      enfoque: 'Cardio Intenso Full Body',
+      ejercicios: [
+        { ...EXERCISES.jumping_jacks, repeticiones: "4 rondas de 1 min", involucra: ['Tobillos', 'Rodillas'] },
+        { ...EXERCISES.burpees, repeticiones: "3 rondas de 45 seg", involucra: ['Muñecas', 'Hombros', 'Rodillas'] },
+        { ...EXERCISES.sentadillas, repeticiones: "4 series de 15 reps", involucra: ['Rodillas'] },
+        { ...EXERCISES.escaladores, repeticiones: "3 series de 30 seg", involucra: ['Hombros', 'Muñecas'] }
+      ]
+    },
+    martes: {
+      enfoque: 'Core y Abdomen',
+      ejercicios: [
+        { ...EXERCISES.plancha, repeticiones: "4 series de 45 seg", involucra: ['Hombros', 'Espalda Baja'] },
+        { ...EXERCISES.crunch_abdominal, repeticiones: "4 series de 20 reps", involucra: ['Espalda Baja'] },
+        { ...EXERCISES.tijeras, repeticiones: "3 series de 30 seg", involucra: [] },
+        { ...EXERCISES.plancha_lateral, repeticiones: "3 series de 30 seg/lado", involucra: ['Hombros'] }
+      ]
+    },
+    miércoles: {
+        enfoque: 'Tren Inferior Dinámico',
+        ejercicios: [
+            { ...EXERCISES.zancadas, repeticiones: "3 series de 15 por pierna", involucra: ['Rodillas'] },
+            { ...EXERCISES.rodillas_al_pecho, repeticiones: "4 rondas de 45 seg", involucra: ['Tobillos', 'Rodillas'] },
+            { ...EXERCISES.puente_gluteo, repeticiones: "4 series de 20 reps", involucra: [] },
+            { ...EXERCISES.elevacion_talones, repeticiones: "4 series de 25 reps", involucra: ['Tobillos'] }
+        ]
+    },
+    jueves: {
+        enfoque: 'Descanso Activo',
+        ejercicios: [
+            { ...EXERCISES.descanso, repeticiones: "Caminata de 30-45 minutos", involucra: [] }
+        ]
+    },
+    viernes: {
+        enfoque: 'Full Body Circuito',
+        ejercicios: [
+            { ...EXERCISES.flexiones, repeticiones: "3 series de 10-15 reps", involucra: ['Hombros', 'Muñecas'] },
+            { ...EXERCISES.sentadilla_bulgara, repeticiones: "3 series de 10/pierna", involucra: ['Rodillas', 'Tobillos'] },
+            { ...EXERCISES.remo_casero, repeticiones: "3 series de 12/brazo", involucra: [] },
+            { ...EXERCISES.superman, repeticiones: "3 series de 15 reps", involucra: [] }
+        ]
+    },
+    sábado: {
+        enfoque: 'Reto de Cardio Fin de Semana',
+        ejercicios: [
+            { ...EXERCISES.burpees, repeticiones: "50 repeticiones por tiempo", involucra: ['Muñecas', 'Hombros', 'Rodillas'] },
+            { ...EXERCISES.jumping_jacks, repeticiones: "100 repeticiones", involucra: ['Tobillos', 'Rodillas'] },
+            { ...EXERCISES.escaladores, repeticiones: "3 minutos en total", involucra: ['Hombros', 'Muñecas'] }
+        ]
+    },
+    domingo: {
+        enfoque: 'Descanso Total',
+        ejercicios: [
+            { ...EXERCISES.descanso, repeticiones: "Día libre de recuperación", involucra: [] }
+        ]
+    }
+  },
+
+  // ----------------------------------------------------------
+  // PLAN 2: TONIFICACIÓN (Enfoque: Reps medias y control)
+  // ----------------------------------------------------------
+  'Plan 2': {
+    lunes: {
+      enfoque: 'Pierna y Glúteo Tono',
+      ejercicios: [
+        { ...EXERCISES.sentadilla_bulgara, repeticiones: "4 series de 10/pierna (lento)", involucra: ['Rodillas', 'Tobillos'] },
+        { ...EXERCISES.puente_gluteo, repeticiones: "4 series de 15 reps (aprieta 2 seg)", involucra: [] },
+        { ...EXERCISES.zancadas, repeticiones: "3 series de 12/pierna", involucra: ['Rodillas'] },
+        { ...EXERCISES.sentadilla_isometrica, repeticiones: "3 series de 45 seg", involucra: ['Rodillas'] }
+      ]
+    },
+    martes: {
+        enfoque: 'Tren Superior Tono',
+        ejercicios: [
+            { ...EXERCISES.flexiones, repeticiones: "4 series de 8-10 reps", involucra: ['Hombros', 'Muñecas'] },
+            { ...EXERCISES.remo_casero, repeticiones: "4 series de 12/brazo", involucra: [] },
+            { ...EXERCISES.fondos_silla, repeticiones: "3 series de 10-12 reps", involucra: ['Hombros', 'Muñecas'] },
+            { ...EXERCISES.curl_biceps_casero, repeticiones: "3 series de 15 reps", involucra: [] }
+        ]
+    },
+    miércoles: {
+        enfoque: 'Core y Estabilidad',
+        ejercicios: [
+            { ...EXERCISES.plancha, repeticiones: "4 series de 45-60 seg", involucra: ['Hombros', 'Espalda Baja'] },
+            { ...EXERCISES.superman, repeticiones: "4 series de 15 reps (lento)", involucra: [] },
+            { ...EXERCISES.plancha_lateral, repeticiones: "3 series de 45 seg/lado", involucra: ['Hombros'] }
+        ]
+    },
+    jueves: {
+        enfoque: 'Descanso Activo',
+        ejercicios: [
+            { ...EXERCISES.descanso, repeticiones: "Estiramientos o Yoga suave", involucra: [] }
+        ]
+    },
+    viernes: {
+        enfoque: 'Full Body Tono Mix',
+        ejercicios: [
+            { ...EXERCISES.sentadillas, repeticiones: "3 series de 20 reps", involucra: ['Rodillas'] },
+            { ...EXERCISES.remo_casero, repeticiones: "3 series de 15/brazo", involucra: [] },
+            { ...EXERCISES.flexiones, repeticiones: "3 series de 10 reps", involucra: ['Hombros', 'Muñecas'] },
+            { ...EXERCISES.elevacion_talones, repeticiones: "3 series de 30 reps", involucra: ['Tobillos'] }
+        ]
+    },
+    sábado: {
+        enfoque: 'Cardio Moderado',
+        ejercicios: [
+            { ...EXERCISES.jumping_jacks, repeticiones: "3 rondas de 2 min", involucra: ['Tobillos', 'Rodillas'] },
+            { ...EXERCISES.descanso, repeticiones: "Caminata ligera 30 min", involucra: [] }
+        ]
+    },
+    domingo: {
+        enfoque: 'Descanso Total',
+        ejercicios: [
+            { ...EXERCISES.descanso, repeticiones: "Día libre de recuperación", involucra: [] }
+        ]
+    }
+  },
+
+  // ----------------------------------------------------------
+  // PLAN 3: GANANCIA MUSCULAR (Enfoque: Cargas altas, gym)
+  // ----------------------------------------------------------
+  'Plan 3': {
+    lunes: {
+      enfoque: 'Pecho y Tríceps (Gym)',
+      ejercicios: [
+        { ...EXERCISES.press_banca, repeticiones: "4 series de 6-8 reps pesadas", involucra: ['Hombros', 'Muñecas', 'Codos'] },
+        { ...EXERCISES.flexiones, repeticiones: "3 series al fallo (con peso extra si puedes)", involucra: ['Hombros', 'Muñecas'] },
+        { ...EXERCISES.fondos_silla, repeticiones: "4 series de 10-12 reps (con peso)", involucra: ['Hombros', 'Muñecas', 'Codos'] }
+      ]
+    },
+    martes: {
+        enfoque: 'Espalda y Bíceps (Gym)',
+        ejercicios: [
+            { ...EXERCISES.dominadas, repeticiones: "4 series al fallo", involucra: ['Hombros', 'Muñecas', 'Codos'] },
+            { ...EXERCISES.remo_casero, repeticiones: "4 series de 8-10 reps pesadas/brazo", involucra: [] },
+            { ...EXERCISES.curl_biceps_casero, repeticiones: "4 series de 10-12 reps pesadas", involucra: [] }
+        ]
+    },
+    miércoles: {
+        enfoque: 'Pierna Pesada (Gym)',
+        ejercicios: [
+            { ...EXERCISES.sentadillas, repeticiones: "5 series de 5 reps pesadas", involucra: ['Rodillas', 'Espalda Baja'] },
+            { ...EXERCISES.prensa, repeticiones: "4 series de 10-12 reps", involucra: ['Rodillas'] },
+            { ...EXERCISES.zancadas, repeticiones: "3 series de 10/pierna (con mancuernas)", involucra: ['Rodillas'] },
+            { ...EXERCISES.elevacion_talones, repeticiones: "4 series de 20 reps pesadas", involucra: ['Tobillos'] }
+        ]
+    },
+    jueves: {
+        enfoque: 'Descanso / Movilidad',
+        ejercicios: [
+            { ...EXERCISES.descanso, repeticiones: "Recuperación activa, estiramientos", involucra: [] }
+        ]
+    },
+    viernes: {
+        enfoque: 'Hombro y Core (Gym)',
+        ejercicios: [
+            { ...EXERCISES.press_militar, repeticiones: "4 series de 8-10 reps", involucra: ['Hombros', 'Muñecas', 'Codos', 'Espalda Baja'] },
+            { ...EXERCISES.plancha, repeticiones: "4 series de 60 seg", involucra: ['Hombros', 'Espalda Baja'] },
+            { ...EXERCISES.crunch_abdominal, repeticiones: "4 series de 15 reps (con peso)", involucra: ['Espalda Baja'] }
+        ]
+    },
+    sábado: {
+        enfoque: 'Full Body Hipertrofia',
+        ejercicios: [
+            { ...EXERCISES.press_banca, repeticiones: "3 series de 10 reps", involucra: ['Hombros', 'Muñecas', 'Codos'] },
+            { ...EXERCISES.sentadillas, repeticiones: "3 series de 10 reps", involucra: ['Rodillas', 'Espalda Baja'] },
+            { ...EXERCISES.dominadas, repeticiones: "3 series al fallo", involucra: ['Hombros', 'Muñecas', 'Codos'] }
+        ]
+    },
+    domingo: {
+        enfoque: 'Descanso Total',
+        ejercicios: [
+            { ...EXERCISES.descanso, repeticiones: "Día libre de recuperación", involucra: [] }
+        ]
+    }
+  }
 };
