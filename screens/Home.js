@@ -357,6 +357,7 @@ import {
             {renderMenuItem("calendar-month-outline", "Calendario", () => navigation.navigate('CalendarRecipes'), HOME_COLORS.secondary)}
             {renderMenuItem("barcode-scan", "Scanner", () => navigation.navigate('Scanner'), HOME_COLORS.accent)}
             {renderMenuItem("shoe-print", "Contador", () => navigation.navigate('ContadorPasos'), HOME_COLORS.accent)}
+            {renderMenuItem("shoe-print", "Premium", () => navigation.navigate('Suscripcion'), HOME_COLORS.accent)}
             {renderMenuItem("chat-processing-outline", "Coach IA", () => {
               if (!isSubscribed) { Alert.alert("Suscripción Requerida", "Necesitas Premium para el Coach IA."); return; }
               navigation.navigate('AvatarChat');
