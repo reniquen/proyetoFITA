@@ -354,7 +354,7 @@ import {
         {menuOpen && (
           <View style={styles.menuDropdown}>
             {renderMenuItem("account-circle-outline", "Mi Avatar", () => navigation.navigate('Avatar'), HOME_COLORS.primary)}
-            {renderMenuItem("calendar-month-outline", "Recetas", () => navigation.navigate('CalendarRecipes'), HOME_COLORS.secondary)}
+            {renderMenuItem("calendar-month-outline", "Calendario", () => navigation.navigate('CalendarRecipes'), HOME_COLORS.secondary)}
             {renderMenuItem("barcode-scan", "Scanner", () => navigation.navigate('Scanner'), HOME_COLORS.accent)}
             {renderMenuItem("shoe-print", "Contador", () => navigation.navigate('ContadorPasos'), HOME_COLORS.accent)}
             {renderMenuItem("chat-processing-outline", "Coach IA", () => {
