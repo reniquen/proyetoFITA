@@ -4,7 +4,7 @@
     "slug": "fitA",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/avatar/image.png",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": false,
     "splash": {
@@ -38,9 +38,7 @@
     },
     "plugins": [
       "expo-barcode-scanner",
-      "expo-sensors",
-      "expo-asset",
-      "expo-font"
+      "expo-sensors"
     ]
   }
 }
