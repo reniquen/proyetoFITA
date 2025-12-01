@@ -1,17 +1,19 @@
-
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { View, Text, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const AVATAR_KEY = 'avatar_animacion';
-const defaultAvatar = 'normal';
+
+// --- CORRECCIÓN AQUÍ ---
+// Cambiamos 'normal' por 'avatar1' (o cualquiera que exista en AvatarAssets.js)
+const defaultAvatar = 'avatar1'; 
+// -----------------------
 
 const AvatarContext = createContext();
 
 export const AvatarProvider = ({ children }) => {
   const [avatar, setAvatar] = useState(defaultAvatar);
   const [isLoading, setIsLoading] = useState(true);
-
 
   useEffect(() => {
     const cargarAvatar = async () => {
@@ -32,7 +34,6 @@ export const AvatarProvider = ({ children }) => {
     cargarAvatar();
   }, []);
 
-
   const guardarAvatar = async (nuevoAvatarString) => {
     try {
       await AsyncStorage.setItem(AVATAR_KEY, nuevoAvatarString);
@@ -43,20 +44,17 @@ export const AvatarProvider = ({ children }) => {
     }
   };
 
-
+  // NOTA: He simplificado un poco el loading para que sea solo el indicador,
+  // ya que el texto "Cargando avatar..." a veces se ve raro si es muy rápido.
   if (isLoading) {
+    // Si prefieres puedes devolver null para que no se vea nada mientras carga
+    // return null; 
+    
+    // O mantener el indicador centrado:
     return (
-      <View
-        style={{
-          flex: 1,
-          justifyContent: 'center',
-          alignItems: 'center',
-          backgroundColor: '#fff',
-        }}
-      >
-        <ActivityIndicator size="large" color="#3498db" />
-        <Text style={{ marginTop: 10, color: '#333' }}>Cargando avatar...</Text>
-      </View>
+       <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+         <ActivityIndicator size="large" color="#4CAF50" />
+       </View>
     );
   }
 
@@ -66,6 +64,5 @@ export const AvatarProvider = ({ children }) => {
     </AvatarContext.Provider>
   );
 };
-
 
 export const useAvatar = () => useContext(AvatarContext);
