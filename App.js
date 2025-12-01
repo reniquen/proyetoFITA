@@ -1,26 +1,63 @@
-import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
-import { StatusBar } from 'react-native';
+// App.js
+import React, { useEffect } from "react";
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import * as SplashScreen from "expo-splash-screen";
+import { registerRootComponent } from 'expo';
 
-// Importa tus pantallas
-import LoginScreen from './screens/Login'; // Asumo que tienes un Login
-import Home from './screens/Home';
-import AvatarChatScreen from './screens/AvatarChatScreen';
-import SuscripcionScreen from './screens/SuscripcionScreen';
-import TerminosCondicionesScreen from './screens/TerminosCondicionesScreen';
-import CalendarRecipesScreen from './screens/CalendarRecipesScreen'; // Si la tienes
-import ScannerScreen from './screens/ScannerScreen'; // Si la tienes
-import ContadorPasosScreen from './screens/ContadorPasos'; // Si la tienes
-import AboutUsScreen from './screens/AboutUs'; // Si la tienes
-import AvatarScreen from './screens/Avatar'; // Si la tienes
+// Providers
+import { AvatarProvider } from "./screens/AvatarContext";
+import { UserDataProvider, useUserData } from "./screens/UserDataContext";
+import { SubscriptionProvider } from "./screens/SubscriptionContext";
 
-// Contextos
-import { UserDataProvider } from './screens/UserDataContext';
-import { AvatarProvider } from './screens/AvatarContext';
-import { SubscriptionProvider } from './screens/SubscriptionContext';
+// Screens
+import LoginScreen from "./screens/Login";
+import HomeScreen from "./screens/Home";
+import AvatarScreen from "./screens/Avatar";
+import AvatarChatScreen from "./screens/AvatarChatScreen";
+import AdminPanelScreen from "./screens/AdminPanel";
+import RegistroScreen from "./screens/Registro";
+import ScannerScreen from "./screens/ScannerScreen";
+import CalendarRecipesScreen from "./screens/CalendarRecipesScreen";
+import SuscripcionScreen from "./screens/SuscripcionScreen";
+import AboutUsScreen from "./screens/AboutUs";
+import ContadorPasosScreen from "./screens/ContadorPasos";
+import DatosScreen from "./screens/Datos";
 
-const Stack = createStackNavigator();
+SplashScreen.preventAutoHideAsync();
+const Stack = createNativeStackNavigator();
+
+function AppNavigation() {
+  const { isLoadingData } = useUserData();
+
+  useEffect(() => {
+    if (!isLoadingData) {
+      SplashScreen.hideAsync();
+    }
+  }, [isLoadingData]);
+
+  if (isLoadingData) {
+    return null;
+  }
+
+  // AQUÍ ESTÁ LA CORRECCIÓN: El Stack.Navigator limpio sin espacios entre pantallas
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen name="Home" component={HomeScreen} />
+      <Stack.Screen name="Avatar" component={AvatarScreen} />
+      <Stack.Screen name="AvatarChat" component={AvatarChatScreen} />
+      <Stack.Screen name="AdminPanel" component={AdminPanelScreen} />
+      <Stack.Screen name="Registro" component={RegistroScreen} />
+      <Stack.Screen name="Datos" component={DatosScreen} />
+      <Stack.Screen name="Scanner" component={ScannerScreen} />
+      <Stack.Screen name="CalendarRecipes" component={CalendarRecipesScreen} />
+      <Stack.Screen name="Suscripcion" component={SuscripcionScreen} />
+      <Stack.Screen name="AboutUs" component={AboutUsScreen} />
+      <Stack.Screen name="ContadorPasos" component={ContadorPasosScreen} /> 
+    </Stack.Navigator>
+  );
+}
 
 export default function App() {
   return (
@@ -60,3 +97,5 @@ export default function App() {
     </SubscriptionProvider>
   );
 }
+
+registerRootComponent(App);
