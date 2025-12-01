@@ -1,4 +1,3 @@
-// screens/Home.js
 import {
   Text, StyleSheet, View, Image, TouchableOpacity, ScrollView, Modal,
   SafeAreaView, Alert, Dimensions, ActivityIndicator, StatusBar, Platform, BackHandler
@@ -13,6 +12,8 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import { useUserData } from './UserDataContext';
 import { useSubscription } from './SubscriptionContext';
+// Importamos el nuevo componente WeatherCard
+import WeatherCard from './WeatherCard'; 
 
 function getYouTubeId(url) {
   if (!url) return null;
@@ -56,9 +57,7 @@ export default function Home({ navigation }) {
   const [dynamicTip, setDynamicTip] = useState("¡Vamos a entrenar!");
 
   // --- ESTADOS PARA NAVEGACIÓN DE DÍAS ---
-  // Estado para el índice del día de la RUTINA (Nuevo)
   const [rutinaDiaIndex, setRutinaDiaIndex] = useState(new Date().getDay());
-  // Estado para el índice del día de la DIETA (Existente)
   const [dietaDiaIndex, setDietaDiaIndex] = useState(new Date().getDay());
   
   const diasSemana = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
@@ -67,17 +66,28 @@ export default function Home({ navigation }) {
   const { rutinas, dietas, isLoadingData } = useUserData();
   const { isSubscribed } = useSubscription();
 
-  // --- BLOQUE DE SEGURIDAD DE CARGA (CORREGIDO) ---
+  // --- DERIVACIÓN DE DATOS (Basado en los estados de navegación) ---
+  const diaMostradoRutina = diasSemana[rutinaDiaIndex];
+  const datosRutinaDia = rutinas && rutinas[diaMostradoRutina] ? rutinas[diaMostradoRutina] : {};
+  const rutinaMostrar = datosRutinaDia.ejercicios || [];
+  const enfoqueMostrar = datosRutinaDia.enfoque || '';
+
+  const diaMostradoDieta = diasSemana[dietaDiaIndex];
+  const datosDietaDia = dietas && dietas[diaMostradoDieta] ? dietas[diaMostradoDieta] : {};
+  const dietaHoy = datosDietaDia.comidas || []; 
+  
+  const totalCalorias = dietaHoy.reduce((total, comida) => total + (comida.calorias || 0), 0);
+
+  // --- BLOQUE DE SEGURIDAD DE CARGA ---
   if (isLoadingData) {
     return (
-        <View style={[styles.contenedorPrincipal, { justifyContent: 'center', alignItems: 'center' }]}>
-            <StatusBar backgroundColor={HOME_COLORS.headerBg} barStyle="light-content" />
-            <ActivityIndicator size="large" color={HOME_COLORS.accent} />
-            {/* LA LÍNEA SIGUIENTE ESTABA MAL ESCRITA, YA ESTÁ CORREGIDA */}
-            <Text style={{ marginTop: 15, color: HOME_COLORS.textMedium, fontSize: 16, fontWeight: '600' }}>
-                Preparando tu plan personalizado...
-            </Text>
-        </View>
+      <View style={[styles.contenedorPrincipal, { justifyContent: 'center', alignItems: 'center' }]}>
+        <StatusBar backgroundColor={HOME_COLORS.headerBg} barStyle="light-content" />
+        <ActivityIndicator size="large" color={HOME_COLORS.accent} />
+        <Text style={{ marginTop: 15, color: HOME_COLORS.textMedium, fontSize: 16, fontWeight: '600' }}>
+          Preparando tu plan personalizado...
+        </Text>
+      </View>
     );
   }
 
@@ -109,7 +119,6 @@ export default function Home({ navigation }) {
     });
   };
 
-  // Nueva función para cambiar el día de la rutina
   const cambiarRutinaDia = (delta) => {
     setRutinaDiaIndex((prevIndex) => {
       let newIndex = prevIndex + delta;
@@ -122,17 +131,35 @@ export default function Home({ navigation }) {
   const confirmarRutinaCompletada = () => {
     Alert.alert(
       "¡Excelente trabajo! 💪",
-      `Has completado tu rutina del ${diasSemana[rutinaDiaIndex]}. ¡Sigue así!`,
+      `Has completado tu rutina del ${diasSemana[rutinaDiaIndex].toUpperCase()}. ¡Sigue así!`,
       [{ text: "¡Gracias!", onPress: () => console.log("Rutina completada") }]
     );
-    // Aquí podrías agregar lógica para guardar este progreso en Firebase si lo deseas en el futuro
+    // Lógica futura: Guardar este progreso en Firebase
   };
 
   const getDynamicTip = () => {
     const hour = new Date().getHours();
-    if (hour < 12) return "¡Buen día! Un desayuno alto en proteína es clave.";
-    if (hour < 19) return "¡Vamos a entrenar! Termina el día con fuerza.";
-    return "El descanso es parte fundamental del progreso.";
+    const morningTips = [
+      "¡Buen día! Un desayuno alto en proteína es clave.",
+      "Recuerda calentar bien antes de tu rutina de hoy.",
+      "La consistencia gana a la intensidad. ¡Vamos por ello!",
+      "¡A empezar el día con energía!",
+    ];
+    const afternoonTips = [
+      "¡Buenas tardes! ¿Listo/a para la rutina?",
+      "Mantén la hidratación durante la tarde.",
+      "Un snack saludable te dará energía para el entreno.",
+    ];
+    const eveningTips = [
+      "¡Buenas noches! ¿Cumpliste tu objetivo hoy?",
+      "Una cena ligera ayuda a la recuperación muscular.",
+      "El descanso es parte fundamental del progreso.",
+    ];
+    let tipsList;
+    if (hour < 12) tipsList = morningTips;
+    else if (hour < 19) tipsList = afternoonTips;
+    else tipsList = eveningTips;
+    return tipsList[Math.floor(Math.random() * tipsList.length)];
   };
 
   const openVideo = (videoUrl) => {
@@ -155,23 +182,6 @@ export default function Home({ navigation }) {
   const onStateChange = useCallback((state) => {
     if (state === "ended") closeVideo();
   }, []);
-
-  // ==================================================================
-  // 🔥 EXTRACCIÓN DE DATOS 🔥
-  // ==================================================================
-  
-  const diaActualRutina = diasSemana[new Date().getDay()];
-  const datosRutinaDia = rutinas ? rutinas[diaActualRutina] : null;
-  const rutinaHoy = datosRutinaDia ? datosRutinaDia.ejercicios : [];
-  const enfoqueHoy = datosRutinaDia ? datosRutinaDia.enfoque : '';
-  
-  const diaMostradoDieta = diasSemana[dietaDiaIndex];
-  const datosDietaDia = dietas ? dietas[diaMostradoDieta] : null;
-  const dietaHoy = datosDietaDia ? datosDietaDia.comidas : []; 
-  
-  const totalCalorias = dietaHoy.reduce((total, comida) => total + (comida.calorias || 0), 0);
-  // ==================================================================
-
 
   const handleLogout = () => {
     Alert.alert("Cerrar Sesión", "¿Estás seguro?", [
@@ -226,6 +236,9 @@ export default function Home({ navigation }) {
                 </View>
               </View>
           </View>
+          
+          {/* === NUEVA INTEGRACIÓN: TARJETA DEL CLIMA === */}
+          <WeatherCard />
 
           {/* === RUTINA CARD === */}
           <View style={styles.superCardContainer}>
@@ -248,25 +261,38 @@ export default function Home({ navigation }) {
             <View style={styles.superCardContent}>
                 {/* Título del día centrado */}
                 <View style={styles.subtitleWrapperCentered}>
-                    <Text style={styles.sectionSubtitle}>{diaActualRutina.toUpperCase()}</Text>
-                    {enfoqueHoy ? <Text style={styles.enfoqueText}>{enfoqueHoy}</Text> : null}
+                    <Text style={styles.sectionSubtitle}>{diaMostradoRutina.charAt(0).toUpperCase() + diaMostradoRutina.slice(1)}</Text>
+                    {enfoqueMostrar ? <Text style={styles.enfoqueText}>{enfoqueMostrar}</Text> : null}
                     <View style={styles.subtitleUnderlineCentered} />
                 </View>
 
-                {rutinaHoy.length > 0 ? (
-                rutinaHoy.map((ejercicio, index) => (
-                    <View key={index} style={styles.workoutCardInner}>
-                    <View style={styles.cardAccentBar} />
-                    <TouchableOpacity onPress={() => openVideo(ejercicio.video)} disabled={!ejercicio.video} activeOpacity={0.9} style={styles.mediaContainer}>
-                        {renderAsset(ejercicio)}
-                        {ejercicio.video && (
-                        <View style={styles.playIconOverlay}>
-                            <Icon name="play-circle" size={32} color={HOME_COLORS.accent} />
+                {rutinaMostrar.length > 0 ? (
+                <>
+                    {rutinaMostrar.map((ejercicio, index) => (
+                        <View key={index} style={styles.workoutCardInner}>
+                        <View style={styles.cardAccentBar} />
+                        <TouchableOpacity onPress={() => openVideo(ejercicio.video)} disabled={!ejercicio.video} activeOpacity={0.9} style={styles.mediaContainer}>
+                            {renderAsset(ejercicio)}
+                            {ejercicio.video && (
+                            <View style={styles.playIconOverlay}>
+                                <Icon name="play-circle" size={32} color={HOME_COLORS.accent} />
+                            </View>
+                            )}
+                        </TouchableOpacity>
+                        <View style={styles.workoutTextContainer}>
+                            <Text style={styles.workoutName}>{ejercicio.nombre}</Text>
+                            <Text style={styles.workoutReps}>{ejercicio.repeticiones}</Text>
+                            {ejercicio.video && (
+                            <TouchableOpacity style={styles.verVideoBtnCompact} onPress={() => openVideo(ejercicio.video)}>
+                                <Text style={styles.verVideoTextCompact}>Ver video</Text>
+                                <Icon name="arrow-right" size={12} color={HOME_COLORS.innerCardBg} style={{marginLeft: 4}}/>
+                            </TouchableOpacity>
+                            )}
                         </View>
                         </View>
                     ))}
 
-                    {/* === NUEVO BOTÓN: CONFIRMAR RUTINA COMPLETADA === */}
+                    {/* === BOTÓN: CONFIRMAR RUTINA COMPLETADA === */}
                     <TouchableOpacity 
                         style={styles.completeRoutineButton} 
                         onPress={confirmarRutinaCompletada}
@@ -285,16 +311,18 @@ export default function Home({ navigation }) {
             </View>
           </View>
 
-          {/* === DIETA CARD === */}
+          {/* === DIETA CARD (EXISTENTE) === */}
           <View style={styles.superCardContainer}>
             <View style={styles.superCardHeaderDiet}>
                 <TouchableOpacity onPress={() => cambiarDietaDia(-1)} style={styles.navButtonHeader}>
                   <Icon name="chevron-left" size={32} color={HOME_COLORS.textInverse} />
                 </TouchableOpacity>
+                
                 <View style={{flexDirection: 'row', alignItems: 'center'}}>
                     <Icon name="food-apple" size={24} color={HOME_COLORS.textInverse} style={{marginRight: 10}}/>
                     <Text style={styles.superCardTitle}>Plan de Alimentación</Text>
                 </View>
+
                 <TouchableOpacity onPress={() => cambiarDietaDia(1)} style={styles.navButtonHeader}>
                   <Icon name="chevron-right" size={32} color={HOME_COLORS.textInverse} />
                 </TouchableOpacity>
@@ -302,7 +330,7 @@ export default function Home({ navigation }) {
 
             <View style={styles.superCardContent}>
                 <View style={styles.subtitleWrapperCentered}>
-                    <Text style={styles.sectionSubtitle}>{diaMostradoDieta.toUpperCase()}</Text>
+                    <Text style={styles.sectionSubtitle}>{diaMostradoDieta.charAt(0).toUpperCase() + diaMostradoDieta.slice(1)}</Text>
                     <View style={styles.subtitleUnderlineCentered} />
                 </View>
 
@@ -324,6 +352,7 @@ export default function Home({ navigation }) {
                         </View>
                     ))}
                     </View>
+
                     <View style={styles.totalCaloriesHighlightCardInner}>
                         <View style={styles.totalCaloriesIconBubble}>
                         <Icon name="fire" size={24} color={HOME_COLORS.accent} />
@@ -342,6 +371,7 @@ export default function Home({ navigation }) {
                 )}
              </View>
           </View>
+
           <View style={{ height: 50 }} /> 
         </ScrollView>
       </SafeAreaView>
@@ -350,9 +380,11 @@ export default function Home({ navigation }) {
       {menuOpen && (
         <View style={styles.menuDropdown}>
           {renderMenuItem("account-circle-outline", "Mi Avatar", () => navigation.navigate('Avatar'), HOME_COLORS.primary)}
+          {renderMenuItem("file-document-outline", "Términos y Condiciones", () => navigation.navigate('TerminosCondiciones'), '#90A4AE')}
           {renderMenuItem("calendar-month-outline", "Recetas", () => navigation.navigate('CalendarRecipes'), HOME_COLORS.secondary)}
           {renderMenuItem("barcode-scan", "Scanner", () => navigation.navigate('Scanner'), HOME_COLORS.accent)}
           {renderMenuItem("shoe-print", "Contador", () => navigation.navigate('ContadorPasos'), HOME_COLORS.accent)}
+          {renderMenuItem("crown-outline", "Planes Premium", () => navigation.navigate('Suscripcion'), HOME_COLORS.accent)}
           {renderMenuItem("chat-processing-outline", "Coach IA", () => {
              if (!isSubscribed) { Alert.alert("Suscripción Requerida", "Necesitas Premium para el Coach IA."); return; }
              navigation.navigate('AvatarChat');
@@ -398,7 +430,8 @@ const styles = StyleSheet.create({
   staticMenuButton: { position: 'absolute', right: 20, padding: 8, backgroundColor: 'rgba(255,255,255,0.25)', borderRadius: 8 },
   coachMasterCard: {
     backgroundColor: HOME_COLORS.coachMasterCardBg, borderRadius: 24, paddingVertical: 25, paddingHorizontal: 15,
-    marginBottom: 35, marginTop: 25, borderWidth: 1, borderColor: HOME_COLORS.coachCardBorder,
+    marginBottom: 15, // Reducido el margen para dejar espacio al WeatherCard
+    marginTop: 25, borderWidth: 1, borderColor: HOME_COLORS.coachCardBorder,
     elevation: 3, shadowColor: HOME_COLORS.shadowColor, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 5,
   },
   coachSectionContainerInner: { flexDirection: 'column', alignItems: 'center' },
@@ -417,18 +450,14 @@ const styles = StyleSheet.create({
     backgroundColor: HOME_COLORS.superCardBodyBg, borderRadius: 24, marginBottom: 35, overflow: 'hidden',
     elevation: 8, shadowColor: HOME_COLORS.shadowColor, shadowOffset: { width: 0, height: 5 }, shadowOpacity: 0.2, shadowRadius: 10,
   },
-  // Ya no se usa superCardHeader simple, ahora usamos superCardHeaderDiet para ambos para consistencia
-  superCardHeader: {
-      flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: HOME_COLORS.superCardHeaderBg, paddingVertical: 18, paddingHorizontal: 20,
-  },
   superCardHeaderDiet: {
-      flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: HOME_COLORS.superCardHeaderBg, paddingVertical: 15, paddingHorizontal: 15,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: HOME_COLORS.superCardHeaderBg, paddingVertical: 15, paddingHorizontal: 15,
   },
   superCardTitle: { fontSize: 20, fontWeight: '900', color: HOME_COLORS.textInverse, letterSpacing: 0.5 },
   superCardContent: { padding: 20 },
   navButtonHeader: { padding: 4 },
   subtitleWrapperCentered: { flexDirection: 'column', alignItems: 'center', marginBottom: 20 },
-  sectionSubtitle: { fontSize: 16, color: HOME_COLORS.accent, fontWeight: '700', textTransform: 'capitalize' },
+  sectionSubtitle: { fontSize: 16, color: HOME_COLORS.accent, fontWeight: '700', textTransform: 'uppercase' },
   enfoqueText: { fontSize: 14, color: HOME_COLORS.textMedium, fontStyle: 'italic', marginTop: 4 },
   subtitleUnderlineCentered: { height: 3, width: 50, backgroundColor: HOME_COLORS.accent, marginTop: 5, borderRadius: 2 },
   workoutCardInner: {
@@ -444,6 +473,30 @@ const styles = StyleSheet.create({
   workoutReps: { fontSize: 13, color: HOME_COLORS.textMedium, marginBottom: 8 },
   verVideoBtnCompact: { flexDirection: 'row', alignItems: 'center', backgroundColor: HOME_COLORS.primary, paddingVertical: 6, paddingHorizontal: 12, borderRadius: 20, alignSelf: 'flex-start' },
   verVideoTextCompact: { fontSize: 11, color: HOME_COLORS.innerCardBg, fontWeight: 'bold' },
+  
+  // --- ESTILOS DEL BOTÓN DE COMPLETAR RUTINA (NUEVO) ---
+  completeRoutineButton: {
+    flexDirection: 'row',
+    backgroundColor: HOME_COLORS.successDark,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 15,
+    elevation: 4,
+    shadowColor: HOME_COLORS.successDark,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+  },
+  completeRoutineText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+    letterSpacing: 0.5
+  },
+
   dietListContainer: { marginTop: 5 },
   dietMealCardInner: {
     flexDirection: 'row', alignItems: 'center', backgroundColor: HOME_COLORS.innerCardBg, borderRadius: 14, padding: 12, marginBottom: 10,
