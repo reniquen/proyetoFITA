@@ -400,7 +400,7 @@ export default function Home({ navigation }) {
           {renderMenuItem("💎", "Planes Premium", () => navigation.navigate('Suscripcion'), HOME_COLORS.accent)}
           {renderMenuItem("📅", "Recetas", () => navigation.navigate('CalendarRecipes'), HOME_COLORS.secondary)}
           {renderMenuItem("📷", "Scanner", () => navigation.navigate('Scanner'), HOME_COLORS.accent)}
-          {renderMenuItem("$", "Contador", () => navigation.navigate('ContadorPasos'), HOME_COLORS.accent)}
+          {renderMenuItem("👟", "Caminata", () => navigation.navigate('ContadorPasos'), HOME_COLORS.accent)}
           {renderMenuItem("📜", "Términos y Condiciones", () => navigation.navigate('TerminosCondiciones'), HOME_COLORS.accent)}
           {renderMenuItem("💬", "Coach IA", () => {
              if (!isSubscribed) { Alert.alert("Suscripción Requerida", "Necesitas Premium para el Coach IA."); return; }
