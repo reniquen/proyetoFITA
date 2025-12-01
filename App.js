@@ -2,6 +2,8 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { StatusBar } from 'react-native';
+
+// --- PANTALLAS ---
 import LoginScreen from './screens/Login'; 
 import Home from './screens/Home';
 import AvatarChatScreen from './screens/AvatarChatScreen';
@@ -12,12 +14,12 @@ import ScannerScreen from './screens/ScannerScreen';
 import ContadorPasosScreen from './screens/ContadorPasos'; 
 import AboutUsScreen from './screens/AboutUs'; 
 import AvatarScreen from './screens/Avatar'; 
-import Registro from './screens/Registro'
-
+import AdminPanelScreen from './screens/AdminPanel'; 
+import RegistroScreen from './screens/Registro'; 
 
 // =========================================================
-// ✅ CORRECCIÓN 1: Importar el componente AdminPanel
-import AdminPanelScreen from './screens/AdminPanel'; // <-- **¡Asegúrate que la ruta es correcta!**
+// ✅ CORRECCIÓN 1: Importar el componente de Datos
+import DatosScreen from './screens/Datos'; 
 // =========================================================
 
 // Contextos
@@ -33,7 +35,6 @@ export default function App() {
     <SubscriptionProvider>
       <AvatarProvider>
         <UserDataProvider>
-          {/* 2. AGREGAMOS EL PROVEEDOR AQUÍ */}
           <StepProvider>
             
             <NavigationContainer>
@@ -45,7 +46,12 @@ export default function App() {
                   cardStyle: { backgroundColor: '#F2F5ED' }
                 }}
               >
+                {/* ========================================================= */}
+                {/* ✅ REGISTRO DE PANTALLAS */}
+                {/* ========================================================= */}
+                
                 <Stack.Screen name="Login" component={LoginScreen} />
+                <Stack.Screen name="Registro" component={RegistroScreen} /> 
                 <Stack.Screen name="Home" component={Home} />
                 <Stack.Screen name="Registro" component={Registro} />
                 
@@ -53,7 +59,7 @@ export default function App() {
                 <Stack.Screen name="AvatarChat" component={AvatarChatScreen} />
                 <Stack.Screen name="Avatar" component={AvatarScreen} />
 
-                {/* === NUEVAS PANTALLAS REGISTRADAS AQUÍ === */}
+                {/* === PANTALLAS DE FUNCIONALIDAD === */}
                 <Stack.Screen name="Suscripcion" component={SuscripcionScreen} />
                 <Stack.Screen name="TerminosCondiciones" component={TerminosCondicionesScreen} />
                 
@@ -63,16 +69,17 @@ export default function App() {
                 <Stack.Screen name="ContadorPasos" component={ContadorPasosScreen} />
                 <Stack.Screen name="AboutUs" component={AboutUsScreen} />
                 
-                {/* ========================================================= */}
-                {/* ✅ CORRECCIÓN 2: Registrar la pantalla AdminPanel */}
                 <Stack.Screen name="AdminPanel" component={AdminPanelScreen} /> 
+                
                 {/* ========================================================= */}
-
+                {/* ✅ CORRECCIÓN 2: Registrar la pantalla Datos */}
+                <Stack.Screen name="Datos" component={DatosScreen} />
+                {/* ========================================================= */}
+                
               </Stack.Navigator>
             </NavigationContainer>
 
           </StepProvider>
-          {/* CIERRE DEL PROVEEDOR */}
         </UserDataProvider>
       </AvatarProvider>
     </SubscriptionProvider>
