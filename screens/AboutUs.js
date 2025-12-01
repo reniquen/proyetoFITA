@@ -76,7 +76,7 @@ export default function AboutUs({ navigation }) {
             </View>
         </View>
 
-</View>
+
 
 
 
