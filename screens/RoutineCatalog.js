@@ -161,14 +161,14 @@ export const EXERCISES = {
     nombre: "Rodillas al Pecho",
     video: "https://www.youtube.com/watch?v=dgCRY7L52mE",
     imagen: require('../assets/ejercicios/rodillas_pecho.png'),
-    calorias_estimadas: 8, // kcal por minuto
+    calorias_estimadas: 8, 
   },
   descanso: {
     id: 'descanso',
     nombre: "Descanso Activo",
     video: null,
     imagen: require('../assets/ejercicios/vidasaludable.png'),
-    calorias_estimadas: 3, // kcal por minuto caminando
+    calorias_estimadas: 3, 
   },
 };
 
@@ -177,70 +177,70 @@ export const RUTINAS_MAESTRAS = {
     lunes: {
       enfoque: 'Cardio Intenso Full Body',
       ejercicios: [
-        // 4 mins total * 10 kcal/min = 40 kcal
+        
         { ...EXERCISES.jumping_jacks, repeticiones: "4 rondas de 1 min", involucra: ['Tobillos', 'Rodillas'], calorias: 40 },
-        // ~2.25 mins * 10 kcal/min = ~25 kcal
+        
         { ...EXERCISES.burpees, repeticiones: "3 rondas de 45 seg", involucra: ['Muñecas', 'Hombros', 'Rodillas'], calorias: 25 },
-        // 4 * 15 = 60 reps * 0.5 = 30 kcal
+        
         { ...EXERCISES.sentadillas, repeticiones: "4 series de 15 reps", involucra: ['Rodillas'], calorias: 30 },
-        // 1.5 mins * 9 kcal/min = ~14 kcal
+        
         { ...EXERCISES.escaladores, repeticiones: "3 series de 30 seg", involucra: ['Hombros', 'Muñecas'], calorias: 15 }
       ]
     },
     martes: {
       enfoque: 'Core y Abdomen',
       ejercicios: [
-        // 3 mins * 4 kcal = 12 kcal
+       
         { ...EXERCISES.plancha, repeticiones: "4 series de 45 seg", involucra: ['Hombros', 'Espalda Baja'], calorias: 12 },
-        // 80 reps * 0.2 = 16 kcal
+      
         { ...EXERCISES.crunch_abdominal, repeticiones: "4 series de 20 reps", involucra: ['Espalda Baja'], calorias: 16 },
-        // 1.5 mins * 6 = 9 kcal
+        
         { ...EXERCISES.tijeras, repeticiones: "3 series de 30 seg", involucra: [], calorias: 10 },
-        // 1.5 mins/lado = 3 mins total * 5 = 15 kcal
+        
         { ...EXERCISES.plancha_lateral, repeticiones: "3 series de 30 seg/lado", involucra: ['Hombros'], calorias: 15 }
       ]
     },
     miércoles: {
         enfoque: 'Tren Inferior Dinámico',
         ejercicios: [
-            // 3 * 15 * 2 piernas = 90 reps * 0.6 = 54 kcal
+            
             { ...EXERCISES.zancadas, repeticiones: "3 series de 15 por pierna", involucra: ['Rodillas'], calorias: 54 },
-            // 3 mins * 8 = 24 kcal
+            
             { ...EXERCISES.rodillas_al_pecho, repeticiones: "4 rondas de 45 seg", involucra: ['Tobillos', 'Rodillas'], calorias: 24 },
-            // 80 reps * 0.3 = 24 kcal
+            
             { ...EXERCISES.puente_gluteo, repeticiones: "4 series de 20 reps", involucra: [], calorias: 24 },
-            // 100 reps * 0.2 = 20 kcal
+            
             { ...EXERCISES.elevacion_talones, repeticiones: "4 series de 25 reps", involucra: ['Tobillos'], calorias: 20 }
         ]
     },
     jueves: {
         enfoque: 'Descanso Activo',
         ejercicios: [
-            // 30 mins * 3 = 90 kcal
+            
             { ...EXERCISES.descanso, repeticiones: "Caminata de 30-45 minutos", involucra: [], calorias: 100 }
         ]
     },
     viernes: {
         enfoque: 'Full Body Circuito',
         ejercicios: [
-            // ~40 reps * 0.4 = 16 kcal
+            
             { ...EXERCISES.flexiones, repeticiones: "3 series de 10-15 reps", involucra: ['Hombros', 'Muñecas'], calorias: 16 },
-            // 60 reps * 0.7 = 42 kcal
+            
             { ...EXERCISES.sentadilla_bulgara, repeticiones: "3 series de 10/pierna", involucra: ['Rodillas', 'Tobillos'], calorias: 42 },
-            // 72 reps * 0.4 = 28 kcal
+            
             { ...EXERCISES.remo_casero, repeticiones: "3 series de 12/brazo", involucra: [], calorias: 28 },
-            // 45 reps * 0.3 = 14 kcal
+            
             { ...EXERCISES.superman, repeticiones: "3 series de 15 reps", involucra: [], calorias: 14 }
         ]
     },
     sábado: {
         enfoque: 'Reto de Cardio Fin de Semana',
         ejercicios: [
-            // 50 * 1.2 = 60 kcal
+            
             { ...EXERCISES.burpees, repeticiones: "50 repeticiones por tiempo", involucra: ['Muñecas', 'Hombros', 'Rodillas'], calorias: 60 },
-            // ~5 mins * 10 = 50 kcal
+            
             { ...EXERCISES.jumping_jacks, repeticiones: "100 repeticiones", involucra: ['Tobillos', 'Rodillas'], calorias: 50 },
-            // 3 mins * 9 = 27 kcal
+            
             { ...EXERCISES.escaladores, repeticiones: "3 minutos en total", involucra: ['Hombros', 'Muñecas'], calorias: 27 }
         ]
     },
@@ -252,9 +252,7 @@ export const RUTINAS_MAESTRAS = {
     }
   },
 
-  // ----------------------------------------------------------
-  // PLAN 2: TONIFICACIÓN
-  // ----------------------------------------------------------
+  
   'Plan 2': {
     lunes: {
       enfoque: 'Pierna y Glúteo Tono',
@@ -312,9 +310,7 @@ export const RUTINAS_MAESTRAS = {
     }
   },
 
-  // ----------------------------------------------------------
-  // PLAN 3: GANANCIA MUSCULAR
-  // ----------------------------------------------------------
+  
   'Plan 3': {
     lunes: {
       enfoque: 'Pecho y Tríceps (Gym)',

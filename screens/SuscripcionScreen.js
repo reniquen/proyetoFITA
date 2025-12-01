@@ -16,15 +16,14 @@ import { useSubscription } from "./SubscriptionContext";
 import { auth } from "./firebaseConfig";
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-// --- CONFIGURACIÓN DE PRECIOS Y LINKS ---
-// Pega aquí tus links de pago generados en MercadoPago para cada plan
+
 const PLAN_LINKS = {
   mensual: "https://mpago.la/2natAfL",   // $5.000
   trimestral: "https://mpago.la/2natAfL", // $12.000
   anual: "https://mpago.la/1JEuUNy"        // $29.000
 };
 
-// --- PALETA DE COLORES (Consistente con Home) ---
+
 const COLORS = {
   background: '#F2F5ED',
   primary: '#4CAF50',
@@ -45,9 +44,9 @@ export default function SuscripcionScreen({ navigation }) {
 
   const uid = auth.currentUser?.uid || "anonimo";
 
-  // Función para armar la URL final con el ID del usuario
+ 
   const getPaymentUrl = (baseUrl) => {
-    // Si tu link de MP ya tiene parámetros, usa & en lugar de ?
+    
     const separator = baseUrl.includes("?") ? "&" : "?";
     return `${baseUrl}${separator}external_reference=${uid}`; 
   };
@@ -63,7 +62,7 @@ export default function SuscripcionScreen({ navigation }) {
 
     if (url.includes("/pago_cancelado") || url.includes("failure")) {
       Alert.alert("Pago cancelado", "No se completó el proceso.");
-      setSelectedPlanUrl(null); // Volver a la selección de planes
+      setSelectedPlanUrl(null); 
     }
   };
 
@@ -74,7 +73,7 @@ export default function SuscripcionScreen({ navigation }) {
     setLoading(true);
   };
 
-  // --- RENDERIZADO DEL WEBVIEW (PROCESO DE PAGO) ---
+  
   if (selectedPlanUrl) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
@@ -106,7 +105,7 @@ export default function SuscripcionScreen({ navigation }) {
     <SafeAreaView style={styles.container}>
       <StatusBar backgroundColor={COLORS.background} barStyle="dark-content" />
       
-      {/* Botón de volver al Home */}
+     
       <TouchableOpacity 
         style={styles.floatingBackButton} 
         onPress={() => navigation.goBack()}
@@ -124,7 +123,7 @@ export default function SuscripcionScreen({ navigation }) {
 
         <View style={styles.plansContainer}>
           
-          {/* PLAN MENSUAL */}
+         
           <TouchableOpacity style={styles.planCard} activeOpacity={0.9} onPress={() => handleSelectPlan('mensual')}>
             <View style={styles.planHeader}>
               <Text style={styles.planTitle}>Mensual</Text>
@@ -139,7 +138,7 @@ export default function SuscripcionScreen({ navigation }) {
             </View>
           </TouchableOpacity>
 
-          {/* PLAN TRIMESTRAL */}
+         
           <TouchableOpacity style={[styles.planCard, styles.planCardPopular]} activeOpacity={0.9} onPress={() => handleSelectPlan('trimestral')}>
             <View style={styles.badgePopular}>
               <Text style={styles.badgeText}>MÁS POPULAR</Text>
@@ -161,7 +160,7 @@ export default function SuscripcionScreen({ navigation }) {
             </View>
           </TouchableOpacity>
 
-          {/* PLAN ANUAL */}
+          
           <TouchableOpacity style={styles.planCard} activeOpacity={0.9} onPress={() => handleSelectPlan('anual')}>
             <View style={styles.badgeBestValue}>
               <Text style={styles.badgeText}>MEJOR PRECIO</Text>
@@ -205,14 +204,13 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   scrollContent: { padding: 20, paddingBottom: 40 },
   
-  // Header Simple (WebView)
   headerSimple: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.primary, padding: 15 },
   backButtonSimple: { flexDirection: 'row', alignItems: 'center' },
   backTextSimple: { color: COLORS.textLight, marginLeft: 5, fontSize: 16 },
   headerTitleSimple: { color: COLORS.textLight, fontSize: 18, fontWeight: 'bold', marginLeft: 20 },
   loader: { marginTop: 20 },
 
-  // Landing Page UI
+  
   floatingBackButton: { position: 'absolute', top: 15, left: 15, zIndex: 10, backgroundColor: 'rgba(0,0,0,0.05)', padding: 8, borderRadius: 20 },
   
   heroSection: { alignItems: 'center', marginTop: 40, marginBottom: 30 },
@@ -237,7 +235,7 @@ const styles = StyleSheet.create({
   planCardPopular: {
     borderColor: COLORS.accent,
     borderWidth: 2,
-    backgroundColor: '#FFFDF5' // Un toque amarillo muy suave
+    backgroundColor: '#FFFDF5',
   },
   
   badgePopular: {

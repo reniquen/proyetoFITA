@@ -1,13 +1,9 @@
-// screens/UserDataContext.js
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import { auth, db } from './firebaseConfig';
 import { doc, getDoc, updateDoc, arrayUnion, arrayRemove, setDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import { Alert } from 'react-native';
-
-// --- IMPORTAMOS LOS CATÁLOGOS ---
 import { RUTINAS_MAESTRAS } from './RoutineCatalog'; 
-// IMPORTANTE: Importamos las dietas desde tu archivo 'Comidas.js'
 import { DIETAS_MAESTRAS } from './Comidas'; 
 
 const UserDataContext = createContext();
@@ -18,22 +14,19 @@ export const UserDataProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isLoadingData, setIsLoadingData] = useState(true);
   
-  // --- ESTADOS DE DATOS ---
   const [userData, setUserData] = useState({
     nombre: '', email: '', plan: '', 
     limitacionesFisicas: [], alergiasPreferencias: [], ejerciciosCompletados: {}
   });
   
-  // Datos procesados para el Home
+ 
   const [rutinasFiltradas, setRutinasFiltradas] = useState({});
   const [dietasFiltradas, setDietasFiltradas] = useState({});
 
-  // Estado para el calendario de recetas
+  
   const [recetasCalendar, setRecetasCalendar] = useState({});
 
-  // =====================================================
-  // 1. MOTOR DE FILTRADO DE RUTINAS
-  // =====================================================
+  
   const filtrarRutinasPorLimitaciones = (rutinasDelPlan, limitacionesUsuario) => {
     if (!rutinasDelPlan) return {};
     
@@ -57,9 +50,6 @@ export const UserDataProvider = ({ children }) => {
     return rutinasProcesadas;
   };
 
-  // =====================================================
-  // 2. FUNCIÓN PRINCIPAL DE CARGA DE DATOS
-  // =====================================================
   const recargarDatos = useCallback(async () => {
     if (!auth.currentUser) { setIsLoadingData(false); return; }
     setIsLoadingData(true);
@@ -71,15 +61,13 @@ export const UserDataProvider = ({ children }) => {
         const data = userSnap.data();
         setUserData(data);
         setRecetasCalendar(data.calendarRecipes || {});
-
-        // --- PROCESAR RUTINAS Y DIETAS ---
-        // Si no tiene plan, usamos 'Plan 1' por defecto (seguridad para usuarios antiguos)
+       
         const userPlan = data.plan || 'Plan 1'; 
         const userLimitaciones = data.limitacionesFisicas || [];
         
         console.log("Cargando datos para plan:", userPlan);
 
-        // 1. Rutinas
+        
         const rutinasMaestrasDelPlan = RUTINAS_MAESTRAS[userPlan] || {};
         const rutinasPersonalizadas = filtrarRutinasPorLimitaciones(rutinasMaestrasDelPlan, userLimitaciones);
         setRutinasFiltradas(rutinasPersonalizadas);
@@ -100,9 +88,7 @@ export const UserDataProvider = ({ children }) => {
     }
   }, []);
 
-  // =====================================================
-  // 3. DETECTOR DE SESIÓN
-  // =====================================================
+ 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
@@ -117,9 +103,7 @@ export const UserDataProvider = ({ children }) => {
     return () => unsubscribe();
   }, [recargarDatos]);
 
-  // =====================================================
-  // 4. FUNCIONES PÚBLICAS
-  // =====================================================
+  
   const addRecipeToCalendar = async (date, recipe) => {
     if (!user || !date || !recipe) return;
     try {
@@ -130,12 +114,12 @@ export const UserDataProvider = ({ children }) => {
   };
 
   const updateDietTemplate = async (dia, nombreComida, comidaDetalle, calorias) => {
-      // Lógica futura si quieres editar la dieta
+      
       console.log("Actualizar dieta:", dia, nombreComida);
   };
 
   const marcarEjercicioComoRealizado = async (dia, ejercicioIndex) => { 
-      // Lógica de checks
+      
   };
 
   return (

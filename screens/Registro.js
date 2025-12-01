@@ -23,7 +23,7 @@ import { doc, setDoc } from 'firebase/firestore';
 
 const { width, height } = Dimensions.get('window');
 
-// --- Paleta de Colores ---
+
 const COLORS = {
     brandGreenDark: '#005b4f', 
     brandGreen: '#00A86B',
@@ -57,17 +57,17 @@ export default function Registro({ navigation }) {
             const userCredential = await createUserWithEmailAndPassword(auth, correo, contrasena);
             const user = userCredential.user;
             
-            // 1. Crear documento en Firestore (datosCompletos: false es CRUCIAL)
+            
             await setDoc(doc(db, 'usuarios', user.uid), {
                 email: correo.toLowerCase(),
                 fechaRegistro: new Date().toISOString(),
                 isPremium: false,
-                datosCompletos: false, // <-- Esto debería gatillar la redirección
+                datosCompletos: false, 
             });
 
-            // 2. ✅ CORRECCIÓN: Navegación Manual Añadida para asegurar el flujo.
+            
             Alert.alert('¡Cuenta Creada!', 'Serás redirigido para completar tu perfil.');
-            navigation.navigate('Datos'); // <-- AGREGADA: Navega a la pantalla 'Datos'
+            navigation.navigate('Datos'); 
 
         } catch (error) {
             console.error('Error al registrar usuario:', error);
@@ -85,7 +85,7 @@ export default function Registro({ navigation }) {
             <StatusBar barStyle="light-content" backgroundColor={COLORS.brandGreenDark} />
             <SafeAreaView style={styles.safeAreaTop} />
 
-            {/* --- CABECERA VERDE --- */}
+            
             <View style={styles.headerBackground}>
                 <TouchableOpacity 
                     onPress={() => navigation.goBack()} 
@@ -103,7 +103,7 @@ export default function Registro({ navigation }) {
                 </View>
             </View>
 
-            {/* --- TARJETA DE REGISTRO --- */}
+           
             <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : undefined}
                 style={styles.keyboardView}
@@ -119,7 +119,7 @@ export default function Registro({ navigation }) {
                         <Text style={styles.tituloTarjeta}>Crear Nueva Cuenta</Text>
                         <Text style={styles.subtituloTarjeta}>Comienza tu transformación hoy.</Text>
 
-                        {/* INPUT CORREO */}
+                        
                         <View style={styles.inputContainer}>
                             <Icon name="email-outline" size={20} color={COLORS.brandYellow} style={styles.inputIcon} />
                             <TextInput
@@ -133,7 +133,7 @@ export default function Registro({ navigation }) {
                             />
                         </View>
 
-                        {/* INPUT CONTRASEÑA */}
+                        
                         <View style={styles.inputContainer}>
                             <Icon name="lock-outline" size={20} color={COLORS.brandYellow} style={styles.inputIcon} />
                             <TextInput
@@ -149,7 +149,7 @@ export default function Registro({ navigation }) {
                             </TouchableOpacity>
                         </View>
 
-                        {/* INPUT CONFIRMAR CONTRASEÑA */}
+                        
                         <View style={styles.inputContainer}>
                             <Icon name="lock-check-outline" size={20} color={COLORS.brandYellow} style={styles.inputIcon} />
                             <TextInput
