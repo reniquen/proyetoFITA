@@ -61,15 +61,40 @@ function AppNavigation() {
 
 export default function App() {
   return (
-    <AvatarProvider>
-      <UserDataProvider>
-        <SubscriptionProvider>
+    <SubscriptionProvider>
+      <AvatarProvider>
+        <UserDataProvider>
           <NavigationContainer>
-            <AppNavigation />
+            <StatusBar backgroundColor="#4CAF50" barStyle="light-content" />
+            <Stack.Navigator 
+              initialRouteName="Login"
+              screenOptions={{
+                headerShown: false, // Ocultamos el header por defecto para usar los personalizados
+                cardStyle: { backgroundColor: '#F2F5ED' }
+              }}
+            >
+              <Stack.Screen name="Login" component={LoginScreen} />
+              <Stack.Screen name="Home" component={Home} />
+              
+              {/* Pantallas del Chat y Avatar */}
+              <Stack.Screen name="AvatarChat" component={AvatarChatScreen} />
+              <Stack.Screen name="Avatar" component={AvatarScreen} />
+
+              {/* === NUEVAS PANTALLAS REGISTRADAS AQUÍ === */}
+              <Stack.Screen name="Suscripcion" component={SuscripcionScreen} />
+              <Stack.Screen name="TerminosCondiciones" component={TerminosCondicionesScreen} />
+              
+              {/* Otras funcionalidades */}
+              <Stack.Screen name="CalendarRecipes" component={CalendarRecipesScreen} />
+              <Stack.Screen name="Scanner" component={ScannerScreen} />
+              <Stack.Screen name="ContadorPasos" component={ContadorPasosScreen} />
+              <Stack.Screen name="AboutUs" component={AboutUsScreen} />
+
+            </Stack.Navigator>
           </NavigationContainer>
-        </SubscriptionProvider>
-      </UserDataProvider>
-    </AvatarProvider>
+        </UserDataProvider>
+      </AvatarProvider>
+    </SubscriptionProvider>
   );
 }
 

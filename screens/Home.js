@@ -43,6 +43,9 @@ const HOME_COLORS = {
   shadowColor: '#263238',
   menuBg: '#FFFFFF',
   fabRed: '#E53935',
+  
+  // Color para el botón de completar
+  successDark: '#2E7D32',
 };
 
 export default function Home({ navigation }) {
@@ -52,7 +55,12 @@ export default function Home({ navigation }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [dynamicTip, setDynamicTip] = useState("¡Vamos a entrenar!");
 
+  // --- ESTADOS PARA NAVEGACIÓN DE DÍAS ---
+  // Estado para el índice del día de la RUTINA (Nuevo)
+  const [rutinaDiaIndex, setRutinaDiaIndex] = useState(new Date().getDay());
+  // Estado para el índice del día de la DIETA (Existente)
   const [dietaDiaIndex, setDietaDiaIndex] = useState(new Date().getDay());
+  
   const diasSemana = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
 
   // --- CONTEXTO ---
@@ -90,6 +98,8 @@ export default function Home({ navigation }) {
     }, [menuOpen])
   );
 
+  // --- LÓGICA PARA CAMBIAR DÍAS (DIETA Y RUTINA) ---
+  
   const cambiarDietaDia = (delta) => {
     setDietaDiaIndex((prevIndex) => {
       let newIndex = prevIndex + delta;
@@ -97,6 +107,25 @@ export default function Home({ navigation }) {
       else if (newIndex >= diasSemana.length) newIndex = 0;
       return newIndex;
     });
+  };
+
+  // Nueva función para cambiar el día de la rutina
+  const cambiarRutinaDia = (delta) => {
+    setRutinaDiaIndex((prevIndex) => {
+      let newIndex = prevIndex + delta;
+      if (newIndex < 0) newIndex = diasSemana.length - 1;
+      else if (newIndex >= diasSemana.length) newIndex = 0;
+      return newIndex;
+    });
+  };
+
+  const confirmarRutinaCompletada = () => {
+    Alert.alert(
+      "¡Excelente trabajo! 💪",
+      `Has completado tu rutina del ${diasSemana[rutinaDiaIndex]}. ¡Sigue así!`,
+      [{ text: "¡Gracias!", onPress: () => console.log("Rutina completada") }]
+    );
+    // Aquí podrías agregar lógica para guardar este progreso en Firebase si lo deseas en el futuro
   };
 
   const getDynamicTip = () => {
@@ -200,12 +229,24 @@ export default function Home({ navigation }) {
 
           {/* === RUTINA CARD === */}
           <View style={styles.superCardContainer}>
-            <View style={styles.superCardHeader}>
-                <Icon name="dumbbell" size={24} color={HOME_COLORS.textInverse} style={{marginRight: 10}}/>
-                <Text style={styles.superCardTitle}>Tu Rutina de Hoy</Text>
+            {/* Header con Navegación (Flechas) */}
+            <View style={styles.superCardHeaderDiet}> 
+                <TouchableOpacity onPress={() => cambiarRutinaDia(-1)} style={styles.navButtonHeader}>
+                  <Icon name="chevron-left" size={32} color={HOME_COLORS.textInverse} />
+                </TouchableOpacity>
+                
+                <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                    <Icon name="dumbbell" size={24} color={HOME_COLORS.textInverse} style={{marginRight: 10}}/>
+                    <Text style={styles.superCardTitle}>Plan de Ejercicios</Text>
+                </View>
+
+                <TouchableOpacity onPress={() => cambiarRutinaDia(1)} style={styles.navButtonHeader}>
+                  <Icon name="chevron-right" size={32} color={HOME_COLORS.textInverse} />
+                </TouchableOpacity>
             </View>
             
             <View style={styles.superCardContent}>
+                {/* Título del día centrado */}
                 <View style={styles.subtitleWrapperCentered}>
                     <Text style={styles.sectionSubtitle}>{diaActualRutina.toUpperCase()}</Text>
                     {enfoqueHoy ? <Text style={styles.enfoqueText}>{enfoqueHoy}</Text> : null}
@@ -222,20 +263,19 @@ export default function Home({ navigation }) {
                         <View style={styles.playIconOverlay}>
                             <Icon name="play-circle" size={32} color={HOME_COLORS.accent} />
                         </View>
-                        )}
+                        </View>
+                    ))}
+
+                    {/* === NUEVO BOTÓN: CONFIRMAR RUTINA COMPLETADA === */}
+                    <TouchableOpacity 
+                        style={styles.completeRoutineButton} 
+                        onPress={confirmarRutinaCompletada}
+                        activeOpacity={0.8}
+                    >
+                        <Icon name="check-circle" size={24} color={HOME_COLORS.textInverse} style={{marginRight: 8}} />
+                        <Text style={styles.completeRoutineText}>¡Rutina Completada!</Text>
                     </TouchableOpacity>
-                    <View style={styles.workoutTextContainer}>
-                        <Text style={styles.workoutName}>{ejercicio.nombre}</Text>
-                        <Text style={styles.workoutReps}>{ejercicio.repeticiones}</Text>
-                        {ejercicio.video && (
-                        <TouchableOpacity style={styles.verVideoBtnCompact} onPress={() => openVideo(ejercicio.video)}>
-                            <Text style={styles.verVideoTextCompact}>Ver video</Text>
-                            <Icon name="arrow-right" size={12} color={HOME_COLORS.innerCardBg} style={{marginLeft: 4}}/>
-                        </TouchableOpacity>
-                        )}
-                    </View>
-                    </View>
-                ))
+                </>
                 ) : (
                 <View style={styles.emptyStateContainer}>
                     <Icon name="bed" size={40} color={HOME_COLORS.accent} style={{opacity: 0.8}} />
@@ -377,6 +417,7 @@ const styles = StyleSheet.create({
     backgroundColor: HOME_COLORS.superCardBodyBg, borderRadius: 24, marginBottom: 35, overflow: 'hidden',
     elevation: 8, shadowColor: HOME_COLORS.shadowColor, shadowOffset: { width: 0, height: 5 }, shadowOpacity: 0.2, shadowRadius: 10,
   },
+  // Ya no se usa superCardHeader simple, ahora usamos superCardHeaderDiet para ambos para consistencia
   superCardHeader: {
       flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: HOME_COLORS.superCardHeaderBg, paddingVertical: 18, paddingHorizontal: 20,
   },
