@@ -12,6 +12,10 @@ import ScannerScreen from './screens/ScannerScreen';
 import ContadorPasosScreen from './screens/ContadorPasos'; 
 import AboutUsScreen from './screens/AboutUs'; 
 import AvatarScreen from './screens/Avatar'; 
+// =========================================================
+// ✅ CORRECCIÓN 1: Importar el componente AdminPanel
+import AdminPanelScreen from './screens/AdminPanel'; // <-- **¡Asegúrate que la ruta es correcta!**
+// =========================================================
 
 // Contextos
 import { UserDataProvider } from './screens/UserDataContext';
@@ -54,6 +58,11 @@ export default function App() {
                 <Stack.Screen name="Scanner" component={ScannerScreen} />
                 <Stack.Screen name="ContadorPasos" component={ContadorPasosScreen} />
                 <Stack.Screen name="AboutUs" component={AboutUsScreen} />
+                
+                {/* ========================================================= */}
+                {/* ✅ CORRECCIÓN 2: Registrar la pantalla AdminPanel */}
+                <Stack.Screen name="AdminPanel" component={AdminPanelScreen} /> 
+                {/* ========================================================= */}
 
               </Stack.Navigator>
             </NavigationContainer>
@@ -65,4 +74,3 @@ export default function App() {
     </SubscriptionProvider>
   );
 }
-
