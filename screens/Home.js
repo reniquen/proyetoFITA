@@ -297,6 +297,7 @@ import {
                   <Icon name="food-apple" size={24} color={HOME_COLORS.textInverse} style={{ marginRight: 10 }} />
                   <Text style={styles.superCardTitle}>Plan de Alimentación</Text>
                 </View>
+
                 <TouchableOpacity onPress={() => cambiarDietaDia(1)} style={styles.navButtonHeader}>
                   <Icon name="chevron-right" size={32} color={HOME_COLORS.textInverse} />
                 </TouchableOpacity>
@@ -326,6 +327,7 @@ import {
                         </View>
                       ))}
                     </View>
+
                     <View style={styles.totalCaloriesHighlightCardInner}>
                       <View style={styles.totalCaloriesIconBubble}>
                         <Icon name="fire" size={24} color={HOME_COLORS.accent} />
