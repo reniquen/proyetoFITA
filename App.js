@@ -15,7 +15,7 @@ import ContadorPasosScreen from './screens/ContadorPasos';
 import AboutUsScreen from './screens/AboutUs'; 
 import AvatarScreen from './screens/Avatar'; 
 import AdminPanelScreen from './screens/AdminPanel'; 
-import RegistroScreen from './screens/Registro'; 
+
 
 // =========================================================
 // ✅ CORRECCIÓN 1: Importar el componente de Datos
@@ -27,6 +27,7 @@ import { UserDataProvider } from './screens/UserDataContext';
 import { AvatarProvider } from './screens/AvatarContext';
 import { SubscriptionProvider } from './screens/SubscriptionContext';
 import { StepProvider } from './screens/PasosContext';
+import Registro from './screens/Registro';
 
 const Stack = createStackNavigator();
 
@@ -51,7 +52,7 @@ export default function App() {
                 {/* ========================================================= */}
                 
                 <Stack.Screen name="Login" component={LoginScreen} />
-                <Stack.Screen name="Registro" component={RegistroScreen} /> 
+                
                 <Stack.Screen name="Home" component={Home} />
                 <Stack.Screen name="Registro" component={Registro} />
                 
