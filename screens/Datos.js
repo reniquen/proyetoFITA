@@ -16,77 +16,94 @@ import {
   Dimensions
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { doc, updateDoc, getDoc } from 'firebase/firestore'; // Importamos getDoc
+import { doc, updateDoc, getDoc } from 'firebase/firestore';
 import { db } from './firebaseConfig';
 
 const { width } = Dimensions.get('window');
 
-// --- Paleta de Colores Mejorada ---
 const COLORS = {
-  brandGreenDark: '#005b4f', 
+  brandGreenDark: '#005b4f',
   brandGreen: '#00A86B',
-  brandYellow: '#FFD54F', 
-  mainBg: '#EFF2E7',    
-  cardBg: '#FFFFFF',    
-  textDark: '#2D3748',  
+  brandYellow: '#FFD54F',
+  mainBg: '#EFF2E7',
+  cardBg: '#FFFFFF',
+  textDark: '#2D3748',
   textMedium: '#718096',
   inputBg: '#FFFFFF',
   inputBorder: '#E0E6DD',
-  sectionBg: '#F0F4C3', // Color usado para el fondo de la intro y el IMC
+  sectionBg: '#F0F4C3',
 };
 
 export default function Datos({ route, navigation }) {
   const { userId } = route.params;
   const [loading, setLoading] = useState(false);
 
-  // --- ESTADOS DEL FORMULARIO ---
   const [selectedPlan, setSelectedPlan] = useState(null);
-  const [sexo, setSexo] = useState(null); // Nuevo estado para el sexo
+  const [sexo, setSexo] = useState(null);
   const [edad, setEdad] = useState('');
   const [altura, setAltura] = useState('');
   const [peso, setPeso] = useState('');
-  
-  // ESTADOS PARA EL IMC
+
   const [imc, setImc] = useState(null);
-  const [imcCategory, setImcCategory] = useState(''); 
-  const [imcColor, setImcColor] = useState(COLORS.textDark); 
+  const [imcCategory, setImcCategory] = useState('');
+  const [imcColor, setImcColor] = useState(COLORS.textDark);
 
   const [limitaciones, setLimitaciones] = useState([]);
-  const [otraLimitacion, setOtraLimitacion] = useState(''); 
-  const opcionesLimitaciones = ['Ninguna', 'Rodillas', 'Espalda Baja', 'Hombros', 'Muñecas', 'Tobillos', 'Movilidad Reducida'];
+  const [otraLimitacion, setOtraLimitacion] = useState('');
+  const opcionesLimitaciones = [
+    'Ninguna',
+    'Rodillas',
+    'Espalda Baja',
+    'Hombros',
+    'Muñecas',
+    'Tobillos',
+    'Movilidad Reducida'
+  ];
 
   const [alergias, setAlergias] = useState([]);
   const [otraAlergia, setOtraAlergia] = useState('');
-  // Asegúrate que estos valores coincidan con los `ingredientes` en `Comidas.js` (en minúsculas)
-  const opcionesAlergias = ['Ninguna', 'gluten', 'lactosa', 'frutos secos', 'mariscos', 'huevo', 'vegetariano', 'vegano'];
+  const opcionesAlergias = [
+    'Ninguna',
+    'gluten',
+    'lactosa',
+    'frutos secos',
+    'mariscos',
+    'huevo',
+    'vegetariano',
+    'vegano'
+  ];
 
-  // Opciones para la selección de sexo
   const opcionesSexo = ['Hombre', 'Mujer', 'Prefiero no decirlo'];
 
-  // --- Cargar datos existentes del usuario al iniciar ---
   useEffect(() => {
     const fetchUserData = async () => {
       setLoading(true);
       try {
         const userRef = doc(db, 'usuarios', userId);
-        const userSnap = await getDoc(userRef);
-        if (userSnap.exists()) {
-          const data = userSnap.data();
+        const snap = await getDoc(userRef);
+
+        if (snap.exists()) {
+          const data = snap.data();
+
           setSelectedPlan(data.plan || null);
-          setSexo(data.sexo || null); // Cargar el sexo
+          setSexo(data.sexo || null);
+
           setEdad(String(data.edad || ''));
           setAltura(String(data.alturaCm || ''));
           setPeso(String(data.pesoKg || ''));
-          
-          setLimitaciones(data.limitacionesFisicas && data.limitacionesFisicas.length > 0 ? data.limitacionesFisicas : ['Ninguna']);
+
+          setLimitaciones(
+            data.limitacionesFisicas?.length > 0 ? data.limitacionesFisicas : ['Ninguna']
+          );
           setOtraLimitacion(data.limitacionesManual || '');
-          
-          setAlergias(data.alergiasPreferencias && data.alergiasPreferencias.length > 0 ? data.alergiasPreferencias : ['Ninguna']);
+
+          setAlergias(
+            data.alergiasPreferencias?.length > 0 ? data.alergiasPreferencias : ['Ninguna']
+          );
           setOtraAlergia(data.alergiasManual || '');
         }
-      } catch (error) {
-        console.error("Error al cargar datos del usuario:", error);
-        Alert.alert("Error", "No se pudieron cargar tus datos existentes.");
+      } catch (e) {
+        Alert.alert("Error", "No se pudieron cargar tus datos.");
       } finally {
         setLoading(false);
       }
@@ -95,238 +112,209 @@ export default function Datos({ route, navigation }) {
     fetchUserData();
   }, [userId]);
 
-  // --- FUNCIÓN PARA CLASIFICAR EL IMC SEGÚN ESTÁNDAR OMS ---
-  const classifyIMC = (imcValue) => {
-    const value = parseFloat(imcValue);
-    if (isNaN(value)) {
-        setImcCategory('');
-        return;
-    }
-    if (value < 18.5) {
-        setImcCategory('Bajo peso');
-        setImcColor('#FFB74D'); 
-    } else if (value >= 18.5 && value <= 24.9) {
-        setImcCategory('Peso normal (Saludable)');
-        setImcColor(COLORS.brandGreen); 
-    } else if (value >= 25 && value <= 29.9) {
-        setImcCategory('Sobrepeso');
-        setImcColor('#FB8C00'); 
-    } else if (value >= 30) {
-        setImcCategory('Obesidad');
-        setImcColor('#E53935'); 
+  const classifyIMC = (value) => {
+    const imc = parseFloat(value);
+    if (isNaN(imc)) return;
+
+    if (imc < 18.5) {
+      setImcCategory('Bajo peso');
+      setImcColor('#FFB74D');
+    } else if (imc <= 24.9) {
+      setImcCategory('Peso normal (Saludable)');
+      setImcColor(COLORS.brandGreen);
+    } else if (imc <= 29.9) {
+      setImcCategory('Sobrepeso');
+      setImcColor('#FB8C00');
+    } else {
+      setImcCategory('Obesidad');
+      setImcColor('#E53935');
     }
   };
 
-  // --- CÁLCULO AUTOMÁTICO DEL IMC ---
   useEffect(() => {
     if (altura && peso) {
-      const altMetros = parseFloat(altura) / 100;
-      const pesoKg = parseFloat(peso.replace(',', '.')); // Reemplazar coma por punto para asegurar el parseo
-      if (altMetros > 0 && pesoKg > 0) {
-        const imcCalculado = (pesoKg / (altMetros * altMetros)).toFixed(1);
-        setImc(imcCalculado);
-        classifyIMC(imcCalculado);
-      } else {
-        setImc(null);
-        setImcCategory('');
-        setImcColor(COLORS.textDark);
+      const altM = parseFloat(altura) / 100;
+      const kg = parseFloat(peso.replace(',', '.'));
+      if (altM > 0 && kg > 0) {
+        const result = (kg / (altM * altM)).toFixed(1);
+        setImc(result);
+        classifyIMC(result);
+        return;
       }
-    } else {
-      setImc(null);
-      setImcCategory('');
-      setImcColor(COLORS.textDark);
     }
+    setImc(null);
+    setImcCategory('');
+    setImcColor(COLORS.textDark);
   }, [altura, peso]);
 
-  // Función para manejar la selección de chips de múltiple opción (Limitaciones, Alergias)
-  const toggleMultiSelection = (item, list, setList, setManualTextStr) => {
+  const toggleMultiSelection = (item, list, setList, setManual) => {
     if (item === 'Ninguna') {
       setList(['Ninguna']);
-      if (setManualTextStr) setManualTextStr('');
+      if (setManual) setManual('');
       return;
     }
+
     let newList = [...list];
-    if (newList.includes('Ninguna')) {
-        newList = newList.filter(i => i !== 'Ninguna');
-    }
+
+    if (newList.includes('Ninguna'))
+      newList = newList.filter((i) => i !== 'Ninguna');
+
     if (newList.includes(item)) {
-      newList = newList.filter(i => i !== item);
-      if (item === 'Otro' && setManualTextStr) setManualTextStr('');
+      newList = newList.filter((i) => i !== item);
+      if (item === 'Otro' && setManual) setManual('');
     } else {
       newList.push(item);
     }
-    if (newList.length === 0) setList(['Ninguna']);
-    else setList(newList);
-  };
 
-  // Función para manejar la selección de chips de opción única (Sexo)
-  const handleSingleSelection = (item, setState) => {
-    setState(item);
+    setList(newList.length > 0 ? newList : ['Ninguna']);
   };
 
   const guardarDatos = async () => {
-    if (!selectedPlan) { Alert.alert('Falta información', 'Por favor selecciona un Plan.'); return; }
-    if (!sexo) { Alert.alert('Falta información', 'Por favor selecciona tu sexo.'); return; } // Nueva validación para el sexo
-    if (!edad || !altura || !peso) { Alert.alert('Falta información', 'Por favor completa tu edad, altura y peso.'); return; }
-    
-    // Validar que sean números y positivos
-    if (isNaN(parseInt(edad)) || isNaN(parseFloat(altura)) || isNaN(parseFloat(peso.replace(',', '.')))) {
-        Alert.alert('Datos Inválidos', 'Edad, altura y peso deben ser valores numéricos.'); return;
-    }
-    if (parseInt(edad) <= 0 || parseFloat(altura) <= 0 || parseFloat(peso.replace(',', '.')) <= 0) {
-        Alert.alert('Datos Inválidos', 'Edad, altura y peso deben ser valores positivos.'); return;
-    }
+    if (!selectedPlan) return Alert.alert('Error', 'Selecciona un plan.');
+    if (!sexo) return Alert.alert('Error', 'Selecciona tu sexo.');
+    if (!edad || !altura || !peso)
+      return Alert.alert('Error', 'Faltan datos corporales.');
 
-    if (limitaciones.length === 0) { Alert.alert('Falta información', 'Selecciona tus limitaciones físicas.'); return; }
-    if (alergias.length === 0) { Alert.alert('Falta información', 'Selecciona tus alergias/preferencias.'); return; }
+    if (limitaciones.includes('Otro') && !otraLimitacion.trim())
+      return Alert.alert('Error', 'Especifica tu limitación.');
 
-    if (limitaciones.includes('Otro') && !otraLimitacion.trim()) {
-        Alert.alert('Falta información', 'Por favor especifica tu "Otra" limitación física.'); return;
-    }
-    if (alergias.includes('Otro') && !otraAlergia.trim()) {
-        Alert.alert('Falta información', 'Por favor especifica tu "Otra" alergia o preferencia.'); return;
-    }
+    if (alergias.includes('Otro') && !otraAlergia.trim())
+      return Alert.alert('Error', 'Especifica tu alergia.');
 
     setLoading(true);
     try {
-      const userRef = doc(db, 'usuarios', userId);
-      
-      const finalLimitacionesArray = limitaciones.filter(item => item !== 'Ninguna' && item !== 'Otro');
-      const finalAlergiasArray = alergias.filter(item => item !== 'Ninguna' && item !== 'Otro');
+      const ref = doc(db, 'usuarios', userId);
 
-      await updateDoc(userRef, {
+      await updateDoc(ref, {
         plan: selectedPlan,
-        sexo: sexo, // Guardar el sexo
+        sexo,
         edad: parseInt(edad),
         alturaCm: parseInt(altura),
         pesoKg: parseFloat(peso.replace(',', '.')),
         imc: parseFloat(imc),
-        imcCategory: imcCategory,
-        limitacionesFisicas: finalLimitacionesArray,
+        imcCategory,
+        limitacionesFisicas: limitaciones.filter(i => i !== 'Ninguna' && i !== 'Otro'),
         limitacionesManual: limitaciones.includes('Otro') ? otraLimitacion.trim() : '',
-        alergiasPreferencias: finalAlergiasArray,
+        alergiasPreferencias: alergias.filter(i => i !== 'Ninguna' && i !== 'Otro'),
         alergiasManual: alergias.includes('Otro') ? otraAlergia.trim() : '',
         datosCompletos: true,
         ultimaActualizacion: new Date().toISOString()
       });
 
-      Alert.alert('¡Perfil Completado!', 'Tu plan personalizado está listo.', [
-        { text: '¡A Entrenar!', onPress: () => navigation.reset({ index: 0, routes: [{ name: 'Home' }] }) }
+      Alert.alert('¡Éxito!', 'Tu perfil ha sido actualizado.', [
+        { text: 'OK', onPress: () => navigation.reset({ index: 0, routes: [{ name: 'Home' }] }) }
       ]);
 
     } catch (error) {
-      console.error('Error al guardar datos:', error);
-      Alert.alert('Error', 'No se pudieron guardar los datos. Intenta nuevamente.');
+      Alert.alert('Error', 'No se pudieron guardar los datos.');
     } finally {
       setLoading(false);
     }
   };
 
-  const renderPlanOption = (nombrePlan, icono, descripcion) => {
-    const isSelected = selectedPlan === nombrePlan;
+  const renderPlanOption = (nombre, icono, desc) => {
+    const sel = selectedPlan === nombre;
     return (
       <TouchableOpacity
-        style={[styles.planCard, isSelected && styles.planCardSelected]}
-        onPress={() => setSelectedPlan(nombrePlan)}
-        activeOpacity={0.8}
+        style={[styles.planCard, sel && styles.planCardSelected]}
+        onPress={() => setSelectedPlan(nombre)}
       >
-        <Icon name={icono} size={28} color={isSelected ? COLORS.brandYellow : COLORS.brandGreen} style={{marginBottom: 5}} />
-        <Text style={[styles.planTitle, isSelected && styles.planTitleSelected]}>{nombrePlan}</Text>
-        <Text style={[styles.planDesc, isSelected && styles.planDescSelected]} numberOfLines={2}>{descripcion}</Text>
-        {isSelected && <View style={styles.checkmarkContainer}><Icon name="check-circle" size={18} color={COLORS.brandYellow} /></View>}
+        <Icon name={icono} size={28} color={sel ? COLORS.brandYellow : COLORS.brandGreen} />
+        <Text style={[styles.planTitle, sel && styles.planTitleSelected]}>{nombre}</Text>
+        <Text style={[styles.planDesc, sel && styles.planDescSelected]} numberOfLines={2}>
+          {desc}
+        </Text>
+        {sel && <Icon name="check-circle" size={18} color={COLORS.brandYellow} style={styles.checkmark} />}
       </TouchableOpacity>
     );
   };
 
-  // Render para grupos de checkboxes con input manual (Limitaciones, Alergias)
-  const renderCheckboxGroupWithManualInput = (opcionesBase, estadoActual, setEstado, textoManual, setTextoManual, placeholderManual) => {
-    const opcionesCompletas = opcionesBase.includes('Otro') ? opcionesBase : [...opcionesBase, 'Otro'];
-    const showManualInput = estadoActual.includes('Otro');
+  const renderCheckboxGroupWithManualInput = (
+    opcionesBase, estado, setEstado, manual, setManual, placeholder
+  ) => {
+    const opciones = opcionesBase.includes('Otro') ? opcionesBase : [...opcionesBase, 'Otro'];
+    const showManual = estado.includes('Otro');
 
     return (
       <View>
-        <View style={styles.checkboxContainerTidy}>
-          {opcionesCompletas.map((opcion) => {
-            const isSelected = estadoActual.includes(opcion);
-            const displayText = opcion === 'Otro' ? 'Otro (Especificar)' : opcion;
+        <View style={styles.checkboxContainer}>
+          {opciones.map((opcion) => {
+            const sel = estado.includes(opcion);
             return (
               <TouchableOpacity
                 key={opcion}
-                style={[styles.checkboxChipTidy, isSelected && styles.checkboxChipSelected]}
-                onPress={() => toggleMultiSelection(opcion, estadoActual, setEstado, opcion === 'Otro' ? setTextoManual : null)}
-                activeOpacity={0.7}
+                style={[styles.checkboxChip, sel && styles.checkboxChipSelected]}
+                onPress={() => toggleMultiSelection(opcion, estado, setEstado, opcion === 'Otro' ? setManual : null)}
               >
-                <Text style={[styles.checkboxText, isSelected && styles.checkboxTextSelected]}>{displayText}</Text>
-                {isSelected && <Icon name="check" size={16} color={COLORS.brandGreenDark} style={{marginLeft: 5}} />}
+                <Text style={[styles.checkboxText, sel && styles.checkboxTextSelected]}>
+                  {opcion === 'Otro' ? 'Otro (Especificar)' : opcion}
+                </Text>
+                {sel && <Icon name="check" size={16} color={COLORS.brandGreenDark} />}
               </TouchableOpacity>
             );
           })}
         </View>
-        
-        {showManualInput && (
-            <View style={styles.manualInputContainer}>
-              <Icon name="pencil-outline" size={20} color={COLORS.brandGreen} style={{marginRight: 10}} />
-              <TextInput
-                style={styles.manualInput}
-                placeholder={placeholderManual}
-                placeholderTextColor={COLORS.textMedium}
-                value={textoManual}
-                onChangeText={setTextoManual}
-              />
-            </View>
+
+        {showManual && (
+          <View style={styles.manualInputContainer}>
+            <Icon name="pencil-outline" size={20} color={COLORS.brandGreen} />
+            <TextInput
+              style={styles.manualInput}
+              placeholder={placeholder}
+              placeholderTextColor={COLORS.textMedium}
+              value={manual}
+              onChangeText={setManual}
+            />
+          </View>
         )}
       </View>
     );
   };
 
-  // Nuevo render para grupos de selección única (Sexo)
-  const renderSingleSelectGroup = (opciones, estadoActual, setEstado) => {
-    return (
-      <View style={styles.checkboxContainerTidy}>
-        {opciones.map((opcion) => {
-          const isSelected = estadoActual === opcion;
-          return (
-            <TouchableOpacity
-              key={opcion}
-              style={[styles.checkboxChipTidy, isSelected && styles.checkboxChipSelected]}
-              onPress={() => handleSingleSelection(opcion, setEstado)}
-              activeOpacity={0.7}
-            >
-              <Text style={[styles.checkboxText, isSelected && styles.checkboxTextSelected]}>{opcion}</Text>
-              {isSelected && <Icon name="check" size={16} color={COLORS.brandGreenDark} style={{marginLeft: 5}} />}
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-    );
-  };
-
+  const renderSingleSelectGroup = (opciones, estado, setEstado) => (
+    <View style={styles.checkboxContainer}>
+      {opciones.map((opc) => {
+        const sel = estado === opc;
+        return (
+          <TouchableOpacity
+            key={opc}
+            style={[styles.checkboxChip, sel && styles.checkboxChipSelected]}
+            onPress={() => setEstado(opc)}
+          >
+            <Text style={[styles.checkboxText, sel && styles.checkboxTextSelected]}>{opc}</Text>
+            {sel && <Icon name="check" size={16} color={COLORS.brandGreenDark} />}
+          </TouchableOpacity>
+        );
+      })}
+    </View>
+  );
 
   return (
     <View style={styles.mainContainer}>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.brandGreenDark} />
       <SafeAreaView style={styles.safeAreaTop} />
 
-      {/* --- HEADER CENTRADO --- */}
-      <View style={styles.headerBarImproved}>
-        <Text style={styles.headerTitleImproved}>Configura tu Perfil FITA</Text>
+      <View style={styles.headerBar}>
+        <Text style={styles.headerTitle}>Configura tu Perfil FITA</Text>
       </View>
 
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          
-          {/* --- INTRODUCCIÓN MEJORADA (Contenedor con color) --- */}
+      <KeyboardAvoidingView style={{ flex: 1 }}>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+
           <View style={styles.introContainer}>
-            <Icon name="clipboard-text-outline" size={32} color={COLORS.brandGreenDark} style={{marginBottom: 8}} />
+            <Icon name="clipboard-text-outline" size={32} color={COLORS.brandGreenDark} />
             <Text style={styles.welcomeSectionTitle}>Tu Perfil de Entreno</Text>
             <Text style={styles.welcomeSubtitle}>
               Completa esta información para generar un plan adaptado a tus necesidades.
             </Text>
           </View>
 
-          {/* --- SECCIÓN 1: PLANES --- */}
+          {/* PLAN */}
           <View style={styles.sectionContainer}>
-            <Text style={styles.sectionTitle}><Icon name="star" size={20} color={COLORS.brandYellow} /> Objetivo Principal</Text>
+            <Text style={styles.sectionTitle}>
+              <Icon name="star" size={20} color={COLORS.brandYellow} /> Objetivo Principal
+            </Text>
+
             <View style={styles.planesRow}>
               {renderPlanOption('Plan 1', 'dumbbell', 'Pérdida de peso')}
               {renderPlanOption('Plan 2', 'arm-flex', 'Tonificación')}
@@ -334,79 +322,115 @@ export default function Datos({ route, navigation }) {
             </View>
           </View>
 
-          {/* --- SECCIÓN 1.5: SEXO (NUEVO) --- */}
+          {/* SEXO */}
           <View style={styles.sectionContainer}>
-            <Text style={styles.sectionTitle}><Icon name="gender-male-female" size={20} color={COLORS.brandYellow} /> Sexo</Text>
-            <Text style={styles.sectionHelper}>Esta información nos ayuda a personalizar mejor tu plan.</Text>
+            <Text style={styles.sectionTitle}>
+              <Icon name="gender-male-female" size={20} color={COLORS.brandYellow} /> Sexo
+            </Text>
+            <Text style={styles.sectionHelper}>Esta información ayuda a personalizar tu plan.</Text>
+
             {renderSingleSelectGroup(opcionesSexo, sexo, setSexo)}
           </View>
 
-          {/* --- SECCIÓN 2: DATOS CORPORALES --- */}
+          {/* DATOS */}
           <View style={styles.sectionContainer}>
-            <Text style={styles.sectionTitle}><Icon name="human-male-height" size={20} color={COLORS.brandYellow} /> Mis Medidas</Text>
+            <Text style={styles.sectionTitle}>
+              <Icon name="human-male-height" size={20} color={COLORS.brandYellow} /> Mis Medidas
+            </Text>
+
             <View style={styles.inputsRow}>
               <View style={styles.inputGroupSmall}>
                 <Text style={styles.inputLabel}>Edad</Text>
-                <TextInput style={styles.inputField} placeholder="Años" keyboardType="number-pad" value={edad} onChangeText={setEdad} maxLength={3} />
+                <TextInput
+                  style={styles.inputField}
+                  placeholder="Años"
+                  keyboardType="number-pad"
+                  value={edad}
+                  onChangeText={setEdad}
+                  maxLength={3}
+                />
               </View>
+
               <View style={styles.inputGroupSmall}>
                 <Text style={styles.inputLabel}>Altura (cm)</Text>
-                <TextInput style={styles.inputField} placeholder="Ej: 175" keyboardType="number-pad" value={altura} onChangeText={setAltura} maxLength={3} />
+                <TextInput
+                  style={styles.inputField}
+                  placeholder="Ej: 175"
+                  keyboardType="number-pad"
+                  value={altura}
+                  onChangeText={setAltura}
+                  maxLength={3}
+                />
               </View>
+
               <View style={styles.inputGroupSmall}>
                 <Text style={styles.inputLabel}>Peso (kg)</Text>
-                <TextInput style={styles.inputField} placeholder="Ej: 70.5" keyboardType="decimal-pad" value={peso} onChangeText={setPeso} maxLength={5} />
+                <TextInput
+                  style={styles.inputField}
+                  placeholder="Ej: 70.5"
+                  keyboardType="decimal-pad"
+                  value={peso}
+                  onChangeText={setPeso}
+                  maxLength={5}
+                />
               </View>
             </View>
 
-            {/* --- VISUALIZACIÓN IMC --- */}
             {imc && (
               <View style={styles.imcContainer}>
                 <Text style={styles.imcLabelSmall}>Tu IMC estimado:</Text>
                 <Text style={styles.imcValueLarge}>{imc}</Text>
-                {imcCategory !== '' && (
-                    <Text style={[styles.imcCategoryText, { color: imcColor }]}>
-                      {imcCategory.toUpperCase()}
-                    </Text>
-                )}
+                <Text style={[styles.imcCategoryText, { color: imcColor }]}>
+                  {imcCategory.toUpperCase()}
+                </Text>
               </View>
             )}
           </View>
 
-          {/* --- SECCIÓN 3: LIMITACIONES --- */}
+          {/* LIMITACIONES */}
           <View style={styles.sectionContainer}>
-            <Text style={styles.sectionTitle}><Icon name="alert-circle" size={20} color={COLORS.brandYellow}/> Limitaciones Físicas</Text>
-            <Text style={styles.sectionSubtitleSmall}>Selecciona varias opciones si es necesario.</Text>
-            <Text style={styles.sectionHelper}>Evitaremos ejercicios que afecten estas zonas.</Text>
-            {renderCheckboxGroupWithManualInput(opcionesLimitaciones, limitaciones, setLimitaciones, otraLimitacion, setOtraLimitacion, "Ej: Operación de rodilla hace 2 años...")}
+            <Text style={styles.sectionTitle}>
+              <Icon name="alert-circle" size={20} color={COLORS.brandYellow} /> Limitaciones Físicas
+            </Text>
+
+            <Text style={styles.sectionHelper}>Selecciona varias si es necesario.</Text>
+
+            {renderCheckboxGroupWithManualInput(
+              opcionesLimitaciones,
+              limitaciones,
+              setLimitaciones,
+              otraLimitacion,
+              setOtraLimitacion,
+              "Ej: Operación de rodilla hace 2 años..."
+            )}
           </View>
 
-          {/* --- SECCIÓN 4: ALERGIAS/DIETA --- */}
+          {/* ALERGIAS */}
           <View style={styles.sectionContainer}>
-            <Text style={styles.sectionTitle}><Icon name="food-apple" size={20} color={COLORS.brandYellow}/> Nutrición y Alergias</Text>
-            <Text style={styles.sectionSubtitleSmall}>Selecciona varias opciones.</Text>
-            <Text style={styles.sectionHelper}>Adaptaremos tu plan nutricional a tus necesidades.</Text>
-            {renderCheckboxGroupWithManualInput(opcionesAlergias, alergias, setAlergias, otraAlergia, setOtraAlergia, "Ej: Intolerancia leve a la lactosa...")}
+            <Text style={styles.sectionTitle}>
+              <Icon name="food-apple" size={20} color={COLORS.brandYellow} /> Nutrición y Alergias
+            </Text>
+
+            <Text style={styles.sectionHelper}>Selecciona todas las que apliquen.</Text>
+
+            {renderCheckboxGroupWithManualInput(
+              opcionesAlergias,
+              alergias,
+              setAlergias,
+              otraAlergia,
+              setOtraAlergia,
+              "Ej: alergia a mariscos..."
+            )}
           </View>
 
-          {/* --- BOTÓN GUARDAR --- */}
-          <TouchableOpacity
-            style={[styles.botonGuardar, loading && styles.botonDeshabilitado]}
-            onPress={guardarDatos}
-            disabled={loading}
-            activeOpacity={0.9}
-          >
-              {loading ? (
-                  <ActivityIndicator color={COLORS.brandGreenDark} /> 
-              ) : (
-                  <>
-                   <Text style={styles.textoBotonGuardar}>FINALIZAR PERFIL</Text>
-                   <Icon name="check-bold" size={20} color={COLORS.brandGreenDark} style={{marginLeft: 8}}/>
-                  </>
-              )}
+          {/* BOTÓN GUARDAR */}
+          <TouchableOpacity style={styles.saveButton} onPress={guardarDatos} disabled={loading}>
+            {loading ? (
+              <ActivityIndicator color="#FFF" />
+            ) : (
+              <Text style={styles.saveButtonText}>Guardar Perfil</Text>
+            )}
           </TouchableOpacity>
-          
-          <View style={{height: 40}}/>
 
         </ScrollView>
       </KeyboardAvoidingView>

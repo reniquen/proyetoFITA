@@ -1,16 +1,13 @@
 // screens/UserDataContext.js
-// =====================================================
-// EL CEREBRO COMPLETO DE LA APP (VERSIÓN FINAL CON DIETAS)
-// =====================================================
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import { auth, db } from './firebaseConfig';
 import { doc, getDoc, updateDoc, arrayUnion, arrayRemove, setDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import { Alert } from 'react-native';
 
-// --- IMPORTACIÓN DE CATÁLOGOS (MISMA CARPETA) ---
-import { RUTINAS_MAESTRAS } from './RoutineCatalog';
-// IMPORTANTE: Ahora importamos DIETAS_MAESTRAS desde 'Comidas.js'
+// --- IMPORTAMOS LOS CATÁLOGOS ---
+import { RUTINAS_MAESTRAS } from './RoutineCatalog'; 
+// IMPORTANTE: Importamos las dietas desde tu archivo 'Comidas.js'
 import { DIETAS_MAESTRAS } from './Comidas'; 
 
 const UserDataContext = createContext();
@@ -33,7 +30,6 @@ export const UserDataProvider = ({ children }) => {
 
   // Estado para el calendario de recetas
   const [recetasCalendar, setRecetasCalendar] = useState({});
-
 
   // =====================================================
   // 1. MOTOR DE FILTRADO DE RUTINAS
@@ -77,24 +73,24 @@ export const UserDataProvider = ({ children }) => {
         setRecetasCalendar(data.calendarRecipes || {});
 
         // --- PROCESAR RUTINAS Y DIETAS ---
-        const userPlan = data.plan || 'Plan 1'; // Red de seguridad
+        // Si no tiene plan, usamos 'Plan 1' por defecto (seguridad para usuarios antiguos)
+        const userPlan = data.plan || 'Plan 1'; 
         const userLimitaciones = data.limitacionesFisicas || [];
         
         console.log("Cargando datos para plan:", userPlan);
 
         // 1. Rutinas
-        const rutinasMaestrasDelPlan = RUTINAS_MAESTRAS[userPlan];
+        const rutinasMaestrasDelPlan = RUTINAS_MAESTRAS[userPlan] || {};
         const rutinasPersonalizadas = filtrarRutinasPorLimitaciones(rutinasMaestrasDelPlan, userLimitaciones);
         setRutinasFiltradas(rutinasPersonalizadas);
 
-        // 2. Dietas
+        // 2. Dietas (Desde Comidas.js)
         const dietasDelPlan = DIETAS_MAESTRAS[userPlan] || {};
         setDietasFiltradas(dietasDelPlan);
 
       } else {
         setUserData({}); setRecetasCalendar({});
         setRutinasFiltradas({}); setDietasFiltradas({});
-        setIsLoadingData(false);
       }
     } catch (error) {
       console.error("Error cargando datos:", error);
@@ -133,12 +129,20 @@ export const UserDataProvider = ({ children }) => {
     } catch (error) { console.error("Error guardando receta:", error); }
   };
 
-  const marcarEjercicioComoRealizado = async (dia, ejercicioIndex) => { /* ... */ };
+  const updateDietTemplate = async (dia, nombreComida, comidaDetalle, calorias) => {
+      // Lógica futura si quieres editar la dieta
+      console.log("Actualizar dieta:", dia, nombreComida);
+  };
+
+  const marcarEjercicioComoRealizado = async (dia, ejercicioIndex) => { 
+      // Lógica de checks
+  };
 
   return (
     <UserDataContext.Provider value={{
       user, userData, rutinas: rutinasFiltradas, dietas: dietasFiltradas,
-      recetasCalendar, isLoadingData, recargarDatos, marcarEjercicioComoRealizado, addRecipeToCalendar
+      recetasCalendar, isLoadingData, recargarDatos, marcarEjercicioComoRealizado, 
+      addRecipeToCalendar, updateDietTemplate
     }}>
       {children}
     </UserDataContext.Provider>
