@@ -53,6 +53,7 @@ export default function App() {
                 <Stack.Screen name="Login" component={LoginScreen} />
                 <Stack.Screen name="Registro" component={RegistroScreen} /> 
                 <Stack.Screen name="Home" component={Home} />
+                <Stack.Screen name="Registro" component={Registro} />
                 
                 {/* Pantallas del Chat y Avatar */}
                 <Stack.Screen name="AvatarChat" component={AvatarChatScreen} />
