@@ -4,7 +4,7 @@
     "slug": "fitA",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/avatar/image.png",
+    "icon": "./assets/logofita.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": false,
     "splash": {
