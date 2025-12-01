@@ -50,7 +50,7 @@ export default function Home({ navigation }) {
     // 🔥 HOOKS (TODOS DEBEN IR AL INICIO DEL COMPONENTE SIN CONDICIONES) 🔥
     // ----------------------------------------------------------------------
 
-    // --- ESTADOS ---
+    // --- ESTADOS (7x useState) ---
     const [modalVisible, setModalVisible] = useState(false);
     const [selectedVideoId, setSelectedVideoId] = useState(null);
     const [isPlaying, setIsPlaying] = useState(false);
@@ -61,16 +61,49 @@ export default function Home({ navigation }) {
     const [rutinaDiaIndex, setRutinaDiaIndex] = useState(new Date().getDay());
     const [dietaDiaIndex, setDietaDiaIndex] = useState(new Date().getDay());
 
-    // --- CONTEXTO ---
-    const { rutinas, dietas, isLoadingData } = useUserData(); // useContext 1
-    const { isSubscribed } = useSubscription();               // useContext 2
+    // --- CONTEXTO (2x useContext) ---
+    const { rutinas, dietas, isLoadingData } = useUserData();
+    const { isSubscribed } = useSubscription();
 
     const diasSemana = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
 
-    // ✅ CORRECCIÓN: useEffect AHORA es llamado incondicionalmente.
+    // ----------------------------------------------------------------------
+    // ✅ FUNCIONES DE UTILIDAD (Deben ser definidas antes de usarse en Hooks)
+    // ----------------------------------------------------------------------
+
+    const getDynamicTip = () => {
+        const hour = new Date().getHours();
+        if (hour < 12) return "¡Buen día! Un desayuno alto en proteína es clave.";
+        if (hour < 19) return "¡Vamos a entrenar! Termina el día con fuerza.";
+        return "El descanso es parte fundamental del progreso.";
+    };
+
+    const handleLogout = () => {
+        Alert.alert("Cerrar Sesión", "¿Estás seguro?", [
+            { text: "Cancelar", style: "cancel" },
+            { text: "Sí, Salir", onPress: () => signOut(auth).then(() => navigation.replace('Login')) }
+        ]);
+    };
+
+    const closeVideo = () => {
+        setIsPlaying(false);
+        setModalVisible(false);
+        setSelectedVideoId(null);
+    };
+
+    // ----------------------------------------------------------------------
+    // 🔥 HOOKS DEPENDIENTES DE FUNCIONES DE UTILIDAD Y HOOKS DE NAVEGACIÓN
+    // ----------------------------------------------------------------------
+
+    // 1x useEffect
     useEffect(() => { setDynamicTip(getDynamicTip()); }, []);
 
-    // ✅ CORRECCIÓN: useFocusEffect AHORA es llamado incondicionalmente.
+    // 1x useCallback (para el estado del video)
+    const onStateChange = useCallback((state) => {
+        if (state === "ended") closeVideo();
+    }, [closeVideo]); // Se agregó closeVideo como dependencia (aunque es estable)
+
+    // 1x useFocusEffect (que incluye un useCallback)
     useFocusEffect(
         React.useCallback(() => {
             const handleBackPress = () => {
@@ -83,12 +116,14 @@ export default function Home({ navigation }) {
             };
             const backHandler = BackHandler.addEventListener('hardwareBackPress', handleBackPress);
             return () => backHandler.remove();
-        }, [menuOpen])
+        }, [menuOpen, handleLogout])
     );
     // ----------------------------------------------------------------------
+    // 🔥 FIN DE LLAMADA DE HOOKS (TODOS LOS HOOKS DEBEN TERMINAR AQUÍ)
+    // ----------------------------------------------------------------------
+
 
     // --- BLOQUE DE SEGURIDAD DE CARGA ---
-    // ✅ Este return AHORA es seguro porque todos los Hooks ya se llamaron.
     if (isLoadingData) {
         return (
             <View style={[styles.contenedorPrincipal, { justifyContent: 'center', alignItems: 'center' }]}>
@@ -100,7 +135,7 @@ export default function Home({ navigation }) {
             </View>
         );
     }
-    
+
     // --- LÓGICA PARA CAMBIAR DÍAS ---
     const cambiarDietaDia = (delta) => {
         setDietaDiaIndex((prevIndex) => {
@@ -128,13 +163,6 @@ export default function Home({ navigation }) {
         );
     };
 
-    const getDynamicTip = () => {
-        const hour = new Date().getHours();
-        if (hour < 12) return "¡Buen día! Un desayuno alto en proteína es clave.";
-        if (hour < 19) return "¡Vamos a entrenar! Termina el día con fuerza.";
-        return "El descanso es parte fundamental del progreso.";
-    };
-
     const openVideo = (videoUrl) => {
         const videoId = getYouTubeId(videoUrl);
         if (videoId) {
@@ -146,22 +174,10 @@ export default function Home({ navigation }) {
         }
     };
 
-    const closeVideo = () => {
-        setIsPlaying(false);
-        setModalVisible(false);
-        setSelectedVideoId(null);
-    };
-
-    const onStateChange = useCallback((state) => {
-        if (state === "ended") closeVideo();
-    }, []);
-
     // ==================================================================
     // 🔥 EXTRACCIÓN DE DATOS 🔥
     // ==================================================================
 
-    // CORRECCIÓN LÓGICA: Usar rutinaDiaIndex (estado) en lugar de new Date().getDay()
-    // para que al pulsar las flechas, cambien los datos.
     const diaMostradoRutina = diasSemana[rutinaDiaIndex];
     const datosRutinaDia = rutinas ? rutinas[diaMostradoRutina] : null;
     const rutinaHoy = datosRutinaDia ? datosRutinaDia.ejercicios : [];
@@ -173,14 +189,6 @@ export default function Home({ navigation }) {
 
     const totalCalorias = dietaHoy.reduce((total, comida) => total + (comida.calorias || 0), 0);
     // ==================================================================
-
-
-    const handleLogout = () => {
-        Alert.alert("Cerrar Sesión", "¿Estás seguro?", [
-            { text: "Cancelar", style: "cancel" },
-            { text: "Sí, Salir", onPress: () => signOut(auth).then(() => navigation.replace('Login')) }
-        ]);
-    };
 
     const renderAsset = (ejercicio) => {
         if (ejercicio.imagen) {
