@@ -9,6 +9,7 @@ import {
   SafeAreaView, 
   Linking 
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function AboutUs({ navigation }) {
   
@@ -18,13 +19,24 @@ export default function AboutUs({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
+      
+      {/* --- HEADER ESTILO TIKTOK --- */}
+      <View style={styles.headerBar}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButtonHeader}>
+          <Ionicons name="arrow-back" size={28} color="black" />
+        </TouchableOpacity>
+        <Text style={styles.screenTitle}>Quiénes Somos</Text>
+        <View style={{ width: 28 }} />
+      </View>
+      {/* ----------------------------- */}
+
       <ScrollView contentContainerStyle={styles.scrollContent}>
         
         {/* Cabecera con Logo */}
-        <View style={styles.header}>
+        <View style={styles.logoSection}>
           <View style={styles.logoContainer}>
             {/* Si tienes el logo, úsalo. Si no, usa este texto estilizado */}
-             <Image source={require('../assets/logofita.png')} style={styles.logoImage} resizeMode="contain" />
+             <Image source={require('../assets/ejercicios/logofita.png')} style={styles.logoImage} resizeMode="contain" />
           </View>
           <Text style={styles.appName}>FITA</Text>
           <Text style={styles.appTagline}>Fitness Intelligent Training Assistant</Text>
@@ -43,24 +55,41 @@ export default function AboutUs({ navigation }) {
 
         {/* Sección: ¿Qué nos hace únicos? */}
         <View style={styles.valuesContainer}>
-          <View style={[styles.valueCard, { backgroundColor: '#e8f8f5' }]}>
-            <Text style={styles.valueEmoji}>🤖</Text>
-            <Text style={styles.valueTitle}>IA Avanzada</Text>
-            <Text style={styles.valueText}>Coach inteligente 24/7.</Text>
-          </View>
-          <View style={[styles.valueCard, { backgroundColor: '#fef5e7' }]}>
-            <Text style={styles.valueEmoji}>🥗</Text>
-            <Text style={styles.valueTitle}>Nutrición</Text>
-            <Text style={styles.valueText}>Planes a tu medida.</Text>
-          </View>
-          <View style={[styles.valueCard, { backgroundColor: '#f4ecf7' }]}>
-            <Text style={styles.valueEmoji}>💪</Text>
-            <Text style={styles.valueTitle}>Rutinas</Text>
-            <Text style={styles.valueText}>Progresión constante.</Text>
-          </View>
-        </View>
 
-        {/* Sección: El Equipo (Dev) */}
+            <View style={[styles.valueCard, { backgroundColor: '#e8f8f5' }]}>
+              <Image 
+                source={require('../assets/asistente-de-ai.png')} 
+                style={styles.valueIcon}   
+              />
+              <Text style={styles.valueTitle}>IA Avanzada</Text>
+              <Text style={styles.valueText}>Coach inteligente 24/7.</Text>
+            </View>
+
+            <View style={[styles.valueCard, { backgroundColor: '#fef5e7' }]}>
+              <Image 
+                source={require('../assets/plan-de-nutricion.png')} 
+                style={styles.valueIcon} 
+              />
+              <Text style={styles.valueTitle}>Nutrición</Text>
+              <Text style={styles.valueText}>Planes a tu medida.</Text>
+            </View>
+
+            <View style={[styles.valueCard, { backgroundColor: '#f4ecf7' }]}>
+              <Image 
+                source={require('../assets/rutina-diaria.png')} 
+                style={styles.valueIcon} 
+              />
+              <Text style={styles.valueTitle}>Rutinas</Text>
+              <Text style={styles.valueText}>Progresión constante.</Text>
+            </View>
+
+</View>
+
+
+
+
+
+        {/* Sección: El Equipo */}
         <Text style={styles.teamHeader}>El Equipo</Text>
         <View style={styles.devCard}>
           <View style={styles.devHeader}>
@@ -78,10 +107,10 @@ export default function AboutUs({ navigation }) {
           </Text>
           
           <View style={styles.socialRow}>
-            <TouchableOpacity style={styles.socialBtn} onPress={() => openLink('https://github.com')}>
+            <TouchableOpacity style={styles.socialBtn} onPress={() => openLink('https://github.com/reniquen')}>
               <Text style={styles.socialText}>GitHub</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.socialBtn, styles.socialBtnAlt]} onPress={() => openLink('https://linkedin.com')}>
+            <TouchableOpacity style={[styles.socialBtn, styles.socialBtnAlt]} onPress={() => openLink('https://www.linkedin.com/in/fita-company-051161398/')}>
               <Text style={styles.socialText}>LinkedIn</Text>
             </TouchableOpacity>
           </View>
@@ -91,10 +120,6 @@ export default function AboutUs({ navigation }) {
         <View style={styles.footer}>
           <Text style={styles.footerText}>Versión 1.0.2</Text>
           <Text style={styles.footerText}>Hecho con 💚 en React Native</Text>
-          
-          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-            <Text style={styles.backButtonText}>Volver al Inicio</Text>
-          </TouchableOpacity>
         </View>
 
       </ScrollView>
@@ -105,18 +130,41 @@ export default function AboutUs({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#58d68d', // Color principal de fondo
+    backgroundColor: '#fff', // Fondo blanco para cubrir la barra de estado
   },
-  scrollContent: {
-    paddingBottom: 40,
-  },
-  header: {
+  // --- HEADER ESTILO TIKTOK ---
+  headerBar: {
+    flexDirection: 'row',
+    width: '100%',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 40,
-    backgroundColor: '#fff',
+    paddingHorizontal: 20,
+    paddingBottom: 15,
+    paddingTop: 50, // Espacio superior para bajar la barra blanca
+    backgroundColor: '#fff', 
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
     elevation: 5,
+    zIndex: 10,
+  },
+  backButtonHeader: {
+    padding: 5,
+  },
+  screenTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'black',
+  },
+  // ----------------------------
+  
+  scrollContent: {
+    backgroundColor: '#58d68d', // El verde va en el contenido
+    paddingBottom: 40,
+    paddingTop: 20,
+    minHeight: '100%',
+  },
+  logoSection: {
+    alignItems: 'center',
     marginBottom: 20,
   },
   logoContainer: {
@@ -133,18 +181,18 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
   },
-  logoEmoji: {
-    fontSize: 50,
-  },
   appName: {
     fontSize: 28,
     fontWeight: '900',
-    color: '#2c3e50',
+    color: '#fff',
     letterSpacing: 1,
+    textShadowColor: 'rgba(0,0,0,0.2)',
+    textShadowOffset: {width: 1, height: 1},
+    textShadowRadius: 3,
   },
   appTagline: {
     fontSize: 14,
-    color: '#7f8c8d',
+    color: '#e8f8f5',
     marginTop: 5,
     fontStyle: 'italic',
   },
@@ -294,4 +342,12 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
   },
+
+  valueIcon: {
+    width: 55,
+    height: 55,
+    marginBottom: 8,
+    resizeMode: 'contain',
+  },
+  
 });
