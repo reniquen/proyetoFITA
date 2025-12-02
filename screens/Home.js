@@ -441,7 +441,7 @@ export default function Home({ navigation }) {
              navigation.navigate('AvatarChat');
           }, '#42A5F5')}
           <View style={styles.menuDivider} />
-          {renderMenuItem("information-outline", "Quiénes Somos", () => navigation.navigate('AboutUs'), '#90A4AE')}
+          {renderMenuItem("information-outline", "Terminos y condiciones", () => navigation.navigate('TerminoCondiciones'), '#90A4AE')}
           {renderMenuItem("logout-variant", "Cerrar Sesión", handleLogout, HOME_COLORS.fabRed)} 
         </View>
       )}
