@@ -12,7 +12,6 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import { useUserData } from './UserDataContext';
 import { useSubscription } from './SubscriptionContext';
-// 👇 1. IMPORTAMOS EL CONTEXTO DE PASOS
 import { useStep } from './PasosContext';
 
 function getYouTubeId(url) {
@@ -22,9 +21,7 @@ function getYouTubeId(url) {
   return (match && match[2].length === 11) ? match[2] : null;
 }
 
-// --- DICCIONARIO INTELIGENTE V2 (Con suma y comidas chilenas) ---
 const FOOD_DATABASE = {
-  // Básicos
   "huevo": 78, "huevos": 78, "clara": 17,
   "manzana": 52, "platano": 89, "banana": 89, "naranja": 47,
   "pollo": 165, "pechuga": 165, "carne": 250, "pescado": 206, "atun": 130,
@@ -33,26 +30,14 @@ const FOOD_DATABASE = {
   "avena": 68, "cereal": 120, "granola": 471,
   "ensalada": 50, "tomate": 18, "lechuga": 15,
   "cafe": 2, "te": 1, "jugo": 45, "bebida": 40,
-
-  // 🇨🇱 Especial Chileno
-  "marraqueta": 267, 
-  "hallulla": 321, 
-  "pan": 265, // Pan genérico
+  "marraqueta": 267, "hallulla": 321, "pan": 265,
   "palta": 160, "aguacate": 160,
-  "cazuela": 380,
-  "charquican": 350,
-  "porotos": 400,
-  "lentejas": 320,
-  "humita": 400,
-  "pastel": 500, // Pastel de choclo
-  "empanada": 500,
-  "completo": 550, "italiano": 600,
-  "sopaipilla": 100,
-  "churrasco": 450,
-  "barros": 500, // Barros luco/jarpa
+  "cazuela": 380, "charquican": 350, "porotos": 400, "lentejas": 320,
+  "humita": 400, "pastel": 500, "empanada": 500,
+  "completo": 550, "italiano": 600, "sopaipilla": 100,
+  "churrasco": 450, "barros": 500,
 };
 
-// --- PALETA "VIBRANT FITA" ---
 const HOME_COLORS = {
   background: '#F2F5ED',
   headerBg: '#4CAF50',
@@ -78,59 +63,100 @@ const HOME_COLORS = {
 };
 
 export default function Home({ navigation }) {
+  // =========================================
+  // 1. ESTADOS Y CONTEXTOS
+  // =========================================
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedVideoId, setSelectedVideoId] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [dynamicTip, setDynamicTip] = useState("¡Vamos a entrenar!");
 
-  // --- ESTADOS PARA NAVEGACIÓN DE DÍAS ---
   const [rutinaDiaIndex, setRutinaDiaIndex] = useState(new Date().getDay());
   const [dietaDiaIndex, setDietaDiaIndex] = useState(new Date().getDay());
   
-  // --- ESTADOS PARA EDICIÓN DE COMIDA ---
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [comidaEditando, setComidaEditando] = useState(null); 
   const [indiceEditando, setIndiceEditando] = useState(null);
-  
-  // Estado local de la dieta
   const [dietaLocal, setDietaLocal] = useState([]);
 
   const diasSemana = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
 
   const { rutinas, dietas, isLoadingData } = useUserData();
   const { isSubscribed } = useSubscription();
-  
-  // 👇 2. OBTENEMOS DATOS DEL CONTEXTO DE PASOS
   const { agregarCaloriasExtra, pasos, KCAL_POR_PASO, caloriasExtra } = useStep();
 
-  // Sincronizar dieta local
-  const diaMostradoDieta = diasSemana[dietaDiaIndex];
+  // =========================================
+  // 2. FUNCIONES AUXILIARES (Definidas ANTES de ser usadas)
+  // =========================================
+  const getDynamicTip = useCallback(() => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "¡Buen día! Un desayuno alto en proteína es clave.";
+    if (hour < 19) return "¡Vamos a entrenar! Termina el día con fuerza.";
+    return "El descanso es parte fundamental del progreso.";
+  }, []);
+
+  const closeVideo = useCallback(() => { 
+    setIsPlaying(false); 
+    setModalVisible(false); 
+    setSelectedVideoId(null); 
+  }, []);
+
+  const handleLogout = useCallback(() => {
+    Alert.alert("Cerrar Sesión", "¿Estás seguro?", [
+      { text: "Cancelar", style: "cancel" },
+      { text: "Sí, Salir", onPress: () => signOut(auth).then(() => navigation.replace('Login')) }
+    ]);
+  }, [navigation]);
+
+  // =========================================
+  // 3. HOOKS (EFFECTS)
+  // =========================================
   
+  // Efecto: Tip Dinámico
+  useEffect(() => { 
+    setDynamicTip(getDynamicTip()); 
+  }, [getDynamicTip]);
+
+  // ✅ EFECTO DIETA CORREGIDO (Anti-Bucle Infinito)
+  const diaMostradoDieta = diasSemana[dietaDiaIndex];
   useEffect(() => {
-    if (dietas && dietas[diaMostradoDieta]) {
-      setDietaLocal(dietas[diaMostradoDieta].comidas || []);
-    } else {
-      setDietaLocal([]);
+    // Solo actualizamos si YA cargaron los datos
+    if (!isLoadingData && dietas) {
+      if (dietas[diaMostradoDieta]) {
+        setDietaLocal(dietas[diaMostradoDieta].comidas || []);
+      } else {
+        setDietaLocal([]);
+      }
     }
-  }, [dietas, dietaDiaIndex]);
+    // ⚠️ IMPORTANTE: Quitamos 'dietas' de la dependencia para evitar el loop,
+    // solo reaccionamos al cambio de día o cuando termina de cargar.
+  }, [dietaDiaIndex, isLoadingData]); 
 
-  // --- LÓGICA DE EDICIÓN ---
-  const abrirEditorComida = (comida, index) => {
-    setComidaEditando({ ...comida }); 
-    setIndiceEditando(index);
-    setEditModalVisible(true);
-  };
+  // Callback Video
+  const onStateChange = useCallback((state) => {
+    if (state === "ended") closeVideo();
+  }, [closeVideo]);
 
-  const guardarEdicionComida = () => {
-    const nuevaLista = [...dietaLocal];
-    nuevaLista[indiceEditando] = comidaEditando;
-    setDietaLocal(nuevaLista);
-    setEditModalVisible(false);
-    
-    Alert.alert("Actualizado", "Tu plan de alimentación se ha modificado para hoy.");
-  };
+  // Manejo del botón Atrás de Android
+  useFocusEffect(
+    React.useCallback(() => {
+      const handleBackPress = () => {
+        if (menuOpen) {
+          setMenuOpen(false);
+          return true;
+        }
+        handleLogout();
+        return true;
+      };
+      const backHandler = BackHandler.addEventListener('hardwareBackPress', handleBackPress);
+      return () => backHandler.remove();
+    }, [menuOpen, handleLogout])
+  );
 
+  // =========================================
+  // 4. BLOQUEO DE CARGA (Justo aquí)
+  // =========================================
   if (isLoadingData) {
     return (
         <View style={[styles.contenedorPrincipal, { justifyContent: 'center', alignItems: 'center' }]}>
@@ -143,13 +169,21 @@ export default function Home({ navigation }) {
     );
   }
 
-  useEffect(() => { setDynamicTip(getDynamicTip()); }, []);
+  // =========================================
+  // 5. RESTO DE LA LÓGICA DE INTERFAZ
+  // =========================================
+  const abrirEditorComida = (comida, index) => {
+    setComidaEditando({ ...comida }); 
+    setIndiceEditando(index);
+    setEditModalVisible(true);
+  };
 
-  const handleLogout = () => {
-    Alert.alert("Cerrar Sesión", "¿Estás seguro?", [
-      { text: "Cancelar", style: "cancel" },
-      { text: "Sí, Salir", onPress: () => signOut(auth).then(() => navigation.replace('Login')) }
-    ]);
+  const guardarEdicionComida = () => {
+    const nuevaLista = [...dietaLocal];
+    nuevaLista[indiceEditando] = comidaEditando;
+    setDietaLocal(nuevaLista);
+    setEditModalVisible(false);
+    Alert.alert("Actualizado", "Tu plan de alimentación se ha modificado para hoy.");
   };
 
   const cambiarDietaDia = (delta) => {
@@ -170,27 +204,15 @@ export default function Home({ navigation }) {
     });
   };
 
-  // ==================================================================
-  // 🔥 LÓGICA DE NAVEGACIÓN Y EXTRACCIÓN DE DATOS DE RUTINA 🔥
-  // ==================================================================
-  
-  // Usamos el índice del estado (rutinaDiaIndex) en lugar de new Date().getDay()
-  // para que las flechas funcionen correctamente.
   const diaMostradoRutina = diasSemana[rutinaDiaIndex]; 
   const datosRutinaDia = rutinas ? rutinas[diaMostradoRutina] : null;
   const rutinaHoy = datosRutinaDia ? datosRutinaDia.ejercicios : [];
   const enfoqueHoy = datosRutinaDia ? datosRutinaDia.enfoque : '';
 
-  // ==================================================================
-  // 🔥 FUNCIONALIDAD DEL BOTÓN CHECK (CALCULO DE CALORÍAS) 🔥
-  // ==================================================================
   const confirmarRutinaCompletada = () => {
-      // 1. Calculamos las calorías EXACTAS de la rutina que se está viendo
       let kcalRutina = 0;
-      
       if (rutinaHoy && rutinaHoy.length > 0) {
           kcalRutina = rutinaHoy.reduce((total, ejercicio) => {
-              // Verificamos si existe la propiedad 'calorias' definida en el catálogo
               if (ejercicio.calorias !== undefined) {
                   return total + ejercicio.calorias;
               }
@@ -198,22 +220,14 @@ export default function Home({ navigation }) {
           }, 0);
       }
       kcalRutina = Math.round(kcalRutina);
-
-      // 2. Calculamos las calorías de la caminata actual (en vivo desde el Contexto)
       const kcalCaminata = parseFloat((pasos * KCAL_POR_PASO).toFixed(1)) || 0;
-      
-      // 3. Obtenemos lo que ya llevábamos acumulado (si se completaron otras rutinas hoy)
       const kcalPrevias = parseFloat(caloriasExtra) || 0;
-
-      // 4. Gran Total = Caminata + Rutina Actual + Rutinas Previas
       const granTotal = (kcalCaminata + kcalPrevias + kcalRutina).toFixed(1);
 
-      // 5. Enviamos SOLO las calorías nuevas al contexto para que se sumen
       if (typeof agregarCaloriasExtra === 'function') {
           if (kcalRutina > 0) {
               agregarCaloriasExtra(kcalRutina);
           }
-          
           Alert.alert(
               "¡Entrenamiento Finalizado! 🏆",
               `Has completado la rutina del ${diaMostradoRutina.toUpperCase()}.\n\n` +
@@ -228,22 +242,12 @@ export default function Home({ navigation }) {
       }
   };
 
-  const getDynamicTip = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return "¡Buen día! Un desayuno alto en proteína es clave.";
-    if (hour < 19) return "¡Vamos a entrenar! Termina el día con fuerza.";
-    return "El descanso es parte fundamental del progreso.";
-  };
-
   const openVideo = (videoUrl) => {
     const videoId = getYouTubeId(videoUrl);
     if (videoId) { setSelectedVideoId(videoId); setIsPlaying(true); setModalVisible(true); } 
     else { Alert.alert("Aviso", "Este ejercicio no tiene video disponible."); }
   };
 
-  const closeVideo = () => { setIsPlaying(false); setModalVisible(false); setSelectedVideoId(null); };
-  const onStateChange = useCallback((state) => { if (state === "ended") closeVideo(); }, []);
-  
   const totalCalorias = dietaLocal.reduce((total, comida) => total + (parseInt(comida.calorias) || 0), 0);
 
   const renderAsset = (ejercicio) => {
@@ -266,6 +270,9 @@ export default function Home({ navigation }) {
     </TouchableOpacity>
   );
 
+  // =========================================
+  // 6. RENDER PRINCIPAL
+  // =========================================
   return (
     <View style={styles.contenedorPrincipal}>
       <StatusBar backgroundColor={HOME_COLORS.headerBg} barStyle="light-content" />
@@ -308,7 +315,6 @@ export default function Home({ navigation }) {
             
             <View style={styles.superCardContent}>
                 <View style={styles.subtitleWrapperCentered}>
-                    {/* AQUÍ ESTABA EL ERROR: Ahora usamos diaMostradoRutina en vez de diaActualRutina */}
                     <Text style={styles.sectionSubtitle}>{diaMostradoRutina.toUpperCase()}</Text>
                     {enfoqueHoy ? <Text style={styles.enfoqueText}>{enfoqueHoy}</Text> : null}
                     <View style={styles.subtitleUnderlineCentered} />
@@ -352,7 +358,7 @@ export default function Home({ navigation }) {
             </View>
           </View>
 
-          {/* === DIETA CARD (CON EDICIÓN INTELIGENTE) === */}
+          {/* === DIETA CARD === */}
           <View style={styles.superCardContainer}>
             <View style={styles.superCardHeaderDiet}>
                 <TouchableOpacity onPress={() => cambiarDietaDia(-1)} style={styles.navButtonHeader}>
@@ -435,12 +441,12 @@ export default function Home({ navigation }) {
              navigation.navigate('AvatarChat');
           }, '#42A5F5')}
           <View style={styles.menuDivider} />
-          {renderMenuItem("information-outline", "Terminos y condiciones", () => navigation.navigate('TerminosCondiciones'), '#90A4AE')}
+          {renderMenuItem("information-outline", "Quiénes Somos", () => navigation.navigate('AboutUs'), '#90A4AE')}
           {renderMenuItem("logout-variant", "Cerrar Sesión", handleLogout, HOME_COLORS.fabRed)} 
         </View>
       )}
 
-      {/* --- MODAL DE EDICIÓN CON LÓGICA INTELIGENTE --- */}
+      {/* --- MODAL DE EDICIÓN --- */}
       <Modal animationType="slide" transparent={true} visible={editModalVisible} onRequestClose={() => setEditModalVisible(false)}>
         <View style={styles.modalBackdrop}>
           <View style={styles.editModalContent}>
@@ -483,7 +489,6 @@ export default function Home({ navigation }) {
               keyboardType="numeric"
               onChangeText={(text) => setComidaEditando({...comidaEditando, calorias: text})}
             />
-            {/* Pista visual */}
             <Text style={{fontSize: 12, color: '#4CAF50', marginBottom: 15, fontStyle: 'italic', textAlign: 'center'}}>
                ✨ Detectando alimentos automáticamente...
             </Text>
