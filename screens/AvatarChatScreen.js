@@ -23,7 +23,7 @@ import { CHILEAN_FOOD } from './ChileanFoodCatalog';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 // ⚠️ IMPORTANTE: Usa tu clave segura aquí
-const API_KEY = "AIzaSyAfM3gdPuoig_PprpIcIVuWN_ORm9gV9O8";
+const API_KEY = "AIzaSyDk6Y-hP7RP4PIM-dts0598mtu2BXV7Nx0";
 
 const genAI = new GoogleGenerativeAI(API_KEY);
 
@@ -99,7 +99,8 @@ const AvatarChatScreen = ({ navigation }) => {
     try {
       const responseJSON = await getGeminiAdvancedResponse(userMessage);
 
-      if (responseJSON.tool_calls) {
+      // Verificación de seguridad por si responseJSON es undefined
+      if (responseJSON && responseJSON.tool_calls) {
         for (const call of responseJSON.tool_calls) {
           if (call.tool_name === "set_routine_preset") {
             await setRoutinePreset(call.parameters.dia, call.parameters.presetName);
@@ -118,7 +119,7 @@ const AvatarChatScreen = ({ navigation }) => {
 
       const botMessage = {
         _id: Math.random().toString(36).substring(7),
-        text: responseJSON.final_response || "¡Hecho! He actualizado tu plan.",
+        text: responseJSON?.final_response || "¡Hecho! He actualizado tu plan.",
         createdAt: new Date(),
         user: avatarBot
       };
@@ -127,20 +128,33 @@ const AvatarChatScreen = ({ navigation }) => {
 
     } catch (error) {
       console.error("Error IA:", error);
-      Alert.alert("Error", "Tu IA tuvo un problema. Intenta de nuevo.");
+      // Mensaje amigable en el chat en lugar de solo alerta
+      const errorMessage = {
+        _id: Math.random().toString(36).substring(7),
+        text: "Tuve un pequeño problema técnico, ¿puedes repetirlo?",
+        createdAt: new Date(),
+        user: avatarBot
+      };
+      setMessages(prev => GiftedChat.append(prev, [errorMessage]));
     } finally {
       setIsBotSpeaking(false);
     }
   };
 
   const getGeminiAdvancedResponse = async (userMessage) => {
+    // CORRECCIÓN PRINCIPAL: Añadidos Fallbacks (|| {}) para evitar el error "undefined value to object"
+    const safeRecetas = recetasCalendar || {};
+    const safeRutinas = rutinas || {};
+    const safeDietas = dietas || {};
+    const safePresets = PRESET_ROUTINES || {};
+
     const contextData = JSON.stringify({
       dia_actual: new Date().toLocaleDateString('es-CL', { weekday: 'long' }),
       fecha_hoy: new Date().toISOString().split("T")[0],
-      rutinas_actuales: rutinas,
-      dietas_actuales: dietas,
-      calendario_reciente: Object.entries(recetasCalendar).slice(-3),
-      presets_disponibles: Object.keys(PRESET_ROUTINES).join(", "),
+      rutinas_actuales: safeRutinas,
+      dietas_actuales: safeDietas,
+      calendario_reciente: Object.entries(safeRecetas).slice(-3),
+      presets_disponibles: Object.keys(safePresets).join(", "),
       catalogo_chileno: CHILEAN_FOOD
     });
 
@@ -171,15 +185,19 @@ RESPONDE SIEMPRE EN FORMATO JSON:
   "final_response": "texto para el usuario (usa emojis)"
 }
 `;
-    const result = await model.generateContent(systemPrompt + `\nUsuario: "${userMessage}"`);
-    const text = result.response.text();
-
+    
     try {
+      const result = await model.generateContent(systemPrompt + `\nUsuario: "${userMessage}"`);
+      const text = result.response.text();
+      
+      // CORRECCIÓN SECUNDARIA: Manejo correcto del scope en el try/catch
       const cleanedText = text.replace(/```json|```/g, '').trim();
       return JSON.parse(cleanedText);
+
     } catch (e) {
-      console.error("Gemini no devolvió JSON válido:", text);
-      return { final_response: cleanedText || text };
+      console.error("Gemini no devolvió JSON válido o falló la red:", e);
+      // Retornar un objeto seguro para que la app no explote
+      return { final_response: "Lo siento, tuve problemas procesando eso. ¿Podrías intentar de nuevo?" };
     }
   };
 
